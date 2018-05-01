@@ -1,33 +1,22 @@
 {
   "name": "genie-cmd",
-  "description": "とりあえずテスト",
-  "version": "0.0.5",
+  "description": "node版genie",
+  "version": "0.0.6",
   "license": "MIT",
   "dependencies": {
-    "babel-core": "^6.26.3",
-    "babel-plugin-transform-runtime": "^6.23.0",
-    "babel-preset-env": "^1.6.1",
-    "cli-color": "^1.2.0",
-    "es6-promise": "^4.2.4",
-    "eslint": "^4.19.1",
-    "gulp": "^3.9.1",
-    "gulp-babel": "^7.0.1",
-    "gulp-cache": "^1.0.2",
-    "gulp-cli": "^2.0.1",
-    "gulp-concat": "^2.6.1",
-    "gulp-eslint": "^4.0.2",
-    "gulp-plumber": "^1.2.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-uglify": "^3.0.0",
     "optimist": "^0.6.1",
+    "parcel-bundler": "^1.7.1",
+    "cli-color": "^1.2.0",
     "string-width": "^2.1.1"
   },
   "private": false,
   "bin": {
-    "genie": "dist/genie",
-    "g": "dist/genie"
+    "genie": "dist/genie.js",
+    "g": "dist/genie.js"
   },
   "scripts": {
-    "start": "npx gulp dev"
+    "dev": "npx parcel watch src/genie.js --out-dir dist --out-file genie --target node --no-source-maps",
+    "build": "npx parcel build src/genie.js --out-dir dist --out-file genie --target node --no-source-maps --no-cache",
+    "npm-up": "npm publish"
   }
 }

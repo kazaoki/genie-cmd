@@ -1,28 +1,35 @@
 
 'use strict'
 
+const stringWidth = require('string-width')
+const clc = require('cli-color')
+const rl = require('readline').createInterface(process.stdin, process.stdout);
+
+/**
+ * Repeat
+ * @param {*} string
+ * @param {*} times
+ */
+module.exports.Repeat = function (string, times=1)
+{
+	var lump = '';
+	if(times>0) {
+		for(var i=0; i<times; i++) {
+			lump += string;
+		}
+	}
+	return lump;
+}
+const Repeat = module.exports.Repeat;
+
 /**
  * Message
+ * @param {*} message
+ * @param {*} type
+ * @param {*} line
  */
-function Message(message, type='default', line=0)
+module.exports.Message = function (message, type='default', line=0)
 {
-	// console.log(message)
-	// console.log(type)
-	// console.log(line)
-
-	// var cls = clc.xterm(10).bgXterm(14);
-
-	// console.log(clc.white.bgBlue.bold('                            '));
-
-	// console.log(cls('ABC'));
-	// process.stdout.write(clc.reset);
-	// process.stdout.write(clc.erase.screen);
-	// process.stdout.write(clc.erase.screenRight);
-	// process.stdout.write(clc.move(-2, -2)); // Move cursors two columns and two rows back
-
-	// process.stdout.write(clc.move.lines(2));
-	// console.log(cls('123'));
-
 	var indent = '  ';
 	var line_color = clc.white;
 	var fg_color = clc.white;
@@ -81,82 +88,34 @@ function Message(message, type='default', line=0)
 		line_color('┛')
 	)
 }
-function Repeat(string, times=1)
-{
-	var lump = '';
-	if(times>0) {
-		for(var i=0; i<times; i++) {
-			lump += string;
-		}
-	}
-	return lump;
-}
 
 /**
  * Input
+ * @param {*} message
+ * @param {*} tail_space
  */
-function Input(message, tail_space=20)
+module.exports.Input = function (message, tail_space=20)
 {
-	var indent = '  ';
+	var indent = clc.bgBlack('  ');
 	message = '  ' + message + '  ';
 	var len = stringWidth(message) + tail_space;
 	var fg = clc.whiteBright.bgBlueBright;
 	var bg = clc.bgBlue;
 	console.log(
+		'\n' +
 		indent + fg(Repeat(' ', len)) + '\n' +
 		indent + fg(message + Repeat(' ', tail_space))  + '\n' +
 		indent + fg(Repeat(' ', len)) + '\n' +
 		indent + bg(Repeat(' ', len))
 	);
-
-	// var input = fs.readFileSync('/dev/stdin', 'utf8');
-	// var input = '';
-	// process.stdin.resume();
-	// process.stdin.setEncoding('utf8');
-	// process.stdin.on('data', function(chunk) {
-	// 	input += chunk;
-	// });
-	// process.stdin.on('end', function() {
-	// 	return input;
-	// });
-
-	// var f = async () => {
-	// 	var ret = await () => {
-	// 		const rl=require("readline").createInterface(process.stdin,process.stdout);
-	// 		rl.on("line",function(str){
-	// 			console.log("get:"+str);
-	// 		});
-	// 	}
-	// };
-	// f();
-
-	// rl.moveCursor(process.stdin, 0,0)
-
-	// (async function(){
-	// 	// var str = await new Promise(res=>rl.once("line",res));
-	// 	// console.log("getA:"+str);
-	// 	// str = await new Promise(res=>rl.once("line",res));
-	// 	// console.log("getB:"+str);
-	// 	// str = await new Promise(res=>rl.once("line",res));
-	// 	// console.log("getC:"+str);
-	// 	// console.log("end");
-
-	// 	//関数化
-	// 	const gets=()=>new Promise(res=>rl.once("line",res))
-	// 	var str = await gets();
-	// 	console.log("getA:" + str);
-	// 	str = await gets();
-	// 	console.log("getB:" + str);
-	// 	str = await gets();
-	// 	console.log("getC:" + str);
-	// 	console.log("end");
-
-	// 	process.exit();
-	// })();
-
-	(async ()=>{
-		console.log('!!');
-	})();
-
-
+	process.stdout.write(clc.move.up(3));
+	process.stdout.write(clc.move.right(len - tail_space));
+	return new Promise (
+		(result) => {
+			rl.on('line', (input)=>{
+				process.stdout.write(clc.move.down(3));
+				result(input)
+			})
+		}
+	);
 }

@@ -2,23 +2,12 @@
 
 'use strict'
 
-var opt = require('optimist')
-var stringWidth = require('string-width')
-var clc = require('cli-color')
-var rl = require('readline').createInterface(process.stdin, process.stdout);
+const opt = require('optimist')
+const lib = require('./libs.js');
+const Message = lib.Message;
+const Repeat = lib.Repeat;
+const Input = lib.Input;
 
-
-	// .usage('Usage: $0 -x [num] -y [num]')
-	// .demand(['v'])
-	// .default({x:100, y:50, v:true})
-	// .boolean('v')
-	// .alias('v', 'verbose')
-	// .describe('v', 'show details')
-	// .options('f', {
-	// 	alias : 'file',
-	// 	default : '/etc/passwd',
-	// })
-	// .wrap(70)
 var argv = opt
 	.usage('Usage: genie|g [Commands] [Options]')
 	.options('mode', {
@@ -45,26 +34,31 @@ var argv = opt
  */
 if(argv._.includes('demo'))
 {
-	// メッセージBOX
-	console.log();
-	Message('サンプル：default', 'default')
-	Message('サンプル：primary', 'primary')
-	Message('サンプル：success', 'success')
-	Message('サンプル：danger', 'danger')
-	Message('サンプル：warning', 'warning')
-	Message('サンプル：info', 'info')
-	Message('改行込み、1ライン入れも可能。\ntest1\ntest2\ntest3', 'default', 1)
+	(async function(){
 
-	// 入力BOX
-	var input = Input('入力BOX（入力文字を発音しますのでご注意）：', 20);
+		// メッセージBOX
+		console.log();
+		Message('サンプル：default', 'default')
+		Message('サンプル：primary', 'primary')
+		Message('サンプル：success', 'success')
+		Message('サンプル：danger', 'danger')
+		Message('サンプル：warning', 'warning')
+		Message('サンプル：info', 'info')
+		Message('改行込み、1ライン入れも可能。\ntest1\ntest2\ntest3', 'default', 1)
 
-	Message('入力された文字：' + input);
+		// 入力BOX
+		var input = await Input('入力BOX（入力文字を発音しますのでご注意）：', 20);
+		Message('入力された文字：' + input);
 
-	// sayテスト
-	// say($input);
+		// sayテスト
+		// say($input);
 
-	// エラー終了
-	// throw('エラーテスト', '終了ステータス1で終わります');
+		// エラー終了
+		// throw('エラーテスト', '終了ステータス1で終わります');
+
+		process.exit();
+
+	})();
 
 }
 /**
@@ -83,6 +77,8 @@ else if(argv._.includes('clean'))
 		.argv;
 	;
 	if(argv.help) opt.showHelp()
+
+	process.exit();
 }
 /**
  * help
@@ -117,4 +113,6 @@ else
 		'  zap     \n'+
 		'  demo     デモするよ！\n'
 	);
+
+	process.exit();
 }
