@@ -2,11 +2,10 @@
 
 'use strict'
 
-const opt = require('optimist')
-const stringWidth = require('string-width')
-const clc = require('cli-color')
-
-
+var opt = require('optimist')
+var stringWidth = require('string-width')
+var clc = require('cli-color')
+var rl = require('readline').createInterface(process.stdin, process.stdout);
 
 
 	// .usage('Usage: $0 -x [num] -y [num]')
@@ -55,6 +54,18 @@ if(argv._.includes('demo'))
 	Message('サンプル：warning', 'warning')
 	Message('サンプル：info', 'info')
 	Message('改行込み、1ライン入れも可能。\ntest1\ntest2\ntest3', 'default', 1)
+
+	// 入力BOX
+	var input = Input('入力BOX（入力文字を発音しますのでご注意）：', 20);
+
+	Message('入力された文字：' + input);
+
+	// sayテスト
+	// say($input);
+
+	// エラー終了
+	// throw('エラーテスト', '終了ステータス1で終わります');
+
 }
 /**
  * clean

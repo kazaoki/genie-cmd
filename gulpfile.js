@@ -1,7 +1,7 @@
 const gulp         = require('gulp');
 const plumber      = require('gulp-plumber');
 const rename       = require('gulp-rename');
-const sourcemaps   = require('gulp-sourcemaps');
+// const sourcemaps   = require('gulp-sourcemaps');
 const eslint       = require('gulp-eslint');
 const uglify       = require('gulp-uglify');
 const babel        = require('gulp-babel');
@@ -19,8 +19,17 @@ gulp.task('js', ()=>{
 				this.emit('end');
 			}
 		}))
-		.pipe(sourcemaps.init())
-		.pipe(babel({presets: ['env']}))
+		// .pipe(sourcemaps.init())
+		.pipe(babel({
+			presets: ['env'],
+			plugins: ['transform-runtime']
+			// plugins: [['transform-runtime', {
+			// 	'helpers': false,
+			// 	'polyfill': false,
+			// 	'regenerator': false,
+			// 	'moduleName': 'babel-runtime'
+			// }]]
+		}))
 		.pipe(eslint(
 			{
 				useEslintrc: false,

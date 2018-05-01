@@ -64,9 +64,6 @@ function Message(message, type='default', line=0)
 				line_color('┣') +
 				line_color(Repeat('─', length)) +
 				line_color('┫')
-				// line_color('├') +
-				// line_color(Repeat('─', length)) +
-				// line_color('┤')
 			)
 		}
 		console.log(
@@ -93,4 +90,73 @@ function Repeat(string, times=1)
 		}
 	}
 	return lump;
+}
+
+/**
+ * Input
+ */
+function Input(message, tail_space=20)
+{
+	var indent = '  ';
+	message = '  ' + message + '  ';
+	var len = stringWidth(message) + tail_space;
+	var fg = clc.whiteBright.bgBlueBright;
+	var bg = clc.bgBlue;
+	console.log(
+		indent + fg(Repeat(' ', len)) + '\n' +
+		indent + fg(message + Repeat(' ', tail_space))  + '\n' +
+		indent + fg(Repeat(' ', len)) + '\n' +
+		indent + bg(Repeat(' ', len))
+	);
+
+	// var input = fs.readFileSync('/dev/stdin', 'utf8');
+	// var input = '';
+	// process.stdin.resume();
+	// process.stdin.setEncoding('utf8');
+	// process.stdin.on('data', function(chunk) {
+	// 	input += chunk;
+	// });
+	// process.stdin.on('end', function() {
+	// 	return input;
+	// });
+
+	// var f = async () => {
+	// 	var ret = await () => {
+	// 		const rl=require("readline").createInterface(process.stdin,process.stdout);
+	// 		rl.on("line",function(str){
+	// 			console.log("get:"+str);
+	// 		});
+	// 	}
+	// };
+	// f();
+
+	// rl.moveCursor(process.stdin, 0,0)
+
+	// (async function(){
+	// 	// var str = await new Promise(res=>rl.once("line",res));
+	// 	// console.log("getA:"+str);
+	// 	// str = await new Promise(res=>rl.once("line",res));
+	// 	// console.log("getB:"+str);
+	// 	// str = await new Promise(res=>rl.once("line",res));
+	// 	// console.log("getC:"+str);
+	// 	// console.log("end");
+
+	// 	//関数化
+	// 	const gets=()=>new Promise(res=>rl.once("line",res))
+	// 	var str = await gets();
+	// 	console.log("getA:" + str);
+	// 	str = await gets();
+	// 	console.log("getB:" + str);
+	// 	str = await gets();
+	// 	console.log("getC:" + str);
+	// 	console.log("end");
+
+	// 	process.exit();
+	// })();
+
+	(async ()=>{
+		console.log('!!');
+	})();
+
+
 }
