@@ -138,6 +138,7 @@ const isMac = module.exports.isMac = ()=>{return process.platform === 'darwin'}
  * @param {string} message スピーチする文字列
  */
 const Say = module.exports.Say = message=>{
+	if(message.length===0) return;
 	// Macの場合はsayコマンド
 	if(isMac()) {
 		childProcess.execSync(`say -r 300 "${message}"`)

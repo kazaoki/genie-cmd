@@ -33,7 +33,7 @@ let argv = opt
  */
 if(argv._.includes('demo'))
 {
-	(async function(){
+	(async ()=>{
 
 		// メッセージBOX
 		console.log();
@@ -52,10 +52,15 @@ if(argv._.includes('demo'))
 		// sayテスト
 		lib.Say(input);
 
-		// エラー終了
-		throw new Error('エラーテスト');
+		// エラーテスト
+		try {
+			throw new Error('エラーテスト（終了コード255）')
+		} catch(err) {
+			console.log(err)
+			process.exit(255);
+		}
 
-		// process.exit();
+		process.exit();
 
 	})();
 

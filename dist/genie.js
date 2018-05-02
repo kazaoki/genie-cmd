@@ -77,7 +77,7 @@ parcelRequire = (function (modules, cache, entry) {
 
   // Override the current require with this new one
   return newRequire;
-})({3:[function(require,module,exports) {
+})({2:[function(require,module,exports) {
 
 'use strict';
 
@@ -193,6 +193,7 @@ const isMac = module.exports.isMac = () => {
  * @param {string} message スピーチする文字列
  */
 const Say = module.exports.Say = message => {
+	if (message.length === 0) return;
 	// Macの場合はsayコマンド
 	if (isMac()) {
 		childProcess.execSync(`say -r 300 "${message}"`);
@@ -256,10 +257,15 @@ if (argv._.includes('demo')) {
 		// sayテスト
 		lib.Say(input);
 
-		// エラー終了
-		throw new Error('エラーテスト');
+		// エラーテスト
+		try {
+			throw new Error('エラーテスト（終了コード255）');
+		} catch (err) {
+			console.log(err);
+			process.exit(255);
+		}
 
-		// process.exit();
+		process.exit();
 	})();
 }
 /**
@@ -286,4 +292,4 @@ else if (argv._.includes('clean')) {
 
 			process.exit();
 		}
-},{"./libs.js":3}]},{},[1])
+},{"./libs.js":2}]},{},[1])
