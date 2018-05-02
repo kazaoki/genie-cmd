@@ -110,9 +110,9 @@ else if(argv._[0]==='config') {
 	// オプション設定
 	let argv = opt
 		.usage('Usage: genie|g config [Options]')
-		.options('open', {
-			alias: 'o',
-			describe: '標準のエディタで設定ファイルを開きます。'
+		.options('dump', {
+			alias: 'd',
+			describe: '設定値を確認します。'
 		})
 		.argv;
 	;
@@ -122,12 +122,17 @@ else if(argv._[0]==='config') {
 		// 設定ファイルロード
 		let config = lib.loadConfig(argv);
 
-		if(argv.open){
-			// エディタで開く
-			console.log('OPEN')
-		} else {
+		if(argv.dump){
 			// 設定値を表示する
 			console.log(util.inspect(config, {colors: true, compact: false, breakLength: 10, depth: 10}));
+		} else {
+			// エディタで開く
+			let config_js = `${lib.getProjectRootDir()}/.genie/${argv.config}`;
+			if(lib.isWindows()) {
+				childProcess.execSync(`start ${config_js}`)
+			} else if(lib.isMac()) {
+				childProcess.execSync(`open ${config_js}`)
+			}
 		}
 	}
 
