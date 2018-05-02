@@ -1,22 +1,23 @@
 {
   "name": "genie-cmd",
   "description": "node版genie",
-  "version": "0.0.6",
+  "version": "0.0.9",
   "license": "MIT",
-  "dependencies": {
-    "optimist": "^0.6.1",
-    "parcel-bundler": "^1.7.1",
-    "cli-color": "^1.2.0",
-    "string-width": "^2.1.1"
-  },
   "private": false,
   "bin": {
-    "genie": "dist/genie.js",
-    "g": "dist/genie.js"
+    "genie": "dist/genie",
+    "g": "dist/genie"
   },
   "scripts": {
     "dev": "npx parcel watch src/genie.js --out-dir dist --out-file genie --target node --no-source-maps",
-    "build": "npx parcel build src/genie.js --out-dir dist --out-file genie --target node --no-source-maps --no-cache",
-    "npm-up": "npm publish"
+    "build": "npx parcel build src/genie.js --out-dir dist --out-file genie --target node --no-source-maps --no-cache && node src/build-after.js"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.7.1"
+  },
+  "dependencies": {
+    "cli-color": "^1.2.0",
+    "optimist": "^0.6.1",
+    "string-width": "^2.1.1"
   }
 }
