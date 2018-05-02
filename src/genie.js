@@ -2,9 +2,11 @@
 
 'use strict'
 
+// const fs = require('fs');
 const opt = require('optimist')
 const lib = require('./libs.js');
 const childProcess = require('child_process');
+const util = require('util');
 
 let argv = opt
 	.usage('Usage: genie|g [Commands] [Options]')
@@ -101,6 +103,38 @@ else if(argv._[0]==='ls') {
 }
 
 /**
+ * config
+ * -----------------------------------------------------------------------------
+ */
+else if(argv._[0]==='config') {
+	// オプション設定
+	let argv = opt
+		.usage('Usage: genie|g config [Options]')
+		.options('open', {
+			alias: 'o',
+			describe: '標準のエディタで設定ファイルを開きます。'
+		})
+		.argv;
+	;
+	if(argv.help) opt.showHelp()
+	else {
+
+		// 設定ファイルロード
+		let config = lib.loadConfig(argv);
+
+		if(argv.open){
+			// エディタで開く
+			console.log('OPEN')
+		} else {
+			// 設定値を表示する
+			console.log(util.inspect(config, {colors: true, compact: false, breakLength: 10, depth: 10}));
+		}
+	}
+
+	process.exit();
+}
+
+/**
  * clean
  * -----------------------------------------------------------------------------
  */
@@ -128,7 +162,7 @@ else {
 		opt.help()+'\n'+
 		'Commands:\n'+
 		'  init    \n'+
-		'  config  \n'+
+		'  config  設定を確認する\n'+
 		'  ls      Dockerコンテナ状況を確認する\n'+
 		'  up      \n'+
 		'  down    \n'+

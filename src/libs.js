@@ -1,14 +1,44 @@
 
 'use strict'
 
+const fs = require('fs')
 const stringWidth = require('string-width')
 const cliColor = require('cli-color')
-const readline = require('readline').createInterface(process.stdin, process.stdout);
-const fs = require('fs');
-const childProcess = require('child_process');
+const readline = require('readline').createInterface(process.stdin, process.stdout)
+const childProcess = require('child_process')
+const path = require('path')
+
+/**
+ * プロジェクトルートパスを返す（.genie/ がある直近の親ディレクトリを返す）
+ * -----------------------------------------------------------------------------
+ * @return {string} プロジェクトルートパス。失敗した場合はfalse
+ */
+const getProjectRootDir = module.exports.getProjectRootDir = ()=>{
+	let root_dir = ''
+	let check_dir = __dirname
+	let cont = true
+	do {
+		try {
+			fs.accessSync(check_dir + '/.genie')
+			root_dir = check_dir
+		} catch(err) {
+			let temp = check_dir;
+			check_dir = path.dirname(check_dir);
+			if(temp===check_dir) cont = false
+		}
+	} while(root_dir==='' && cont)
+	// return cont ? root_dir : false
+
+	if(root_dir) {
+		return root_dir
+	} else {
+		Error('先祖ディレクトリに .genie/ が見つかりませんでした。\n`genie init` などして初期化してください。')
+	}
+}
 
 /**
  * Repeat
+ * -----------------------------------------------------------------------------
  * @param {string} string 繰り返したい文字
  * @param {number} times 繰り返したい回数
  * @return {string} 繰り返した文字列
@@ -24,6 +54,7 @@ const Repeat = module.exports.Repeat = (string, times=1)=>{
 
 /**
  * Message
+ * -----------------------------------------------------------------------------
  * @param {string} message 表示したいメッセージ。改行込み複数行対応。
  * @param {string} type タイプ。primary|success|danger|warning|info|default
  * @param {number} line タイトル線を引く位置。
@@ -91,6 +122,7 @@ const Message = module.exports.Message = (message, type='default', line=0)=>{
 
 /**
  * Input
+ * -----------------------------------------------------------------------------
  * @param {string} message 入力を促す表示メッセージ
  * @param {number} tail_space 背景BOXの長さを追加する文字数
  * @return {string} 入力値
@@ -122,6 +154,7 @@ const Input = module.exports.Input = (message, tail_space=20)=>{
 
 /**
  * Say
+ * -----------------------------------------------------------------------------
  * @param {string} message スピーチする文字列
  */
 const Say = module.exports.Say = message=>{
@@ -142,22 +175,54 @@ const Say = module.exports.Say = message=>{
 }
 
 /**
+ * loadConfig
+ * -----------------------------------------------------------------------------
+ * @param {object} argv コマンド引数
+ */
+const loadConfig = module.exports.loadConfig = argv=>{
+
+	// プロジェクトルートパス取得
+	let root_dir = getProjectRootDir();
+	let config_js = `${root_dir}/.genie/${argv.config}`;
+	try {
+		fs.accessSync(config_js)
+	} catch (err){
+		Error(`設定ファイル（.genie/${argv.config}）が見つかりませんでした。`)
+	}
+	return require(config_js)
+}
+
+/**
  * isWindows
+ * -----------------------------------------------------------------------------
  * @return {boolean} Windowsかどうか
  */
 const isWindows = module.exports.isWindows = ()=>{return process.platform === 'win32'}
 
 /**
  * isMac
+ * -----------------------------------------------------------------------------
  * @return {boolean} MacOSかどうか
  */
 const isMac = module.exports.isMac = ()=>{return process.platform === 'darwin'}
 
 /**
  * hasDockerMachineEnv
+ * -----------------------------------------------------------------------------
  * @return {boolean} DockerMachine環境があるかどうか
  */
 const hasDockerMachineEnv = module.exports.hasDockerMachineEnv = ()=>{
 	let result = childProcess.spawnSync('docker-machine')
 	return result.status===0
+}
+
+/**
+ * Error
+ * -----------------------------------------------------------------------------
+ * @param {string} エラーメッセージ
+ */
+const Error = module.exports.Error = (message)=>{
+	console.log()
+	Message(`エラーが発生しました。\n${message}`, 'danger', 1)
+	process.exit()
 }
