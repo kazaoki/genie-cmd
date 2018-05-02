@@ -1,14 +1,13 @@
 #!/usr/bin/env node
 
+import { isWindows } from './libs.js';
+
 'use strict'
 
 const opt = require('optimist')
 const lib = require('./libs.js');
-const Message = lib.Message;
-const Repeat = lib.Repeat;
-const Input = lib.Input;
 
-var argv = opt
+let argv = opt
 	.usage('Usage: genie|g [Commands] [Options]')
 	.options('mode', {
 		alias: 'm',
@@ -38,25 +37,25 @@ if(argv._.includes('demo'))
 
 		// メッセージBOX
 		console.log();
-		Message('サンプル：default', 'default')
-		Message('サンプル：primary', 'primary')
-		Message('サンプル：success', 'success')
-		Message('サンプル：danger', 'danger')
-		Message('サンプル：warning', 'warning')
-		Message('サンプル：info', 'info')
-		Message('改行込み、1ライン入れも可能。\ntest1\ntest2\ntest3', 'default', 1)
+		lib.Message('サンプル：default', 'default')
+		lib.Message('サンプル：primary', 'primary')
+		lib.Message('サンプル：success', 'success')
+		lib.Message('サンプル：danger', 'danger')
+		lib.Message('サンプル：warning', 'warning')
+		lib.Message('サンプル：info', 'info')
+		lib.Message('改行込み、1ライン入れも可能。\ntest1\ntest2\ntest3', 'default', 1)
 
 		// 入力BOX
-		var input = await Input('入力BOX（入力文字を発音しますのでご注意）：', 20);
-		Message('入力された文字：' + input);
+		let input = await lib.Input('入力BOX（入力文字を発音しますのでご注意）：', 20);
+		lib.Message('入力された文字：' + input);
 
 		// sayテスト
-		// say($input);
+		lib.Say(input);
 
 		// エラー終了
-		// throw('エラーテスト', '終了ステータス1で終わります');
+		throw new Error('エラーテスト');
 
-		process.exit();
+		// process.exit();
 
 	})();
 
@@ -68,7 +67,7 @@ if(argv._.includes('demo'))
 else if(argv._.includes('clean'))
 {
 	// オプション設定
-	var argv = opt
+	let argv = opt
 		.usage('Usage: genie|g clean [Options]')
 		.options('locked', {
 			alias: 'l',

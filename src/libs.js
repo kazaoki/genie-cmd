@@ -2,52 +2,53 @@
 'use strict'
 
 const stringWidth = require('string-width')
-const clc = require('cli-color')
-const rl = require('readline').createInterface(process.stdin, process.stdout);
+const cliColor = require('cli-color')
+const readline = require('readline').createInterface(process.stdin, process.stdout);
+const fs = require('fs');
+const childProcess = require('child_process');
 
 /**
  * Repeat
- * @param {*} string
- * @param {*} times
+ * @param {string} string 繰り返したい文字
+ * @param {number} times 繰り返したい回数
+ * @return {string} 繰り返した文字列
+ * -----------------------------------------------------------------------------
  */
-module.exports.Repeat = function (string, times=1)
-{
+	//  module.exports.Repeat = (string, times=1)=>{
+const Repeat = module.exports.Repeat = (string, times=1)=>{
+	if(!times>0) return '';
 	var lump = '';
-	if(times>0) {
-		for(var i=0; i<times; i++) {
-			lump += string;
-		}
+	for(var i=0; i<times; i++) {
+		lump += string;
 	}
 	return lump;
 }
-const Repeat = module.exports.Repeat;
 
 /**
  * Message
- * @param {*} message
- * @param {*} type
- * @param {*} line
+ * @param {string} message 表示したいメッセージ。改行込み複数行対応。
+ * @param {string} type タイプ。primary|success|danger|warning|info|default
+ * @param {number} line タイトル線を引く位置。
  */
-module.exports.Message = function (message, type='default', line=0)
-{
+const Message = module.exports.Message = (message, type='default', line=0)=>{
 	var indent = '  ';
-	var line_color = clc.white;
-	var fg_color = clc.white;
+	var line_color = cliColor.white;
+	var fg_color = cliColor.white;
 	if(type==='primary') {
-		line_color = clc.xterm(26)
-		fg_color = clc.xterm(39)
+		line_color = cliColor.xterm(26)
+		fg_color = cliColor.xterm(39)
 	} else if(type==='success') {
-		line_color = clc.green
-		fg_color = clc.greenBright
+		line_color = cliColor.green
+		fg_color = cliColor.greenBright
 	} else if(type==='danger') {
-		line_color = clc.red
-		fg_color = clc.redBright
+		line_color = cliColor.red
+		fg_color = cliColor.redBright
 	} else if(type==='warning') {
-		line_color = clc.yellow
-		fg_color = clc.yellowBright
+		line_color = cliColor.yellow
+		fg_color = cliColor.yellowBright
 	} else if(type==='info') {
-		line_color = clc.whiteBright
-		fg_color = clc.whiteBright
+		line_color = cliColor.whiteBright
+		fg_color = cliColor.whiteBright
 	}
 
 	var messages = message.split(/[\r\n]+/)
@@ -91,16 +92,16 @@ module.exports.Message = function (message, type='default', line=0)
 
 /**
  * Input
- * @param {*} message
- * @param {*} tail_space
+ * @param {string} message 入力を促す表示メッセージ
+ * @param {number} tail_space 背景BOXの長さを追加する文字数
+ * @return {string} 入力値
  */
-module.exports.Input = function (message, tail_space=20)
-{
-	var indent = clc.bgBlack('  ');
+const Input = module.exports.Input = (message, tail_space=20)=>{
+	var indent = cliColor.bgBlack('  ');
 	message = '  ' + message + '  ';
 	var len = stringWidth(message) + tail_space;
-	var fg = clc.whiteBright.bgBlueBright;
-	var bg = clc.bgBlue;
+	var fg = cliColor.whiteBright.bgBlueBright;
+	var bg = cliColor.bgBlue;
 	console.log(
 		'\n' +
 		indent + fg(Repeat(' ', len)) + '\n' +
@@ -108,14 +109,46 @@ module.exports.Input = function (message, tail_space=20)
 		indent + fg(Repeat(' ', len)) + '\n' +
 		indent + bg(Repeat(' ', len))
 	);
-	process.stdout.write(clc.move.up(3));
-	process.stdout.write(clc.move.right(len - tail_space));
+	process.stdout.write(cliColor.move.up(3));
+	process.stdout.write(cliColor.move.right(len - tail_space));
 	return new Promise (
 		(result) => {
-			rl.on('line', (input)=>{
-				process.stdout.write(clc.move.down(3));
+			readline.on('line', (input)=>{
+				process.stdout.write(cliColor.move.down(3));
 				result(input)
 			})
 		}
 	);
+}
+
+/**
+ * isWindows
+ * @return {boolean} Windowsかどうか
+ */
+const isWindows = module.exports.isWindows = ()=>{return process.platform === 'win32'}
+
+/**
+ * isMac
+ * @return {boolean} MacOSかどうか
+ */
+const isMac = module.exports.isMac = ()=>{return process.platform === 'darwin'}
+
+/**
+ * Say
+ * @param {string} message スピーチする文字列
+ */
+const Say = module.exports.Say = message=>{
+	// Macの場合はsayコマンド
+	if(isMac()) {
+		childProcess.execSync(`say -r 300 "${message}"`)
+	}
+	// Windowsの場合はwscriptスクリプトをtempに用意してから実行（最後は削除する）
+	else if(isWindows()) {
+		let temp_dir = fs.mkdtempSync(process.env.TEMP+'/genie-say-')
+		let temp_file = temp_dir+'/say.js'
+		fs.writeFileSync(temp_file, `var args = [];for(var i = 0; i < WScript.Arguments.length; i++) args.push(WScript.Arguments.Item(i));WScript.CreateObject('SAPI.SpVoice').Speak('<volume level="100">'+'<rate speed="2">'+'<pitch middle="0">'+args.join(' ')+'</pitch>'+'</rate>'+'</volume>', 8);`)
+		childProcess.execSync(`start wscript ${temp_file} "${message}"`)
+		fs.unlinkSync(temp_file)
+		fs.rmdirSync(temp_dir)
+	}
 }
