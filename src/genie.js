@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 
-import { isWindows } from './libs.js';
-
 'use strict'
 
 const opt = require('optimist')
 const lib = require('./libs.js');
+const childProcess = require('child_process');
 
 let argv = opt
 	.usage('Usage: genie|g [Commands] [Options]')
@@ -26,13 +25,11 @@ let argv = opt
 	.argv
 ;
 
-
 /**
  * demo
- * -------------------------------------------------------------------
+ * -----------------------------------------------------------------------------
  */
-if(argv._.includes('demo'))
-{
+if(argv._[0]==='demo') {
 	(async ()=>{
 
 		// メッセージBOX
@@ -65,12 +62,49 @@ if(argv._.includes('demo'))
 	})();
 
 }
+
+/**
+ * ls
+ * -----------------------------------------------------------------------------
+ */
+else if(argv._[0]==='ls') {
+
+	// docker-machine が使える環境の場合はそれも一覧する
+	if(lib.hasDockerMachineEnv()) {
+		console.log('\n  DockerMachine一覧')
+		let result = childProcess.spawnSync('docker-machine', ['ls'])
+		lib.Message(result.stdout.toString(), 'primary', 1)
+	}
+
+	// イメージ一覧
+	{
+		console.log('\n  イメージ一覧')
+		let result = childProcess.spawnSync('docker', ['images'])
+		lib.Message(result.stdout.toString(), 'primary', 1)
+	}
+
+	// データボリューム一覧
+	{
+		console.log('\n  データボリューム一覧')
+		let result = childProcess.spawnSync('docker', ['volume', 'ls'])
+		lib.Message(result.stdout.toString(), 'primary', 1)
+	}
+
+	// コンテナ一覧
+	{
+		console.log('\n  コンテナ一覧')
+		let result = childProcess.spawnSync('docker', ['ps', '-a'])
+		lib.Message(result.stdout.toString(), 'primary', 1)
+	}
+
+	process.exit();
+}
+
 /**
  * clean
- * -------------------------------------------------------------------
+ * -----------------------------------------------------------------------------
  */
-else if(argv._.includes('clean'))
-{
+else if(argv._[0]==='clean') {
 	// オプション設定
 	let argv = opt
 		.usage('Usage: genie|g clean [Options]')
@@ -84,18 +118,18 @@ else if(argv._.includes('clean'))
 
 	process.exit();
 }
+
 /**
  * help
- * -------------------------------------------------------------------
+ * -----------------------------------------------------------------------------
  */
-else
-{
+else {
 	console.error(
 		opt.help()+'\n'+
 		'Commands:\n'+
 		'  init    \n'+
 		'  config  \n'+
-		'  ls      \n'+
+		'  ls      Dockerコンテナ状況を確認する\n'+
 		'  up      \n'+
 		'  down    \n'+
 		'  update  \n'+
@@ -115,7 +149,7 @@ else
 		'  httpd   \n'+
 		'  spec    \n'+
 		'  zap     \n'+
-		'  demo     デモするよ！\n'
+		'  demo    デモ\n'
 	);
 
 	process.exit();

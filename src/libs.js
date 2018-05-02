@@ -12,9 +12,7 @@ const childProcess = require('child_process');
  * @param {string} string 繰り返したい文字
  * @param {number} times 繰り返したい回数
  * @return {string} 繰り返した文字列
- * -----------------------------------------------------------------------------
  */
-	//  module.exports.Repeat = (string, times=1)=>{
 const Repeat = module.exports.Repeat = (string, times=1)=>{
 	if(!times>0) return '';
 	var lump = '';
@@ -34,6 +32,7 @@ const Message = module.exports.Message = (message, type='default', line=0)=>{
 	var indent = '  ';
 	var line_color = cliColor.white;
 	var fg_color = cliColor.white;
+	message = message.replace(/[\r\n]+$/, '');
 	if(type==='primary') {
 		line_color = cliColor.xterm(26)
 		fg_color = cliColor.xterm(39)
@@ -122,18 +121,6 @@ const Input = module.exports.Input = (message, tail_space=20)=>{
 }
 
 /**
- * isWindows
- * @return {boolean} Windowsかどうか
- */
-const isWindows = module.exports.isWindows = ()=>{return process.platform === 'win32'}
-
-/**
- * isMac
- * @return {boolean} MacOSかどうか
- */
-const isMac = module.exports.isMac = ()=>{return process.platform === 'darwin'}
-
-/**
  * Say
  * @param {string} message スピーチする文字列
  */
@@ -152,4 +139,25 @@ const Say = module.exports.Say = message=>{
 		fs.unlinkSync(temp_file)
 		fs.rmdirSync(temp_dir)
 	}
+}
+
+/**
+ * isWindows
+ * @return {boolean} Windowsかどうか
+ */
+const isWindows = module.exports.isWindows = ()=>{return process.platform === 'win32'}
+
+/**
+ * isMac
+ * @return {boolean} MacOSかどうか
+ */
+const isMac = module.exports.isMac = ()=>{return process.platform === 'darwin'}
+
+/**
+ * hasDockerMachineEnv
+ * @return {boolean} DockerMachine環境があるかどうか
+ */
+const hasDockerMachineEnv = module.exports.hasDockerMachineEnv = ()=>{
+	let result = childProcess.spawnSync('docker-machine')
+	return result.status===0
 }
