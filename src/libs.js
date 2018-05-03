@@ -121,6 +121,20 @@ const Message = module.exports.Message = (message, type='default', line=0)=>{
 }
 
 /**
+ * Messages
+ * -----------------------------------------------------------------------------
+ * @param {objext} 複数メッセージを一挙に出力
+ */
+const Messages = module.exports.Messages = (messages)=>{
+	if(!Array.isArray(messages)) messages = [messages]
+	for(let i in messages) {
+		for(let key in messages[i]) {
+			Message(messages[i][key], key)
+		}
+	}
+}
+
+/**
  * Input
  * -----------------------------------------------------------------------------
  * @param {string} message 入力を促す表示メッセージ
@@ -189,7 +203,7 @@ const loadConfig = module.exports.loadConfig = argv=>{
 	} catch (err){
 		Error(`設定ファイル（.genie/${argv.config}）が見つかりませんでした。`)
 	}
-	return require(config_js)
+	return require(config_js).genie
 }
 
 /**

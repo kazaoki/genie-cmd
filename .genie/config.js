@@ -30,6 +30,13 @@ genie.core =
 	},
 
 	// up時/down時のメッセージ表示
+	memo: {
+		up: [
+			{info: '起動します。'},
+			{warning: '追加情報: xxxxxxxx'},
+		],
+		down: [{success: '終了します。'}],
+	},
 	// memo_up: {info: 'いつもお疲れ様です。'},
 	// memo_down: {success: 'お疲れ様でした。'},
 
@@ -47,7 +54,7 @@ genie.core =
  * 言語設定
  * -----------------------------------------------------------------------------
  */
-genie.language =
+genie.lang =
 {
 	// Perl設定
 	perl: {
@@ -224,7 +231,7 @@ genie.mail =
  * データ転送設定
  * -----------------------------------------------------------------------------
  */
-genie.transfer =
+genie.trans =
 {
 	// dlsync設定
 	dlsync: {

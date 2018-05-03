@@ -209,26 +209,42 @@ else if(argv._[0]==='up') {
 	;
 	if(argv.help) opt.showHelp()
 
-	// ラベル生成
-	let label = '';
+	// 設定ファイルロード
+	let config = lib.loadConfig(argv);
+
+	// コンテナベース名
+	let base_name = argv.shadow
+		? config.core.docker.name + '-SHADOW'
+		: config.core.docker.name
+
+	// ラベル名
+	let label = {
+		genie_project_root_dir: lib.getProjectRootDir()
+	};
 
 	// 起動時メモの表示
+	try {
+		let memo = config.core.memo.up
+		if(memo) lib.Messages(memo);
+	} catch(err) {
+		Error('メモの設定が異常です。')
+	}
 
 	// 既存のシステムを終了させる
 	// ※labelがおなじやつ
 
-	// 各コンテナ起動
-	(async()=>
-	{
-		// PostgreSQLコンテナの起動
-		;
+	// // 各コンテナ起動
+	// (async()=>
+	// {
+	// 	// PostgreSQLコンテナの起動
+	// 	;
 
-		// MySQLコンテナの起動
-		;
+	// 	// MySQLコンテナの起動
+	// 	;
 
-		// 本体コンテナの起動
-		;
-	})();
+	// 	// 本体コンテナの起動
+	// 	;
+	// })();
 
 	// ブラウザ起動
 
