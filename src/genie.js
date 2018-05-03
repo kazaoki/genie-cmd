@@ -159,6 +159,41 @@ else if(argv._[0]==='clean') {
 }
 
 /**
+ * langs
+ * -----------------------------------------------------------------------------
+ */
+else if(argv._[0]==='langver') {
+	// オプション設定
+	let argv = opt
+		.usage('Usage: genie|g langver [Options]')
+		.options('php', {describe: 'PHPの利用可能なバージョン一覧を表示'})
+		.options('perl', {describe: 'Perlの利用可能なバージョン一覧を表示'})
+		.options('ruby', {describe: 'Rubyの利用可能なバージョン一覧を表示'})
+		.options('node', {describe: 'Node.jsの利用可能なバージョン一覧を表示'})
+		.argv;
+	;
+	if(argv.help) {
+		opt.showHelp()
+	} else if(argv.php) {
+		let result = childProcess.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/phpenv/plugins/php-build/bin/php-build --definitions'])
+		lib.Message(result.stdout.toString(), 'primary')
+	} else if(argv.perl) {
+		let result = childProcess.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/plenv/plugins/perl-build/perl-build  --definitions'])
+		lib.Message(result.stdout.toString(), 'primary')
+	} else if(argv.ruby) {
+		let result = childProcess.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/rbenv/plugins/ruby-build/bin/ruby-build  --definitions'])
+		lib.Message(result.stdout.toString(), 'primary')
+	} else if(argv.node) {
+		let result = childProcess.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/ndenv/plugins/node-build/bin/node-build  --definitions'])
+		lib.Message(result.stdout.toString(), 'primary')
+	} else {
+		opt.showHelp()
+	}
+
+	process.exit();
+}
+
+/**
  * help
  * -----------------------------------------------------------------------------
  */
@@ -176,9 +211,7 @@ else {
 		'  reject  \n'+
 		'  clean   \n'+
 		'  build   \n'+
-		'  php     \n'+
-		'  perl    \n'+
-		'  ruby    \n'+
+		'  langver \n'+
 		'  mysql   \n'+
 		'  psql    \n'+
 		'  open    \n'+

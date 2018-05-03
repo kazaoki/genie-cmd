@@ -1,4 +1,7 @@
 src/
+.cache/
 .vscode/
 .genie/
 .editorconfig
+.gitignore
+yarn.lock
