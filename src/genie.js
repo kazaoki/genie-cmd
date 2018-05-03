@@ -194,6 +194,48 @@ else if(argv._[0]==='langver') {
 }
 
 /**
+ * up
+ * -----------------------------------------------------------------------------
+ */
+else if(argv._[0]==='up') {
+	// オプション設定
+	let argv = opt
+		.usage('Usage: genie|g up [Options]')
+		.options('shadow', {
+			alias: 's',
+			describe: 'データをマウントではなくコンテナにコピーした別のコンテナを起動する'
+		})
+		.argv;
+	;
+	if(argv.help) opt.showHelp()
+
+	// ラベル生成
+	let label = '';
+
+	// 起動時メモの表示
+
+	// 既存のシステムを終了させる
+	// ※labelがおなじやつ
+
+	// 各コンテナ起動
+	(async()=>
+	{
+		// PostgreSQLコンテナの起動
+		;
+
+		// MySQLコンテナの起動
+		;
+
+		// 本体コンテナの起動
+		;
+	})();
+
+	// ブラウザ起動
+
+	process.exit();
+}
+
+/**
  * help
  * -----------------------------------------------------------------------------
  */
@@ -204,14 +246,14 @@ else {
 		'  init    \n'+
 		'  config  設定を確認する\n'+
 		'  ls      Dockerコンテナ状況を確認する\n'+
-		'  up      \n'+
+		'  up      Dockerコンテナを起動する\n'+
 		'  down    \n'+
 		'  update  \n'+
 		'  cli     \n'+
 		'  reject  \n'+
 		'  clean   \n'+
 		'  build   \n'+
-		'  langver \n'+
+		'  langver 各種言語の利用可能なバージョンを確認する\n'+
 		'  mysql   \n'+
 		'  psql    \n'+
 		'  open    \n'+
@@ -219,8 +261,8 @@ else {
 		'  logs    \n'+
 		'  dlsync  \n'+
 		'  httpd   \n'+
-		'  spec    \n'+
-		'  zap     \n'+
+		// '  spec    \n'+
+		// '  zap     \n'+
 		'  demo    デモ\n'
 	);
 
