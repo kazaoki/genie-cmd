@@ -14,7 +14,7 @@ genie.core =
 {
 	// 使用する Docker イメージ情報
 	docker: {
-		image: 'kazaoki/genie',
+		image: 'kazaoki/genie:node',
 		// machine: 'sandbox',
 		name: 'genie-xxx',
 		// options: '--cpuset-cpus=0-1',
@@ -36,7 +36,7 @@ genie.core =
 	// 音声スピーチの有効/無効
 	enable_say: true,
 
-	// 追加コマンド設定
+	// 追加コマンド設定（実行中のコンテナ内で実行されます）
 	add_command: {
 		// htop => 'htop',
 		// ll => 'ls -la',
@@ -51,24 +51,24 @@ genie.language =
 {
 	// Perl設定
 	perl: {
-		// version: '5.12.0', // `genie perl` でリストアップされるバージョン文字列を指定
+		// version: '5.12.0', // `genie langver --perl` でリストアップされるバージョン文字列を指定
 		// cpanfile_enabled: true,
 	},
 
 	// PHP設定
 	php: {
-		// version: '5.3.3', // `genie php` でリストアップされるバージョン文字列を指定
+		// version: '5.3.3', // `genie langver --php` でリストアップされるバージョン文字列を指定
 		// configure: '--with-apxs2=/usr/bin/apxs', // `うまくいかないときは '--with-apxs2=/usr/bin/apxs --disable-fpm' など
 	},
 
 	// Ruby設定
 	ruby: {
-		// version: '2.3.0', // `genie ruby` でリストアップされるバージョン文字列を指定
+		// version: '2.3.0', // `genie langver --ruby` でリストアップされるバージョン文字列を指定
 	},
 
 	// Node.js設定
 	node: {
-		// version: '6.5.0', // `genie node` でリストアップされるバージョン文字列を指定
+		// version: '6.5.0', // `genie langver --node` でリストアップされるバージョン文字列を指定
 	},
 }
 
@@ -78,7 +78,7 @@ genie.language =
  */
 genie.log =
 {
-	// システムログ設定
+	// ファイルログ監視
 	logs: {
 		files: [
 			// '/var/log/httpd/access_log',
@@ -150,7 +150,7 @@ genie.http =
 }
 
 /**
- * DB設定
+ * DB設定（DBごとに別コンテナとして起動します）
  * -----------------------------------------------------------------------------
  */
 genie.db =
@@ -211,7 +211,6 @@ genie.mail =
 	},
 
 	// Sendlog設定
-	// -----------
 	sendlog: {
 		enabled: true, // ENABLEでも本番モードなら送信ログの保存すらしません。
 		// hide_desc: 1, // 一覧ページ上部の説明文を表示する(1)か否か
@@ -252,23 +251,23 @@ genie.transfer =
 	},
 }
 
-/**
- * CI設定
- * -----------------------------------------------------------------------------
- */
-genie.ci =
-{
-	// SPEC設定
-	spec: {
-		default_capture_width: 1280,
-		default_user_agent   : '',
-		js_errors            : 0,
-		silent_fast          : 1,  // 1にするとfastモード時に実行するか否か聞いてこないように
-		no_sendmail          : 1,  // 1にするとSPEC中はメール送信を行いません。（但し、/sendlogには記録されます）
-	},
+// /**
+//  * CI設定
+//  * -----------------------------------------------------------------------------
+//  */
+// genie.ci =
+// {
+// 	// SPEC設定
+// 	spec: {
+// 		default_capture_width: 1280,
+// 		default_user_agent   : '',
+// 		js_errors            : 0,
+// 		silent_fast          : 1,  // 1にするとfastモード時に実行するか否か聞いてこないように
+// 		no_sendmail          : 1,  // 1にするとSPEC中はメール送信を行いません。（但し、/sendlogには記録されます）
+// 	},
 
-	// ZAP設定
-	zap: {
-		no_sendmail          : 1,  // 1にするとZAP中はメール送信を行いません。（但し、/sendlogには記録されます）
-	},
-}
+// 	// ZAP設定
+// 	zap: {
+// 		no_sendmail          : 1,  // 1にするとZAP中はメール送信を行いません。（但し、/sendlogには記録されます）
+// 	},
+// }
