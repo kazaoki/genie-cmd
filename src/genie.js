@@ -1,12 +1,15 @@
 #!/usr/bin/env node
 
+import { EINPROGRESS } from 'constants';
+
 'use strict'
 
-// const fs = require('fs');
 const opt = require('optimist')
+const color = require('cli-color')
+const child = require('child_process');
 const lib = require('./libs.js');
-const childProcess = require('child_process');
-const util = require('util');
+const d = lib.d
+const h = lib.h
 
 let argv = opt
 	.usage('Usage: genie|g [Commands] [Options]')
@@ -71,31 +74,47 @@ if(argv._[0]==='demo') {
  */
 else if(argv._[0]==='ls') {
 
+	// オプション設定
+	let argv = opt
+		.usage('Usage: genie|g ls [Options]')
+		.options('long', {
+			alias: 'l',
+			describe: 'コンテナ一覧がもうちょっとだけ詳細に出ます'
+		})
+		.argv;
+	;
+	if(argv.help) {
+		opt.showHelp()
+		process.exit();
+	}
+
 	// docker-machine が使える環境の場合はそれも一覧する
 	if(lib.hasDockerMachineEnv()) {
 		console.log('\n  DockerMachine一覧')
-		let result = childProcess.spawnSync('docker-machine', ['ls'])
+		let result = child.spawnSync('docker-machine', ['ls'])
 		lib.Message(result.stdout.toString(), 'primary', 1)
 	}
 
 	// イメージ一覧
 	{
 		console.log('\n  イメージ一覧')
-		let result = childProcess.spawnSync('docker', ['images'])
+		let result = child.spawnSync('docker', ['images'])
 		lib.Message(result.stdout.toString(), 'primary', 1)
 	}
 
 	// データボリューム一覧
 	{
 		console.log('\n  データボリューム一覧')
-		let result = childProcess.spawnSync('docker', ['volume', 'ls'])
+		let result = child.spawnSync('docker', ['volume', 'ls'])
 		lib.Message(result.stdout.toString(), 'primary', 1)
 	}
 
 	// コンテナ一覧
 	{
 		console.log('\n  コンテナ一覧')
-		let result = childProcess.spawnSync('docker', ['ps', '-a'])
+		let format = ['--format', 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}']
+		if(argv.long) format = ['--format', 'table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}\t{{.Labels}}']
+		let result = child.spawnSync('docker', ['ps', '-a', ...format])
 		lib.Message(result.stdout.toString(), 'primary', 1)
 	}
 
@@ -124,14 +143,14 @@ else if(argv._[0]==='config') {
 
 		if(argv.dump){
 			// 設定値を表示する
-			console.log(util.inspect(config, {colors: true, compact: false, breakLength: 10, depth: 10}));
+			d(config)
 		} else {
 			// エディタで開く
 			let config_js = `${lib.getProjectRootDir()}/.genie/${argv.config}`;
 			if(lib.isWindows()) {
-				childProcess.execSync(`start ${config_js}`)
+				child.execSync(`start ${config_js}`)
 			} else if(lib.isMac()) {
-				childProcess.execSync(`open ${config_js}`)
+				child.execSync(`open ${config_js}`)
 			}
 		}
 	}
@@ -175,16 +194,16 @@ else if(argv._[0]==='langver') {
 	if(argv.help) {
 		opt.showHelp()
 	} else if(argv.php) {
-		let result = childProcess.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/phpenv/plugins/php-build/bin/php-build --definitions'])
+		let result = child.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/phpenv/plugins/php-build/bin/php-build --definitions'])
 		lib.Message(result.stdout.toString(), 'primary')
 	} else if(argv.perl) {
-		let result = childProcess.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/plenv/plugins/perl-build/perl-build  --definitions'])
+		let result = child.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/plenv/plugins/perl-build/perl-build  --definitions'])
 		lib.Message(result.stdout.toString(), 'primary')
 	} else if(argv.ruby) {
-		let result = childProcess.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/rbenv/plugins/ruby-build/bin/ruby-build  --definitions'])
+		let result = child.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/rbenv/plugins/ruby-build/bin/ruby-build  --definitions'])
 		lib.Message(result.stdout.toString(), 'primary')
 	} else if(argv.node) {
-		let result = childProcess.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/ndenv/plugins/node-build/bin/node-build  --definitions'])
+		let result = child.spawnSync('docker', ['run', '--rm', '--entrypoint=bash', 'kazaoki/genie', '-c', '/root/.anyenv/envs/ndenv/plugins/node-build/bin/node-build  --definitions'])
 		lib.Message(result.stdout.toString(), 'primary')
 	} else {
 		opt.showHelp()
@@ -211,16 +230,18 @@ else if(argv._[0]==='up') {
 
 	// 設定ファイルロード
 	let config = lib.loadConfig(argv);
+	config.up = {} // upコマンド用設定を以降で自動追加するための場所
 
-	// コンテナベース名
-	let base_name = argv.shadow
+	// コンテナベース名定義
+	config.up.base_name = argv.shadow
 		? config.core.docker.name + '-SHADOW'
 		: config.core.docker.name
 
-	// ラベル名
-	let label = {
-		genie_project_root_dir: lib.getProjectRootDir()
+	// ラベル名定義
+	config.up.label = {
+		genie_project_dir: lib.getProjectRootDir(),
 	};
+	if(argv.shadow) config.up.label.genie_shadow = 1
 
 	// 起動時メモの表示
 	try {
@@ -230,25 +251,96 @@ else if(argv._[0]==='up') {
 		Error('メモの設定が異常です。')
 	}
 
-	// 既存のシステムを終了させる
-	// ※labelがおなじやつ
+	// // フィルターを用意
+	// config.up.filters = [
+	// 	'--filter',
+	// 	'label=genie_project_dir="${label.genie_project_dir}"',
+	// ]
+	// if(argv.shadow) {
+	// 	config.up.filters.push(
+	// 		'--filter',
+	// 		'label=genie_shadow=1'
+	// 	)
+	// }
+	// let $filters = [
+	// 	'--filter',
+	// 	'label=genie_project_dir="${label.genie_project_dir}"',
+	// ]
+	// if(argv.shadow) {
+	// 	$filters.push(
+	// 		'--filter',
+	// 		'label=genie_shadow=1'
+	// 	)
+	// }
+	// let result = child.spawnSync('docker', ['ps', '-a', ...$filters])
+	// lib.Message(result.stdout.toString(), 'primary', 1)
 
-	// // 各コンテナ起動
-	// (async()=>
-	// {
-	// 	// PostgreSQLコンテナの起動
-	// 	;
 
-	// 	// MySQLコンテナの起動
-	// 	;
+	(async()=>
+	{
 
-	// 	// 本体コンテナの起動
-	// 	;
-	// })();
+		// コンテナ作成テスト
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name, 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-mysql-main', 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-mysql-sub', 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-postgresql-2015', 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-postgresql-2016', 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-postgresql-2017', 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-postgresql-2018', 'centos', 'top']);
 
-	// ブラウザ起動
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name, 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-mysql-main', 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-mysql-sub', 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-postgresql-2015', 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-postgresql-2016', 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-postgresql-2017', 'centos', 'top']);
+		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-postgresql-2018', 'centos', 'top']);
 
-	process.exit();
+		// 各コンテナ終了
+		if(lib.existContainers(config)) {
+			// h('対象の既存コンテナのみ削除します', color.blackBright);
+			await Promise.all([
+				lib.dockerDown('/'+config.up.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
+				lib.dockerDown('/'+config.up.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
+				lib.dockerDown('/'+config.up.base_name+'$', config), // 完全一致のgenie本体コンテナ名
+				// lib.dockerDown(null, config), // プロジェクトパスとshadowが一致するもの＝ゴミコンテナ削除
+			]).catch(err=>err)
+			// await lib.dockerDown(config);
+		}
+
+		let rundb_fucs =[]
+
+		// PostgreSQL起動関数用意
+		try {
+			let keys = Object.keys(config.db.postgresql)
+			if(keys.length) {
+				// h('PostgreSQL起動開始')
+				rundb_fucs.push(lib.dockerUp('postgresql', config))
+			}
+		} catch(err) { Error(err) }
+
+		// MySQL起動関数用意
+		try {
+			let keys = Object.keys(config.db.mysql)
+			if(keys.length) {
+				// h('MySQL起動開始')
+				rundb_fucs.push(lib.dockerUp('mysql', config))
+			}
+		} catch(err) { Error(err) }
+
+		// 先にDBを起動開始
+		await Promise.all(rundb_fucs).catch(err=>{lib.Error(err)})
+
+		// genie本体起動関数用意
+		// h('genie本体起動開始')
+		lib.dockerUp('genie', config)
+
+		// ブラウザ起動
+		;
+
+		h('起動完了!!')
+		process.exit();
+	})();
 }
 
 /**

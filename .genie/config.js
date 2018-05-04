@@ -14,9 +14,11 @@ genie.core =
 {
 	// 使用する Docker イメージ情報
 	docker: {
-		image: 'kazaoki/genie:node',
+		// image: 'kazaoki/genie:node',
+		image: 'alpine',
 		// machine: 'sandbox',
-		name: 'genie-xxx',
+		// name: 'genie-xxx',
+		name: 'genie-test',
 		// options: '--cpuset-cpus=0-1',
 		hosts: [
 			'genie-xxx.com:127.0.0.1',
@@ -27,13 +29,14 @@ genie.core =
 			// 'home-data:/home/xxx/',
 			// 'emls:/sendlog/emls',
 		],
+		// network: 'my_docker_nw',
 	},
 
 	// up時/down時のメッセージ表示
 	memo: {
 		up: [
 			{info: '起動します。'},
-			{warning: '追加情報: xxxxxxxx'},
+			{warning: '開発版です'},
 		],
 		down: [{success: '終了します。'}],
 	},
@@ -157,50 +160,63 @@ genie.http =
 }
 
 /**
- * DB設定（DBごとに別コンテナとして起動します）
+ * DB設定（DB名ごとに別コンテナとして起動します）
  * -----------------------------------------------------------------------------
  */
 genie.db =
 {
 	// MySQL設定
 	mysql: {
-		// enabled: true,
-		databases: {
-			main: {
-				repository : 'mysql:5.5',
-				host       : 'db.sample',
-				name       : 'sample_db',
-				user       : 'sample_user',
-				pass       : '123456789',
-				charset    : 'utf8mb4',
-				collation  : 'utf8mb4_unicode_ci',
-				dump_genel : 3,
-				// volume_lock: true,
-				bind_ports: [
-					'3306'
-				],
-			},
+		main: {
+			repository : 'mysql:5.5',
+			host       : 'main.mysql-server',
+			name       : 'sample_db',
+			user       : 'sample_user',
+			pass       : '123456789',
+			charset    : 'utf8mb4',
+			collation  : 'utf8mb4_unicode_ci',
+			dump_genel : 3,
+			// volume_lock: true,
+			// external_port: 3306
+		},
+		sub: {
+			repository : 'mysql:5.5',
+			host       : 'sub.mysql-server',
+			name       : 'sample_db',
+			user       : 'sample_user',
+			pass       : '123456789',
+			charset    : 'utf8mb4',
+			collation  : 'utf8mb4_unicode_ci',
+			dump_genel : 3,
+			// volume_lock: true,
+			// external_port: 3306
 		},
 	},
 
 	// PostgreSQL設定
 	// ※locale には ja_JP.UTF-8 | ja_JP.EUC-JP が指定可能で、encoding はこれにより自動的に設定されます。
 	postgresql: {
-		// enabled: true,
-		databases: {
-			main: {
-				repository : 'postgres:9.4',
-				host       : 'db.sample',
-				name       : 'sample_db',
-				user       : 'sample_user',
-				pass       : '123456789',
-				locale     : 'ja_JP.UTF-8',
-				dump_genel : 3,
-				// volume_lock: true,
-				bind_ports: [
-					'5432:5432'
-				],
-			},
+		main: {
+			repository : 'postgres:9.4',
+			host       : 'main.postgresql-server',
+			name       : 'sample_db',
+			user       : 'sample_user',
+			pass       : '123456789',
+			locale     : 'ja_JP.UTF-8',
+			dump_genel : 3,
+			// volume_lock: true,
+			// external_port: 5432
+		},
+		sub: {
+			repository : 'postgres:9.4',
+			host       : 'sub.postgresql-server',
+			name       : 'sample_db',
+			user       : 'sample_user',
+			pass       : '123456789',
+			locale     : 'ja_JP.UTF-8',
+			dump_genel : 3,
+			// volume_lock: true,
+			// external_port: 5432
 		},
 	},
 }
