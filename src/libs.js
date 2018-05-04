@@ -217,7 +217,14 @@ const loadConfig = module.exports.loadConfig = argv=>{
 	} catch (err){
 		Error(`設定ファイル（.genie/${argv.config}）が見つかりませんでした。`)
 	}
-	return require(config_js).genie
+
+	// ファイルロード
+	let config = require(config_js).config;
+
+	// 実行モードをセットしてあげる
+	config.runmode = argv.mode
+
+	return config
 }
 
 /**
@@ -402,32 +409,131 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 			args.push('-v', config.up.label.genie_project_dir+'/.genie/root/opt:/opt')
 			args.push('--label', `genie_project_dir="${config.up.label.genie_project_dir}"`)
 			if(config.up.label.genie_shadow) args.push('--label', 'genie_shadow')
+			args.push(`--name=${config.up.base_name}`)
+			if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
+			if(config.core.docker.options) args.push(`${config.core.docker.options}`)
+			args.push('--restart=always')
 
 			// Perl関係
 			if(config.lang.perl.cpanfile_enabled) args.push('-e', 'PERL5LIB=/perl/cpanfile-modules/lib/perl5')
 
+			// PostgreSQL関係
+			if(config.db.postgresql){
+				let keys = Object.keys(config.db.postgresql);
+				for(let i=0; i<keys.length; i++) {
+					let container_name = `${config.up.base_name}-postgresql-${keys[i]}`;
+					args.push('--link', container_name)
+					args.push('--add-host', config.db.postgresql[keys[i]].host + ':' + getContainerIp(container_name, config))
+				}
+			}
+
 			// MySQL関係
-			try {
+			if(config.db.mysql){
 				let keys = Object.keys(config.db.mysql);
 				for(let i=0; i<keys.length; i++) {
 					let container_name = `${config.up.base_name}-mysql-${keys[i]}`;
 					args.push('--link', container_name)
 					args.push('--add-host', config.db.mysql[keys[i]].host + ':' + getContainerIp(container_name, config))
-					// このへんから。（IPとれてる？
-
 				}
-			} catch(e){}
+			}
+
+			// SSHD関係
+			if(config.trans.sshd){
+				args.push('-p', `${config.trans.sshd.external_port}:22`)
+			}
+
+			// Apache関係
+			if(config.http.apache){
+				args.push('-v', `${config.up.label.genie_project_dir}/${config.http.apache.public_dir}:/var/www/html`)
+				if(config.http.apache.external_http_port) {
+					args.push('-p', `${config.http.apache.external_http_port}:80`)
+				}
+				if(config.http.apache.external_https_port) {
+					args.push('-p', `${config.http.apache.external_https_port}:443`)
+				}
+			}
+
+			// Nginx関係
+			if(config.http.nginx){
+				args.push('-v', `${config.up.label.genie_project_dir}/${config.http.nginx.public_dir}:/usr/share/nginx/html`)
+				if(config.http.nginx.external_http_port) {
+					args.push('-p', `${config.http.nginx.external_http_port}:80`)
+				}
+				if(config.http.nginx.external_https_port) {
+					args.push('-p', `${config.http.nginx.external_https_port}:443`)
+				}
+			}
+
+			// Sendlog関係
+			if(config.mail.sendlog.external_port) {
+				args.push('-p', `${config.mail.sendlog.external_port}:9981`)
+			}
+
+			// Fluentd関係
+			if(config.log.fluentd) {
+				args.push('-v', `${config.up.label.genie_project_dir}/.genie/root/opt/td-agent:/etc/td-agent`)
+			}
+
+			// 追加ホスト
+			if(config.core.docker.hosts && Array.isArray(config.core.docker.hosts) && config.core.docker.hosts.length) {
+				for(let i=0; i<config.core.docker.hosts.length; i++){
+					args.push(`--add-host=${config.core.docker.hosts[i]}`)
+				}
+			}
+
+			// 追加マウント
+			args.push('-v', `${config.up.label.genie_project_dir}/:/mnt/host/`)
+			if(config.core.docker.volumes && Array.isArray(config.core.docker.volumes) && config.core.docker.volumes.length) {
+				for(let i=0; i<config.core.docker.volumes.length; i++){
+					if(config.core.docker.volumes[i].match(/^\//)) {
+						args.push('-v', `${config.core.docker.volumes[i]}`)
+					} else {
+						args.push('-v', `${config.up.label.genie_project_dir}/${config.core.docker.volumes[i]}`)
+					}
+				}
+			}
+
+			// 設定値を環境変数値に
+			let envs = {}
+			let conv = (data, parent_key)=>{
+				// let key =1
+				if(typeof(data)==='object' && !Array.isArray(data)) {
+					// 再帰
+					let keys = Object.keys(data)
+					for(let i =0; i<keys.length; i++){
+						conv(data[keys[i]], `${parent_key}_${keys[i].toUpperCase()}`)
+					}
+				} else {
+					// 変換してセット
+					if(typeof(data)==='object' && Array.isArray(data)) {
+						envs[parent_key] = JSON.stringify(data)
+					} else {
+						envs[parent_key] = data
+					}
+				}
+
+			}
+			conv(config, 'GENIE')
+			envs.GENIE_RUNMODE=config.runmode;
+			let keys = Object.keys(envs)
+			for(let i=0; i<keys.length; i++) {
+				// args.push('-e', `${keys[i]}=${envs[keys[i]]}`)
+			}
+
+			// イメージ指定
+			args.push(config.core.docker.image)
 
 
-
-// d(config.up)
-d(args)
+			d(args)
 
 			// dockerコマンド実行
+			let result = child.spawnSync('docker', args)
+			if(result.stderr.toString()) {
+				reject(result.stderr.toString())
+			} else {
+				resolve();
+			}
 
-
-
-			resolve()
 		})
 	}
 }
@@ -498,7 +604,7 @@ const getContainerIp = module.exports.getContainerIp = (container_name, config)=
 		if(result.stderr.toString()) {
 			Error(result.stderr.toString());
 		} else {
-			result.stdout.toString()
+			return result.stdout.toString().replace(/[\r\n]$/, '')
 		}
 	} catch(err) {
 		Error(err)

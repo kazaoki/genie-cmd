@@ -1,5 +1,5 @@
 ﻿
-const genie = module.exports.genie = {}; // この行は削除や変更をしないように！
+const config = module.exports.config = {}; // この行は削除や変更をしないように！
 
 /**
  * genie設定ファイル
@@ -10,7 +10,7 @@ const genie = module.exports.genie = {}; // この行は削除や変更をしな
  * genie本体設定
  * -----------------------------------------------------------------------------
  */
-genie.core =
+config.core =
 {
 	// 使用する Docker イメージ情報
 	docker: {
@@ -57,7 +57,7 @@ genie.core =
  * 言語設定
  * -----------------------------------------------------------------------------
  */
-genie.lang =
+config.lang =
 {
 	// Perl設定
 	perl: {
@@ -86,7 +86,7 @@ genie.lang =
  * ログ設定
  * -----------------------------------------------------------------------------
  */
-genie.log =
+config.log =
 {
 	// ファイルログ監視
 	logs: {
@@ -104,7 +104,6 @@ genie.log =
 
 	// Fluentd設定（サービスログ）
 	fluentd: {
-		// enabled: true,
 		config_file: '/etc/td-agent/td-agent.conf',
 	},
 }
@@ -113,7 +112,7 @@ genie.log =
  * http設定
  * -----------------------------------------------------------------------------
  */
-genie.http =
+config.http =
 {
 	// ブラウザ設定
 	browser: {
@@ -125,29 +124,21 @@ genie.http =
 
 	// Apache設定
 	apache: {
-		enabled: true,
-		public_path: 'public_html',
+		public_dir: 'public_html',
 		// no_cache: 1,
 		// bandwidth: 10000,
 		no_log_regex: '\.(gif|jpg|jpeg|jpe|png|css|js|ico)$',
 		real_ip_log_enabled: false,
-		http_port: 80,
-		https_port: 443,
-		bind_ports: [
-			'80:80',
-			'443:443',
-		]
+		external_http_port: 80,
+		external_https_port: 443,
 	},
 
 	// Nginx設定
-	nginx: {
-		// enabled: true,
-		public_path: 'public_html',
-		http_port: 8080,
-		bind_ports: [
-			'8080:8080',
-		]
-	},
+	// nginx: {
+	// 	public_dir: 'public_html',
+	// 	external_http_port: 80,
+	// 	external_https_port: 443,
+	// },
 
 	// ngrok設定
 	ngrok: {
@@ -163,7 +154,7 @@ genie.http =
  * DB設定（DB名ごとに別コンテナとして起動します）
  * -----------------------------------------------------------------------------
  */
-genie.db =
+config.db =
 {
 	// MySQL設定
 	mysql: {
@@ -225,7 +216,7 @@ genie.db =
  * メール設定
  * -----------------------------------------------------------------------------
  */
-genie.mail =
+config.mail =
 {
 	// Postfix設定
 	postfix: {
@@ -235,11 +226,8 @@ genie.mail =
 
 	// Sendlog設定
 	sendlog: {
-		enabled: true, // ENABLEでも本番モードなら送信ログの保存すらしません。
 		// hide_desc: 1, // 一覧ページ上部の説明文を表示する(1)か否か
-		bind_ports: [
-			'9981:9981',
-		]
+		external_port: 9981
 	},
 }
 
@@ -247,7 +235,7 @@ genie.mail =
  * データ転送設定
  * -----------------------------------------------------------------------------
  */
-genie.trans =
+config.trans =
 {
 	// dlsync設定
 	dlsync: {
@@ -268,9 +256,7 @@ genie.trans =
 		login_user: 'genie',
 		login_pass: '123456789',
 		login_path: '/mnt/host',
-		bind_ports: [
-			'22',
-		]
+		external_port: 22
 	},
 }
 
@@ -278,7 +264,7 @@ genie.trans =
 //  * CI設定
 //  * -----------------------------------------------------------------------------
 //  */
-// genie.ci =
+// config.ci =
 // {
 // 	// SPEC設定
 // 	spec: {

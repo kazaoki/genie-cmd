@@ -15,7 +15,7 @@ let argv = opt
 	.usage('Usage: genie|g [Commands] [Options]')
 	.options('mode', {
 		alias: 'm',
-		default: '',
+		default: 'develop',
 		describe: '実行モードを指定可能'
 	})
 	.options('config', {
@@ -251,51 +251,8 @@ else if(argv._[0]==='up') {
 		Error('メモの設定が異常です。')
 	}
 
-	// // フィルターを用意
-	// config.up.filters = [
-	// 	'--filter',
-	// 	'label=genie_project_dir="${label.genie_project_dir}"',
-	// ]
-	// if(argv.shadow) {
-	// 	config.up.filters.push(
-	// 		'--filter',
-	// 		'label=genie_shadow=1'
-	// 	)
-	// }
-	// let $filters = [
-	// 	'--filter',
-	// 	'label=genie_project_dir="${label.genie_project_dir}"',
-	// ]
-	// if(argv.shadow) {
-	// 	$filters.push(
-	// 		'--filter',
-	// 		'label=genie_shadow=1'
-	// 	)
-	// }
-	// let result = child.spawnSync('docker', ['ps', '-a', ...$filters])
-	// lib.Message(result.stdout.toString(), 'primary', 1)
-
-
 	(async()=>
 	{
-
-		// コンテナ作成テスト
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name, 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-mysql-main', 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-mysql-sub', 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-postgresql-2015', 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-postgresql-2016', 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-postgresql-2017', 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--name', config.up.base_name+'-postgresql-2018', 'centos', 'top']);
-
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name, 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-mysql-main', 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-mysql-sub', 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-postgresql-2015', 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-postgresql-2016', 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-postgresql-2017', 'centos', 'top']);
-		// child.spawnSync('docker', ['run', '-d', '--label', `genie_project_dir="${config.up.label.genie_project_dir}"`, '--label', 'genie_shadow', '--name', config.up.base_name+'-postgresql-2018', 'centos', 'top']);
-
 		// 各コンテナ終了
 		if(lib.existContainers(config)) {
 			// h('対象の既存コンテナのみ削除します', color.blackBright);
@@ -333,7 +290,7 @@ else if(argv._[0]==='up') {
 
 		// genie本体起動関数用意
 		// h('genie本体起動開始')
-		lib.dockerUp('genie', config)
+		await lib.dockerUp('genie', config).catch(err=>lib.Error(err))
 
 		// ブラウザ起動
 		;
