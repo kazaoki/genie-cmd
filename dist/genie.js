@@ -883,12 +883,11 @@ else if (argv._[0] === 'ls') {
 								// h('対象の既存コンテナのみ削除します', color.blackBright);
 								yield Promise.all([lib.dockerDown('/' + config.up.base_name + '-postgresql', config), // 前方一致のPostgreSQLコンテナ名
 								lib.dockerDown('/' + config.up.base_name + '-mysql', config), // 前方一致のMySQLコンテナ名
-								lib.dockerDown('/' + config.up.base_name + '$', config)] // 完全一致のgenie本体コンテナ名
-								// lib.dockerDown(null, config), // プロジェクトパスとshadowが一致するもの＝ゴミコンテナ削除
+								lib.dockerDown('/' + config.up.base_name + '$', config), // 完全一致のgenie本体コンテナ名
+								lib.dockerDown(null, config)] // プロジェクトパスとshadowが一致するもの（＝ゴミコンテナ）削除
 								).catch(function (err) {
 									return err;
 								});
-								// await lib.dockerDown(config);
 							}
 
 							let rundb_fucs = [];
@@ -935,15 +934,67 @@ else if (argv._[0] === 'ls') {
 					}
 
 					/**
-      * help
+      * down
       * -----------------------------------------------------------------------------
       */
-					else {
-							console.error(opt.help() + '\n' + 'Commands:\n' + '  init    \n' + '  config  設定を確認する\n' + '  ls      Dockerコンテナ状況を確認する\n' + '  up      Dockerコンテナを起動する\n' + '  down    \n' + '  update  \n' + '  cli     \n' + '  reject  \n' + '  clean   \n' + '  build   \n' + '  langver 各種言語の利用可能なバージョンを確認する\n' + '  mysql   \n' + '  psql    \n' + '  open    \n' + '  ngrok   \n' + '  logs    \n' + '  dlsync  \n' + '  httpd   \n' +
-							// '  spec    \n'+
-							// '  zap     \n'+
-							'  demo    デモ\n');
+					else if (argv._[0] === 'down') {
+							// オプション設定
+							let argv = opt.usage('Usage: genie|g down [Options]').options('shadow', {
+								alias: 's',
+								describe: 'データをマウントではなくコンテナにコピーした別のコンテナを終了する'
+							}).argv;
+							;
+							if (argv.help) opt.showHelp();
 
-							process.exit();
+							// 設定ファイルロード
+							let config = lib.loadConfig(argv);
+							config.up = {}; // upコマンド用設定を以降で自動追加するための場所
+
+							// コンテナベース名定義
+							config.up.base_name = argv.shadow ? config.core.docker.name + '-SHADOW' : config.core.docker.name;
+
+							// ラベル名定義
+							config.up.label = {
+								genie_project_dir: lib.getProjectRootDir()
+							};
+							if (argv.shadow) config.up.label.genie_shadow = 1;
+
+							// 終了時メモの表示
+							try {
+								let memo = config.core.memo.down;
+								if (memo) lib.Messages(memo);
+							} catch (err) {
+								Error('メモの設定が異常です。');
+							}
+
+							_asyncToGenerator(function* () {
+								// 各コンテナ終了
+								if (lib.existContainers(config)) {
+									// h('対象の既存コンテナのみ削除します', color.blackBright);
+									yield Promise.all([lib.dockerDown('/' + config.up.base_name + '-postgresql', config), // 前方一致のPostgreSQLコンテナ名
+									lib.dockerDown('/' + config.up.base_name + '-mysql', config), // 前方一致のMySQLコンテナ名
+									lib.dockerDown('/' + config.up.base_name + '$', config), // 完全一致のgenie本体コンテナ名
+									lib.dockerDown(null, config)] // プロジェクトパスとshadowが一致するもの（＝ゴミコンテナ）削除
+									).catch(function (err) {
+										return err;
+									});
+								}
+
+								h('DONE!');
+								process.exit();
+							})();
 						}
+
+						/**
+       * help
+       * -----------------------------------------------------------------------------
+       */
+						else {
+								console.error(opt.help() + '\n' + 'Commands:\n' + '  init    \n' + '  config  設定を確認する\n' + '  ls      Dockerコンテナ状況を確認する\n' + '  up      Dockerコンテナを起動する\n' + '  down    \n' + '  update  \n' + '  cli     \n' + '  reject  \n' + '  clean   \n' + '  build   \n' + '  langver 各種言語の利用可能なバージョンを確認する\n' + '  mysql   \n' + '  psql    \n' + '  open    \n' + '  ngrok   \n' + '  logs    \n' + '  dlsync  \n' + '  httpd   \n' +
+								// '  spec    \n'+
+								// '  zap     \n'+
+								'  demo    デモ\n');
+
+								process.exit();
+							}
 },{"./libs.js":2}]},{},[1])

@@ -260,9 +260,8 @@ else if(argv._[0]==='up') {
 				lib.dockerDown('/'+config.up.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
 				lib.dockerDown('/'+config.up.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
 				lib.dockerDown('/'+config.up.base_name+'$', config), // 完全一致のgenie本体コンテナ名
-				// lib.dockerDown(null, config), // プロジェクトパスとshadowが一致するもの＝ゴミコンテナ削除
+				lib.dockerDown(null, config), // プロジェクトパスとshadowが一致するもの（＝ゴミコンテナ）削除
 			]).catch(err=>err)
-			// await lib.dockerDown(config);
 		}
 
 		let rundb_fucs =[]
@@ -296,6 +295,63 @@ else if(argv._[0]==='up') {
 		;
 
 		h('起動完了!!')
+		process.exit();
+	})();
+}
+
+/**
+ * down
+ * -----------------------------------------------------------------------------
+ */
+else if(argv._[0]==='down') {
+	// オプション設定
+	let argv = opt
+		.usage('Usage: genie|g down [Options]')
+		.options('shadow', {
+			alias: 's',
+			describe: 'データをマウントではなくコンテナにコピーした別のコンテナを終了する'
+		})
+		.argv;
+	;
+	if(argv.help) opt.showHelp()
+
+	// 設定ファイルロード
+	let config = lib.loadConfig(argv);
+	config.up = {} // upコマンド用設定を以降で自動追加するための場所
+
+	// コンテナベース名定義
+	config.up.base_name = argv.shadow
+		? config.core.docker.name + '-SHADOW'
+		: config.core.docker.name
+
+	// ラベル名定義
+	config.up.label = {
+		genie_project_dir: lib.getProjectRootDir(),
+	};
+	if(argv.shadow) config.up.label.genie_shadow = 1
+
+	// 終了時メモの表示
+	try {
+		let memo = config.core.memo.down
+		if(memo) lib.Messages(memo);
+	} catch(err) {
+		Error('メモの設定が異常です。')
+	}
+
+	(async()=>
+	{
+		// 各コンテナ終了
+		if(lib.existContainers(config)) {
+			// h('対象の既存コンテナのみ削除します', color.blackBright);
+			await Promise.all([
+				lib.dockerDown('/'+config.up.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
+				lib.dockerDown('/'+config.up.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
+				lib.dockerDown('/'+config.up.base_name+'$', config), // 完全一致のgenie本体コンテナ名
+				lib.dockerDown(null, config), // プロジェクトパスとshadowが一致するもの（＝ゴミコンテナ）削除
+			]).catch(err=>err)
+		}
+
+		h('DONE!')
 		process.exit();
 	})();
 }
