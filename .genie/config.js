@@ -14,8 +14,8 @@ config.core =
 {
 	// 使用する Docker イメージ情報
 	docker: {
+		image: 'kazaoki/genie:node',
 		// image: 'kazaoki/genie:node',
-		image: 'alpine',
 		// machine: 'sandbox',
 		// name: 'genie-xxx',
 		name: 'genie-test',

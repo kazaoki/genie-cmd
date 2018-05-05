@@ -330,6 +330,7 @@ else if(argv._[0]==='down') {
 	};
 	if(argv.shadow) config.up.label.genie_shadow = 1
 
+
 	// 終了時メモの表示
 	try {
 		let memo = config.core.memo.down
@@ -353,6 +354,55 @@ else if(argv._[0]==='down') {
 
 		h('DONE!')
 		process.exit();
+	})();
+}
+
+/**
+ * build
+ * -----------------------------------------------------------------------------
+ */
+else if(argv._[0]==='build') {
+	// オプション設定
+	let argv = opt
+		.usage('Usage: genie|g build [Options]')
+		.options('no-cache', {
+			alias: 'n',
+			describe: 'キャッシュを使用せずにビルドする'
+		})
+		.argv;
+	;
+	if(argv.help) opt.showHelp()
+
+	// 設定ファイルロード
+	let config = lib.loadConfig(argv);
+
+	(async()=>
+	{
+		// 確認
+		let input = await lib.Input(`${config.core.docker.image} イメージをビルドしてもよろしいでしょうか。[y/N]: `)
+
+		// ビルド実行
+		if(input.match(/^y$/i)) {
+			let args = ['build', '-t', config.core.docker.image]
+			if(argv['no-cache']) args.push('--no-cache')
+			args.push(`${lib.getProjectRootDir()}/.genie/image/`)
+			lib.Message(`ビルドを開始します。\ndocker ${args.join(' ')}`, 'info');
+			console.log()
+			let stream = child.spawn('docker', args);
+			stream.stdout.on('data', (data)=>{
+				console.log(color.blackBright(data))
+			})
+			stream.stderr.on('data', (data)=>{
+				lib.Error(data)
+				process.exit();
+			})
+			stream.on('close', (code) => {
+				let mes = 'イメージのビルドが正常に完了しました。'
+				lib.Message(mes)
+				lib.Say(mes)
+			process.exit();
+			});
+		}
 	})();
 }
 

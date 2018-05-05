@@ -77,7 +77,7 @@ parcelRequire = (function (modules, cache, entry) {
 
   // Override the current require with this new one
   return newRequire;
-})({2:[function(require,module,exports) {
+})({3:[function(require,module,exports) {
 
 'use strict';
 
@@ -986,15 +986,60 @@ else if (argv._[0] === 'ls') {
 						}
 
 						/**
-       * help
+       * build
        * -----------------------------------------------------------------------------
        */
-						else {
-								console.error(opt.help() + '\n' + 'Commands:\n' + '  init    \n' + '  config  設定を確認する\n' + '  ls      Dockerコンテナ状況を確認する\n' + '  up      Dockerコンテナを起動する\n' + '  down    \n' + '  update  \n' + '  cli     \n' + '  reject  \n' + '  clean   \n' + '  build   \n' + '  langver 各種言語の利用可能なバージョンを確認する\n' + '  mysql   \n' + '  psql    \n' + '  open    \n' + '  ngrok   \n' + '  logs    \n' + '  dlsync  \n' + '  httpd   \n' +
-								// '  spec    \n'+
-								// '  zap     \n'+
-								'  demo    デモ\n');
+						else if (argv._[0] === 'build') {
+								// オプション設定
+								let argv = opt.usage('Usage: genie|g build [Options]').options('no-cache', {
+									alias: 'n',
+									describe: 'キャッシュを使用せずにビルドする'
+								}).argv;
+								;
+								if (argv.help) opt.showHelp();
 
-								process.exit();
+								// 設定ファイルロード
+								let config = lib.loadConfig(argv);
+
+								_asyncToGenerator(function* () {
+									// 確認
+									let input = yield lib.Input(`${config.core.docker.image} イメージをビルドしてもよろしいでしょうか。[y/N]: `);
+
+									// ビルド実行
+									if (input.match(/^y$/i)) {
+										let args = ['build', '-t', config.core.docker.image];
+										if (argv['no-cache']) args.push('--no-cache');
+										args.push(`${lib.getProjectRootDir()}/.genie/image/`);
+										lib.Message(`ビルドを開始します。\ndocker ${args.join(' ')}`, 'info');
+										console.log();
+										let stream = child.spawn('docker', args);
+										stream.stdout.on('data', function (data) {
+											console.log(color.blackBright(data));
+										});
+										stream.stderr.on('data', function (data) {
+											lib.Error(data);
+											process.exit();
+										});
+										stream.on('close', function (code) {
+											let mes = 'イメージのビルドが正常に完了しました。';
+											lib.Message(mes);
+											lib.Say(mes);
+											process.exit();
+										});
+									}
+								})();
 							}
-},{"./libs.js":2}]},{},[1])
+
+							/**
+        * help
+        * -----------------------------------------------------------------------------
+        */
+							else {
+									console.error(opt.help() + '\n' + 'Commands:\n' + '  init    \n' + '  config  設定を確認する\n' + '  ls      Dockerコンテナ状況を確認する\n' + '  up      Dockerコンテナを起動する\n' + '  down    \n' + '  update  \n' + '  cli     \n' + '  reject  \n' + '  clean   \n' + '  build   \n' + '  langver 各種言語の利用可能なバージョンを確認する\n' + '  mysql   \n' + '  psql    \n' + '  open    \n' + '  ngrok   \n' + '  logs    \n' + '  dlsync  \n' + '  httpd   \n' +
+									// '  spec    \n'+
+									// '  zap     \n'+
+									'  demo    デモ\n');
+
+									process.exit();
+								}
+},{"./libs.js":3}]},{},[1])
