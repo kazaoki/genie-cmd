@@ -316,6 +316,7 @@ const hasDockerMachineEnv = module.exports.hasDockerMachineEnv = () => {
 const Error = module.exports.Error = message => {
 	console.log();
 	Message(`エラーが発生しました。\n${message}`, 'danger', 1);
+	Say('エラーが発生しました');
 	process.exit();
 };
 
@@ -1014,7 +1015,7 @@ else if (argv._[0] === 'ls') {
 										console.log();
 										let stream = child.spawn('docker', args);
 										stream.stdout.on('data', function (data) {
-											console.log(color.blackBright(data));
+											console.log(color.blackBright(data.toString().replace(/[\r\n]+$/, '')));
 										});
 										stream.stderr.on('data', function (data) {
 											lib.Error(data);

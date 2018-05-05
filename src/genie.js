@@ -390,7 +390,7 @@ else if(argv._[0]==='build') {
 			console.log()
 			let stream = child.spawn('docker', args);
 			stream.stdout.on('data', (data)=>{
-				console.log(color.blackBright(data))
+				console.log(color.blackBright(data.toString().replace(/[\r\n]+$/, '')))
 			})
 			stream.stderr.on('data', (data)=>{
 				lib.Error(data)

@@ -125,8 +125,6 @@ config.http =
 	// Apache設定
 	apache: {
 		public_dir: 'public_html',
-		// no_cache: 1,
-		// bandwidth: 10000,
 		no_log_regex: '\.(gif|jpg|jpeg|jpe|png|css|js|ico)$',
 		real_ip_log_enabled: false,
 		external_http_port: 80,

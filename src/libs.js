@@ -259,6 +259,7 @@ const hasDockerMachineEnv = module.exports.hasDockerMachineEnv = ()=>{
 const Error = module.exports.Error = (message)=>{
 	console.log()
 	Message(`エラーが発生しました。\n${message}`, 'danger', 1)
+	Say('エラーが発生しました')
 	process.exit()
 }
 
