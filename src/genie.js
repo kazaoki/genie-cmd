@@ -423,7 +423,7 @@ else {
 		'  cli     \n'+
 		'  reject  \n'+
 		'  clean   \n'+
-		'  build   \n'+
+		'  build   基本のdockerイメージをビルドする\n'+
 		'  langver 各種言語の利用可能なバージョンを確認する\n'+
 		'  mysql   \n'+
 		'  psql    \n'+

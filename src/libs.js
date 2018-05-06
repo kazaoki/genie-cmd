@@ -4,6 +4,7 @@
 const fs = require('fs')
 const strwidth = require('string-width')
 const color = require('cli-color')
+const wrap = require('jp-wrap')(color.windowSize.width-8);
 const readline = require('readline').createInterface(process.stdin, process.stdout)
 const child = require('child_process')
 const path = require('path')
@@ -59,8 +60,8 @@ const getProjectRootDir = module.exports.getProjectRootDir = ()=>{
  */
 const Repeat = module.exports.Repeat = (string, times=1)=>{
 	if(!times>0) return '';
-	var lump = '';
-	for(var i=0; i<times; i++) {
+	let lump = '';
+	for(let i=0; i<times; i++) {
 		lump += string;
 	}
 	return lump;
@@ -74,10 +75,9 @@ const Repeat = module.exports.Repeat = (string, times=1)=>{
  * @param {number} line タイトル線を引く位置。
  */
 const Message = module.exports.Message = (message, type='default', line=0)=>{
-	var indent = '  ';
-	var line_color = color.white;
-	var fg_color = color.white;
-	message = message.replace(/[\r\n]+$/, '');
+	let indent = '  ';
+	let line_color = color.white;
+	let fg_color = color.white;
 	if(type==='primary') {
 		line_color = color.xterm(26)
 		fg_color = color.xterm(39)
@@ -95,26 +95,28 @@ const Message = module.exports.Message = (message, type='default', line=0)=>{
 		fg_color = color.whiteBright
 	}
 
-	var messages = message.split(/[\r\n]+/)
-	var length = 0;
-	for(var i in messages) {
-		var len = strwidth(messages[i])
-		if(length < len) length = len;
+	let window_width = color.windowSize.width
+	message = wrap(message.replace(/[\r\n]+$/, ''))
+	let messages = message.split(/[\r\n]+/)
+	let width = 0;
+	for(let i in messages) {
+		let len = strwidth(messages[i])
+		if(width < len) width = len;
 	}
-	length += 2;
+	width += 2;
 
 	console.log(
 		indent +
 		line_color('┏') +
-		line_color(Repeat('─', length)) +
+		line_color(Repeat('─', width)) +
 		line_color('┓')
 	)
-	for(var i in messages) {
+	for(let i in messages) {
 		if(line>0 && line==i) {
 			console.log(
 				indent +
 				line_color('┣') +
-				line_color(Repeat('─', length)) +
+				line_color(Repeat('─', width)) +
 				line_color('┫')
 			)
 		}
@@ -122,14 +124,14 @@ const Message = module.exports.Message = (message, type='default', line=0)=>{
 			indent +
 			line_color('│') +
 			fg_color(' '+messages[i]+' ') +
-			Repeat(' ', (length-2) - strwidth(messages[i])) +
+			Repeat(' ', (width-2) - strwidth(messages[i])) +
 			line_color('│')
 		)
 	}
 	console.log(
 		indent +
 		line_color('┗') +
-		line_color(Repeat('─', length)) +
+		line_color(Repeat('─', width)) +
 		line_color('┛')
 	)
 }
@@ -156,11 +158,11 @@ const Messages = module.exports.Messages = (messages)=>{
  * @return {string} 入力値
  */
 const Input = module.exports.Input = (message, tail_space=20)=>{
-	var indent = color.bgBlack('  ');
+	let indent = color.bgBlack('  ');
 	message = '  ' + message + '  ';
-	var len = strwidth(message) + tail_space;
-	var fg = color.whiteBright.bgBlueBright;
-	var bg = color.bgBlue;
+	let len = strwidth(message) + tail_space;
+	let fg = color.whiteBright.bgBlueBright;
+	let bg = color.bgBlue;
 	console.log(
 		'\n' +
 		indent + fg(Repeat(' ', len)) + '\n' +
