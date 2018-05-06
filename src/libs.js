@@ -95,7 +95,6 @@ const Message = module.exports.Message = (message, type='default', line=0)=>{
 		fg_color = color.whiteBright
 	}
 
-	let window_width = color.windowSize.width
 	message = wrap(message.replace(/[\r\n]+$/, ''))
 	let messages = message.split(/[\r\n]+/)
 	let width = 0;

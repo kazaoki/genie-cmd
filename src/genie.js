@@ -1,12 +1,11 @@
 #!/usr/bin/env node
 
-import { EINPROGRESS } from 'constants';
-
 'use strict'
 
 const opt = require('optimist')
 const color = require('cli-color')
 const child = require('child_process');
+const cliui = require('cliui')();
 const lib = require('./libs.js');
 const d = lib.d
 const h = lib.h
@@ -112,10 +111,50 @@ else if(argv._[0]==='ls') {
 	// コンテナ一覧
 	{
 		console.log('\n  コンテナ一覧')
-		let format = ['--format', 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}']
-		if(argv.long) format = ['--format', 'table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}\t{{.Labels}}']
+		let format = ['--format', '{{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}']
+		let header = ['ID', 'IMAGE', 'STATUS', 'PORTS', 'NAMES']
+		if(argv.long) {
+			format = ['--format', '{{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}\t{{.Labels}}']
+			header = ['ID', 'IMAGE', 'COMMAND', 'CREATED AT', 'STATUS', 'PORTS', 'NAMES', 'LABELS']
+		}
+		// if(argv.long) format = ['--format', 'table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}']
 		let result = child.spawnSync('docker', ['ps', '-a', ...format])
-		lib.Message(result.stdout.toString(), 'primary', 1)
+
+		let lines = result.stdout.toString().replace(/[\r\n]$/, '').split('\n')
+		if(argv.long) {
+			lines.unshift('CONTAINER ID\tIMAGE\tCOMMAND\tCREATED AT\tSTATUS\tPORTS\tNAMES\tLABELS')
+		} else {
+			lines.unshift('CONTAINER ID\tIMAGE\tSTATUS\tPORTS\tNAMES')
+		}
+
+		for(let i in lines) {
+			let column = lines[i].split(/\t/)
+			let set = []
+			for(let j in column) {
+				let width;
+				if(!argv.long) {
+					if(j==0) width = 15 // CONTAINER ID
+					// if(j==1) width = 30 // IMAGE
+					if(j==3) width = 30 // PORTS
+					if(j==4) width = 40 // NAMES
+				} else {
+					if(j==0) width = 15 // CONTAINER ID
+					// if(j==1) width = 30 // IMAGE
+					if(j==5) width = 30 // PORTS
+					if(j==6) width = 40 // NAMES
+					if(j==7) width = 90 // LABELS
+				}
+				set.push({
+					text: column[j].replace(/, ?/g, '\n'),
+					width: width,
+					padding: [0, 1, 0, 1],
+				})
+			}
+			cliui.div(...set)
+		}
+
+		lib.Message(cliui.toString(), 'primary', 1)
+
 	}
 
 	process.exit();

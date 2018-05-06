@@ -1,7 +1,7 @@
 {
   "name": "genie-cmd",
   "description": "node版genie",
-  "version": "0.0.17",
+  "version": "0.0.18",
   "license": "MIT",
   "private": false,
   "bin": {
@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "cli-color": "^1.2.0",
+    "cliui": "^4.1.0",
     "jp-wrap": "^0.2.2",
     "optimist": "^0.6.1",
     "string-width": "^2.1.1"
