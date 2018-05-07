@@ -18,6 +18,9 @@ RUN apk --update add \
     ruby ruby-irb && \
     rm -rf /var/cache/apk/*
 
+# bash run
+# --------------------------------------------------------------------------------------------------
+ADD bashrc /etc/bashrc
 RUN bash
 
 # # ------------

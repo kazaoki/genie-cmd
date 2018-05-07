@@ -217,7 +217,7 @@ else if(argv._[0]==='clean') {
 }
 
 /**
- * langs
+ * langver
  * -----------------------------------------------------------------------------
  */
 else if(argv._[0]==='langver') {
@@ -436,7 +436,7 @@ else if(argv._[0]==='build') {
 				process.exit();
 			})
 			stream.on('close', (code) => {
-				let mes = 'イメージのビルドが正常に完了しました。'
+				let mes = 'ビルドが完了しました。'
 				lib.Message(mes)
 				lib.Say(mes)
 			process.exit();

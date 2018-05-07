@@ -304,8 +304,6 @@ const dockerDown = module.exports.dockerDown = (name_filter, config)=>{
  */
 const dockerUp = module.exports.dockerUp = (type, config)=>{
 
-	// d([type, config.up])
-
 	// PostgreSQLを起動
 	if(type==='postgresql') {
 		return new Promise((resolve, reject)=>{
@@ -321,7 +319,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 					args.push('--name', `${config.up.base_name}-postgresql-${keys[i]}`)
 					args.push('--label', `genie_project_dir="${config.up.label.genie_project_dir}"`)
 					if(config.up.label.genie_shadow) args.push('--label', 'genie_shadow')
-					args.push('-v', `${config.up.label.genie_project_dir}/.genie/root/opt/postgresql/:/opt/postgresql/`)
+					args.push('-v', `${config.up.label.genie_project_dir}/.genie/files/opt/postgresql/:/opt/postgresql/`)
 					args.push('-e', `POSTGRES_LABEL=${keys[i]}`)
 					args.push('-e', `POSTGRES_HOST=${postgresql.host}`)
 					args.push('-e', `POSTGRES_DB=${postgresql.name}`)
@@ -367,7 +365,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 					args.push('--name', `${config.up.base_name}-mysql-${keys[i]}`)
 					args.push('--label', `genie_project_dir="${config.up.label.genie_project_dir}"`)
 					if(config.up.label.genie_shadow) args.push('--label', 'genie_shadow')
-					args.push('-v', `${config.up.label.genie_project_dir}/.genie/root/opt/mysql/:/opt/mysql/`)
+					args.push('-v', `${config.up.label.genie_project_dir}/.genie/files/opt/mysql/:/opt/mysql/`)
 					args.push('-e', `MYSQL_LABEL=${keys[i]}`)
 					args.push('-e', `MYSQL_ROOT_PASSWORD=${mysql.pass}`)
 					args.push('-e', `MYSQL_DATABASE=${mysql.name}`)
@@ -408,7 +406,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 			args.push('-e', 'TERM=xterm')
 			args.push('-e', 'LANG=ja_JP.UTF-8')
 			args.push('-e', 'LC_ALL=ja_JP.UTF-8')
-			args.push('-v', config.up.label.genie_project_dir+'/.genie/root/opt:/opt')
+			args.push('-v', config.up.label.genie_project_dir+'/.genie/files/opt:/opt')
 			args.push('--label', `genie_project_dir="${config.up.label.genie_project_dir}"`)
 			if(config.up.label.genie_shadow) args.push('--label', 'genie_shadow')
 			args.push(`--name=${config.up.base_name}`)
@@ -473,7 +471,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 
 			// Fluentd関係
 			if(config.log.fluentd) {
-				args.push('-v', `${config.up.label.genie_project_dir}/.genie/root/opt/td-agent:/etc/td-agent`)
+				args.push('-v', `${config.up.label.genie_project_dir}/.genie/files/opt/td-agent:/etc/td-agent`)
 			}
 
 			// 追加ホスト
@@ -498,7 +496,6 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 			// 設定値を環境変数値に
 			let envs = {}
 			let conv = (data, parent_key)=>{
-				// let key =1
 				if(typeof(data)==='object' && !Array.isArray(data)) {
 					// 再帰
 					let keys = Object.keys(data)
@@ -525,8 +522,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 			// イメージ指定
 			args.push(config.core.docker.image)
 
-
-			d(args)
+			d(args.join(' '))
 
 			// dockerコマンド実行
 			let result = child.spawnSync('docker', args)
