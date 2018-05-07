@@ -587,9 +587,9 @@ const dockerUp = module.exports.dockerUp = (type, config) => {
 					conv(config, 'GENIE');
 					envs.GENIE_RUNMODE = config.runmode;
 					let keys = Object.keys(envs);
-					for (let i = 0; i < keys.length; i++) {}
-					// args.push('-e', `${keys[i]}=${envs[keys[i]]}`)
-
+					for (let i = 0; i < keys.length; i++) {
+						args.push('-e', `${keys[i]}=${envs[keys[i]]}`);
+					}
 
 					// イメージ指定
 					args.push(config.core.docker.image);
@@ -987,20 +987,13 @@ else if (argv._[0] === 'ls') {
 								describe: 'データをマウントではなくコンテナにコピーした別のコンテナを終了する'
 							}).argv;
 							;
-							if (argv.help) opt.showHelp();
+							if (argv.help) {
+								opt.showHelp();
+								process.exit();
+							}
 
 							// 設定ファイルロード
 							let config = lib.loadConfig(argv);
-							config.run = {}; // upコマンド用設定を以降で自動追加するための場所
-
-							// コンテナベース名定義
-							config.run.base_name = argv.shadow ? config.core.docker.name + '-SHADOW' : config.core.docker.name;
-
-							// ラベル名定義
-							config.run.label = {
-								genie_project_dir: lib.getProjectRootDir()
-							};
-							if (argv.shadow) config.run.label.genie_shadow = 1;
 
 							// 終了時メモの表示
 							try {

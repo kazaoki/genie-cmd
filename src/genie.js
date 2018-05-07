@@ -340,23 +340,13 @@ else if(argv._[0]==='down') {
 		})
 		.argv;
 	;
-	if(argv.help) opt.showHelp()
+	if(argv.help) {
+		opt.showHelp()
+		process.exit()
+	}
 
 	// 設定ファイルロード
 	let config = lib.loadConfig(argv);
-	config.run = {} // upコマンド用設定を以降で自動追加するための場所
-
-	// コンテナベース名定義
-	config.run.base_name = argv.shadow
-		? config.core.docker.name + '-SHADOW'
-		: config.core.docker.name
-
-	// ラベル名定義
-	config.run.label = {
-		genie_project_dir: lib.getProjectRootDir(),
-	};
-	if(argv.shadow) config.run.label.genie_shadow = 1
-
 
 	// 終了時メモの表示
 	try {

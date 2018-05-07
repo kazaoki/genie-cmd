@@ -14,7 +14,7 @@ RUN apk --update add \
     bash git tar curl lftp nodejs ca-certificates shadow nginx openssh-server logrotate multitail sudo \
     php7 php7-sqlite3 php7-mysqlnd php7-gd php7-imagick php7-mailparse php7-pdo php7-phar php7-pgsql php7-mysqli php7-mcrypt php7-json php7-ftp \
     apache2 apache2-ssl php7-apache2 \
-    perl perl-libwww perl-dbi perl-dbd-pg perl-dbd-mysql perl-dbd-sqlite perl-carp perl-cgi perl-cgi-fast perl-libwww perl-net-ssleay perl-gd \
+    perl perl-libwww perl-dbi perl-dbd-pg perl-dbd-mysql perl-dbd-sqlite perl-carp perl-cgi perl-cgi-fast perl-net-ssleay perl-gd \
     ruby ruby-irb && \
     rm -rf /var/cache/apk/*
 
@@ -98,12 +98,17 @@ RUN ln -s /etc/php7/php.ini /etc/php.ini && \
 # Setup Apache
 # --------------------------------------------------------------------------------------------------
 RUN sed -i 's/\#AddHandler\ cgi\-script\ \.cgi/AddHandler\ cgi\-script\ \.cgi/g' /etc/apache2/httpd.conf \
+    && sed -i 's/#LoadModule cgi_module modules\/mod_cgi.so/LoadModule cgi_module modules\/mod_cgi.so/' /etc/apache2/httpd.conf \
     && sed -i 's/AddDefaultCharset\ UTF\-8/AddDefaultCharset\ Off/g' /etc/apache2/httpd.conf \
     && sed -i 's/^User apache$/User docker/' /etc/apache2/httpd.conf \
     && sed -i 's/^Group apache$/Group docker/' /etc/apache2/httpd.conf \
+    && sed -i 's/DocumentRoot "\/var\/www\/localhost\/htdocs"/DocumentRoot "\/var\/www\/html"/' /etc/apache2/httpd.conf \
+	&& sed -i 's/ScriptAlias \/cgi\-bin\//#ScriptAlias \/cgi\-bin\//' /etc/apache2/httpd.conf \
+    && sed -i 's/\#ServerName www\.example\.com\:80/ServerName genie/g' /etc/apache2/httpd.conf \
     && echo '<Directory /var/www/html>' >> /etc/apache2/httpd.conf \
     && echo '  Options FollowSymLinks ExecCGI' >> /etc/apache2/httpd.conf \
     && echo '  AllowOverride All' >> /etc/apache2/httpd.conf \
+    && echo '  Require all granted' >> /etc/apache2/httpd.conf \
     && echo '  DirectoryIndex index.cgi index.php index.html index.htm' >> /etc/apache2/httpd.conf \
     && echo '  SetEnv PERL5LIB /perl/cpanfile-modules/lib/perl5' >> /etc/apache2/httpd.conf \
     && echo '  EnableMMAP Off' >> /etc/apache2/httpd.conf \
@@ -111,8 +116,7 @@ RUN sed -i 's/\#AddHandler\ cgi\-script\ \.cgi/AddHandler\ cgi\-script\ \.cgi/g'
     && echo '  # <__PASSENV__>' >> /etc/apache2/httpd.conf \
     && echo '  # </__PASSENV__>' >> /etc/apache2/httpd.conf \
     && echo '</Directory>' >> /etc/apache2/httpd.conf \
-    && sed -i 's/\#ServerName www\.example\.com\:80/ServerName genie/g' /etc/apache2/httpd.conf \
-    && sed -i 's/ScriptAlias \/cgi-bin\/ \"\/var\/www\/cgi-bin\/\"/\#ScriptAlias \/cgi-bin\/ \"\/var\/www\/cgi-bin\/\"/' /etc/apache2/httpd.conf
+	&& mkdir /run/apache2/
 
 # Install ngrok
 # --------------------------------------------------------------------------------------------------

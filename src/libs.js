@@ -534,7 +534,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 			envs.GENIE_RUNMODE=config.runmode;
 			let keys = Object.keys(envs)
 			for(let i=0; i<keys.length; i++) {
-				// args.push('-e', `${keys[i]}=${envs[keys[i]]}`)
+				args.push('-e', `${keys[i]}=${envs[keys[i]]}`)
 			}
 
 			// イメージ指定
