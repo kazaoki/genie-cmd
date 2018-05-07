@@ -269,18 +269,6 @@ else if(argv._[0]==='up') {
 
 	// 設定ファイルロード
 	let config = lib.loadConfig(argv);
-	config.up = {} // upコマンド用設定を以降で自動追加するための場所
-
-	// コンテナベース名定義
-	config.up.base_name = argv.shadow
-		? config.core.docker.name + '-SHADOW'
-		: config.core.docker.name
-
-	// ラベル名定義
-	config.up.label = {
-		genie_project_dir: lib.getProjectRootDir(),
-	};
-	if(argv.shadow) config.up.label.genie_shadow = 1
 
 	// 起動時メモの表示
 	try {
@@ -296,14 +284,14 @@ else if(argv._[0]==='up') {
 		if(lib.existContainers(config)) {
 			// h('対象の既存コンテナのみ削除します', color.blackBright);
 			await Promise.all([
-				lib.dockerDown('/'+config.up.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
-				lib.dockerDown('/'+config.up.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
-				lib.dockerDown('/'+config.up.base_name+'$', config), // 完全一致のgenie本体コンテナ名
+				lib.dockerDown('/'+config.run.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
+				lib.dockerDown('/'+config.run.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
+				lib.dockerDown('/'+config.run.base_name+'$', config), // 完全一致のgenie本体コンテナ名
 				lib.dockerDown(null, config), // プロジェクトパスとshadowが一致するもの（＝ゴミコンテナ）削除
 			]).catch(err=>err)
 		}
 
-		let rundb_fucs =[]
+		let rundb_fucs = []
 
 		// PostgreSQL起動関数用意
 		try {
@@ -356,18 +344,18 @@ else if(argv._[0]==='down') {
 
 	// 設定ファイルロード
 	let config = lib.loadConfig(argv);
-	config.up = {} // upコマンド用設定を以降で自動追加するための場所
+	config.run = {} // upコマンド用設定を以降で自動追加するための場所
 
 	// コンテナベース名定義
-	config.up.base_name = argv.shadow
+	config.run.base_name = argv.shadow
 		? config.core.docker.name + '-SHADOW'
 		: config.core.docker.name
 
 	// ラベル名定義
-	config.up.label = {
+	config.run.label = {
 		genie_project_dir: lib.getProjectRootDir(),
 	};
-	if(argv.shadow) config.up.label.genie_shadow = 1
+	if(argv.shadow) config.run.label.genie_shadow = 1
 
 
 	// 終了時メモの表示
@@ -384,9 +372,9 @@ else if(argv._[0]==='down') {
 		if(lib.existContainers(config)) {
 			// h('対象の既存コンテナのみ削除します', color.blackBright);
 			await Promise.all([
-				lib.dockerDown('/'+config.up.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
-				lib.dockerDown('/'+config.up.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
-				lib.dockerDown('/'+config.up.base_name+'$', config), // 完全一致のgenie本体コンテナ名
+				lib.dockerDown('/'+config.run.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
+				lib.dockerDown('/'+config.run.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
+				lib.dockerDown('/'+config.run.base_name+'$', config), // 完全一致のgenie本体コンテナ名
 				lib.dockerDown(null, config), // プロジェクトパスとshadowが一致するもの（＝ゴミコンテナ）削除
 			]).catch(err=>err)
 		}
@@ -439,10 +427,56 @@ else if(argv._[0]==='build') {
 				let mes = 'ビルドが完了しました。'
 				lib.Message(mes)
 				lib.Say(mes)
-			process.exit();
+				process.exit();
 			});
 		}
 	})();
+}
+
+/**
+ * cli
+ * -----------------------------------------------------------------------------
+ */
+else if(argv._[0]==='cli') {
+	// オプション設定
+	let argv = opt
+		.usage('Usage: genie|g cli [Options] [Commands]')
+		.options('host', {
+			describe: '実行するホスト名を指定する'
+		})
+		.argv;
+	;
+	if(argv.help) {
+		console.log()
+		lib.Message(opt.help(), 'primary', 1)
+		process.exit()
+	}
+
+	// 設定
+	let config = lib.loadConfig(argv);
+	let host = argv.host ? argv.host : config.core.docker.name
+	let cmds = process.argv.slice(process.argv.findIndex(elem=>elem===argv._[1])) // ちょっと強引だけど、デフォ引数を省いた位置から末尾までをコマンドラインとして取得する
+
+	// dockerが起動しているか
+	if(!lib.existContainers(config, '/'+host+'$')) lib.Error('dockerコンテナが起動していません: '+host)
+
+	// 引数があれば実行して結果を返す
+	if(argv._.length!==1) {
+		let result = child.spawnSync('docker', ['exec', host, ...cmds]);
+		if(result.status) {
+			lib.Error(result.stderr.toString() || result.stdout.toString()) // dockerを通してるため stderr ではなく stdout 側にメッセージが流れてくる場合があるため
+			process.exit()
+		}
+		console.log(result.stdout.toString())
+		process.exit()
+	}
+
+	// 引数が無ければコマンドラインに入る
+	else {
+		child.spawnSync('docker', ['exec', '-it', host, 'bash'], {stdio: 'inherit'})
+		process.exit()
+	}
+
 }
 
 /**
@@ -459,7 +493,7 @@ else {
 		'  up      Dockerコンテナを起動する\n'+
 		'  down    \n'+
 		'  update  \n'+
-		'  cli     \n'+
+		'  cli     コンテナ内でコマンドを実行。またはコンテナに入る。\n'+
 		'  reject  \n'+
 		'  clean   \n'+
 		'  build   基本のdockerイメージをビルドする\n'+

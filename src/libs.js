@@ -93,6 +93,9 @@ const Message = module.exports.Message = (message, type='default', line=0)=>{
 	} else if(type==='info') {
 		line_color = color.whiteBright
 		fg_color = color.whiteBright
+	} else if(type==='whisper') {
+		line_color = color.blackBright
+		fg_color = color.blackBright
 	}
 
 	message = wrap(message.replace(/[\r\n]+$/, ''))
@@ -222,8 +225,23 @@ const loadConfig = module.exports.loadConfig = argv=>{
 	// ファイルロード
 	let config = require(config_js).config;
 
-	// 実行モードをセットしてあげる
+	// 実行モードをセット
 	config.runmode = argv.mode
+
+	// 実行時の定義をセット
+	config.run = {}
+	{
+		// コンテナベース名セット
+		config.run.base_name = argv.shadow
+			? config.core.docker.name + '-SHADOW'
+			: config.core.docker.name
+
+		// プロジェクトルートセット
+		config.run.project_dir = getProjectRootDir()
+
+		// シャドウモードかセット
+		if(argv.shadow) config.run.shadow = 1
+	}
 
 	return config
 }
@@ -316,10 +334,10 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 					let args = [];
 					args.push('run', '-d', '-it')
 					args.push('-e', 'TERM=xterm')
-					args.push('--name', `${config.up.base_name}-postgresql-${keys[i]}`)
-					args.push('--label', `genie_project_dir="${config.up.label.genie_project_dir}"`)
-					if(config.up.label.genie_shadow) args.push('--label', 'genie_shadow')
-					args.push('-v', `${config.up.label.genie_project_dir}/.genie/files/opt/postgresql/:/opt/postgresql/`)
+					args.push('--name', `${config.run.base_name}-postgresql-${keys[i]}`)
+					args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
+					if(config.run.shadow) args.push('--label', 'genie_shadow')
+					args.push('-v', `${config.run.project_dir}/.genie/files/opt/postgresql/:/opt/postgresql/`)
 					args.push('-e', `POSTGRES_LABEL=${keys[i]}`)
 					args.push('-e', `POSTGRES_HOST=${postgresql.host}`)
 					args.push('-e', `POSTGRES_DB=${postgresql.name}`)
@@ -362,10 +380,10 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 					let args = [];
 					args.push('run', '-d', '-it')
 					args.push('-e', 'TERM=xterm')
-					args.push('--name', `${config.up.base_name}-mysql-${keys[i]}`)
-					args.push('--label', `genie_project_dir="${config.up.label.genie_project_dir}"`)
-					if(config.up.label.genie_shadow) args.push('--label', 'genie_shadow')
-					args.push('-v', `${config.up.label.genie_project_dir}/.genie/files/opt/mysql/:/opt/mysql/`)
+					args.push('--name', `${config.run.base_name}-mysql-${keys[i]}`)
+					args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
+					if(config.run.shadow) args.push('--label', 'genie_shadow')
+					args.push('-v', `${config.run.project_dir}/.genie/files/opt/mysql/:/opt/mysql/`)
 					args.push('-e', `MYSQL_LABEL=${keys[i]}`)
 					args.push('-e', `MYSQL_ROOT_PASSWORD=${mysql.pass}`)
 					args.push('-e', `MYSQL_DATABASE=${mysql.name}`)
@@ -406,10 +424,10 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 			args.push('-e', 'TERM=xterm')
 			args.push('-e', 'LANG=ja_JP.UTF-8')
 			args.push('-e', 'LC_ALL=ja_JP.UTF-8')
-			args.push('-v', config.up.label.genie_project_dir+'/.genie/files/opt:/opt')
-			args.push('--label', `genie_project_dir="${config.up.label.genie_project_dir}"`)
-			if(config.up.label.genie_shadow) args.push('--label', 'genie_shadow')
-			args.push(`--name=${config.up.base_name}`)
+			args.push('-v', config.run.project_dir+'/.genie/files/opt:/opt')
+			args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
+			if(config.run.shadow) args.push('--label', 'genie_shadow')
+			args.push(`--name=${config.run.base_name}`)
 			if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
 			if(config.core.docker.options) args.push(`${config.core.docker.options}`)
 			args.push('--restart=always')
@@ -421,7 +439,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 			if(config.db.postgresql){
 				let keys = Object.keys(config.db.postgresql);
 				for(let i=0; i<keys.length; i++) {
-					let container_name = `${config.up.base_name}-postgresql-${keys[i]}`;
+					let container_name = `${config.run.base_name}-postgresql-${keys[i]}`;
 					args.push('--link', container_name)
 					args.push('--add-host', config.db.postgresql[keys[i]].host + ':' + getContainerIp(container_name, config))
 				}
@@ -431,7 +449,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 			if(config.db.mysql){
 				let keys = Object.keys(config.db.mysql);
 				for(let i=0; i<keys.length; i++) {
-					let container_name = `${config.up.base_name}-mysql-${keys[i]}`;
+					let container_name = `${config.run.base_name}-mysql-${keys[i]}`;
 					args.push('--link', container_name)
 					args.push('--add-host', config.db.mysql[keys[i]].host + ':' + getContainerIp(container_name, config))
 				}
@@ -444,7 +462,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 
 			// Apache関係
 			if(config.http.apache){
-				args.push('-v', `${config.up.label.genie_project_dir}/${config.http.apache.public_dir}:/var/www/html`)
+				args.push('-v', `${config.run.project_dir}/${config.http.apache.public_dir}:/var/www/html`)
 				if(config.http.apache.external_http_port) {
 					args.push('-p', `${config.http.apache.external_http_port}:80`)
 				}
@@ -455,7 +473,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 
 			// Nginx関係
 			if(config.http.nginx){
-				args.push('-v', `${config.up.label.genie_project_dir}/${config.http.nginx.public_dir}:/usr/share/nginx/html`)
+				args.push('-v', `${config.run.project_dir}/${config.http.nginx.public_dir}:/usr/share/nginx/html`)
 				if(config.http.nginx.external_http_port) {
 					args.push('-p', `${config.http.nginx.external_http_port}:80`)
 				}
@@ -471,7 +489,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 
 			// Fluentd関係
 			if(config.log.fluentd) {
-				args.push('-v', `${config.up.label.genie_project_dir}/.genie/files/opt/td-agent:/etc/td-agent`)
+				args.push('-v', `${config.run.project_dir}/.genie/files/opt/td-agent:/etc/td-agent`)
 			}
 
 			// 追加ホスト
@@ -482,13 +500,13 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 			}
 
 			// 追加マウント
-			args.push('-v', `${config.up.label.genie_project_dir}/:/mnt/host/`)
+			args.push('-v', `${config.run.project_dir}/:/mnt/host/`)
 			if(config.core.docker.volumes && Array.isArray(config.core.docker.volumes) && config.core.docker.volumes.length) {
 				for(let i=0; i<config.core.docker.volumes.length; i++){
 					if(config.core.docker.volumes[i].match(/^\//)) {
 						args.push('-v', `${config.core.docker.volumes[i]}`)
 					} else {
-						args.push('-v', `${config.up.label.genie_project_dir}/${config.core.docker.volumes[i]}`)
+						args.push('-v', `${config.run.project_dir}/${config.core.docker.volumes[i]}`)
 					}
 				}
 			}
@@ -545,9 +563,9 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 const existContainers = module.exports.existContainers = (config, name_filter)=>{
 	let filters = [
 		'--filter',
-		`label=genie_project_dir="${config.up.label.genie_project_dir}"`,
+		`label=genie_project_dir="${config.run.project_dir}"`,
 	]
-	if(config.up.label.genie_shadow) {
+	if(config.run.shadow) {
 		filters.push(
 			'--filter',
 			`label=genie_shadow`,
