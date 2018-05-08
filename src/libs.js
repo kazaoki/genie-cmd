@@ -252,9 +252,9 @@ const loadConfig = module.exports.loadConfig = argv=>{
 	if(config.core.docker.ip_force) {
 		config.run.host_ip = config.core.docker.ip_force
 	} else if(hasDockerMachineEnv() && config.core.docker.machine){
-		let result = child.spawnSync(`docker-machine ip ${config.core.docker.machine}`)
+		let result = child.spawnSync('docker-machine', ['ip', config.core.docker.machine])
 		if(result.status) Error(result.stderr.toString())
-		config.run.host_ip = result.stdout.trim()
+		config.run.host_ip = result.stdout.toString().trim()
 	} else {
 		config.run.host_ip = 'localhost'
 	}
