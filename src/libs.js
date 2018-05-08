@@ -243,6 +243,22 @@ const loadConfig = module.exports.loadConfig = argv=>{
 		if(argv.shadow) config.run.shadow = 1
 	}
 
+	// config.jsでDockerMachine名が未指定でも環境変数に入っていればセット
+	if(!config.core.docker.machine && process.env.DOCKER_MACHINE_NAME) {
+		config.core.docker.machine = process.env.DOCKER_MACHINE_NAME
+	}
+
+	// ブラウザから見る用のホストIPを取得しておく
+	if(config.core.docker.ip_force) {
+		config.run.host_ip = config.core.docker.ip_force
+	} else if(hasDockerMachineEnv() && config.core.docker.machine){
+		let result = child.spawnSync(`docker-machine ip ${config.core.docker.machine}`)
+		if(result.status) Error(result.stderr.toString())
+		config.run.host_ip = result.stdout.trim()
+	} else {
+		config.run.host_ip = 'localhost'
+	}
+
 	return config
 }
 

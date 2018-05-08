@@ -114,12 +114,15 @@ config.log =
  */
 config.http =
 {
-	// ブラウザ設定
+	// ブラウザで開く設定
 	browser: {
-		open_at_upped: 1, // UP時にブラウザオープンするか
-		open_in_port: 80, // ブラウザで開きたい内部ポートを指定（自動的に外部ポートに変換されます）
-		open_schema: 'http',
-		open_path: '',
+		apps: process.platform==='win32' // chrome|firefox|ie|safari|opera 未指定は既定のブラウザで開く
+			? ['chrome', 'ie'] // for Windows
+			: ['chrome', 'safari'] // for macOS
+		,
+		schema: 'http',
+		path: '/',
+		at_upped: true, // UP時にブラウザオープンするか
 	},
 
 	// Apache設定
