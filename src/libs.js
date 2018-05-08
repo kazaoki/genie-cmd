@@ -322,36 +322,38 @@ const dockerDown = module.exports.dockerDown = (name_filter, config)=>{
  */
 const dockerUp = module.exports.dockerUp = (type, config)=>{
 
-	// PostgreSQLを起動
-	if(type==='postgresql') {
+	// MySQLを起動
+	if(type==='mysql') {
 		return new Promise((resolve, reject)=>{
 			try {
-				let keys = Object.keys(config.db.postgresql);
+				let keys = Object.keys(config.db.mysql);
 				for(let i=0; i<keys.length; i++) {
-					let postgresql = config.db.postgresql[keys[i]]
+					let mysql = config.db.mysql[keys[i]]
 
 					// 引数用意
 					let args = [];
 					args.push('run', '-d', '-it')
 					args.push('-e', 'TERM=xterm')
-					args.push('--name', `${config.run.base_name}-postgresql-${keys[i]}`)
+					args.push('--name', `${config.run.base_name}-mysql-${keys[i]}`)
 					args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
 					if(config.run.shadow) args.push('--label', 'genie_shadow')
-					args.push('-v', `${config.run.project_dir}/.genie/files/opt/postgresql/:/opt/postgresql/`)
-					args.push('-e', `POSTGRES_LABEL=${keys[i]}`)
-					args.push('-e', `POSTGRES_HOST=${postgresql.host}`)
-					args.push('-e', `POSTGRES_DB=${postgresql.name}`)
-					args.push('-e', `POSTGRES_USER=${postgresql.user}`)
-					args.push('-e', `POSTGRES_PASSWORD=${postgresql.pass}`)
-					args.push('-e', `POSTGERS_ENCODING=${postgresql.encoding}`)
-					args.push('-e', `POSTGERS_LOCALE=${postgresql.locale}`)
+					args.push('-v', `${config.run.project_dir}/.genie/files/opt/mysql/:/opt/mysql/`)
+					args.push('-v', `${mysql.volume_lock ? 'locked_': ''}${config.run.base_name}-mysql-${keys[i]}:/var/lib/mysql`)
+					args.push('-e', `MYSQL_LABEL=${keys[i]}`)
+					args.push('-e', `MYSQL_ROOT_PASSWORD=${mysql.pass}`)
+					args.push('-e', `MYSQL_DATABASE=${mysql.name}`)
+					args.push('-e', `MYSQL_USER=${mysql.user}`)
+					args.push('-e', `MYSQL_PASSWORD=${mysql.pass}`)
+					args.push('-e', `MYSQL_CHARSET=${mysql.charset}`)
 					if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
 					if(config.core.docker.options) args.push(`${config.core.docker.options}`)
-					if(postgresql.external_port) args.push('-p', `${postgresql.external_port}:5432`)
-					args.push('--entrypoint=/opt/postgresql/before-entrypoint.sh')
+					if(mysql.external_port) args.push('-p', `${mysql.external_port}:3306`)
+					args.push('--entrypoint=/opt/mysql/before-entrypoint.sh')
 					args.push('--restart=always')
-					args.push(postgresql.repository)
-					args.push('postgres')
+					args.push(mysql.repository)
+					args.push('mysqld')
+					if(mysql.charset) args.push(`--character-set-server=${mysql.charset}`)
+					if(mysql.collation) args.push(`--collation-server=${mysql.collation}`)
 
 					// dockerコマンド実行
 					let result = child.spawnSync('docker', args)
@@ -368,37 +370,37 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 		})
 	}
 
-	// MySQLを起動
-	else if(type==='mysql') {
+	// PostgreSQLを起動
+	else if(type==='postgresql') {
 		return new Promise((resolve, reject)=>{
 			try {
-				let keys = Object.keys(config.db.mysql);
+				let keys = Object.keys(config.db.postgresql);
 				for(let i=0; i<keys.length; i++) {
-					let mysql = config.db.mysql[keys[i]]
+					let postgresql = config.db.postgresql[keys[i]]
 
 					// 引数用意
 					let args = [];
 					args.push('run', '-d', '-it')
 					args.push('-e', 'TERM=xterm')
-					args.push('--name', `${config.run.base_name}-mysql-${keys[i]}`)
+					args.push('--name', `${config.run.base_name}-postgresql-${keys[i]}`)
 					args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
 					if(config.run.shadow) args.push('--label', 'genie_shadow')
-					args.push('-v', `${config.run.project_dir}/.genie/files/opt/mysql/:/opt/mysql/`)
-					args.push('-e', `MYSQL_LABEL=${keys[i]}`)
-					args.push('-e', `MYSQL_ROOT_PASSWORD=${mysql.pass}`)
-					args.push('-e', `MYSQL_DATABASE=${mysql.name}`)
-					args.push('-e', `MYSQL_USER=${mysql.user}`)
-					args.push('-e', `MYSQL_PASSWORD=${mysql.pass}`)
-					args.push('-e', `MYSQL_CHARSET=${mysql.charset}`)
+					args.push('-v', `${config.run.project_dir}/.genie/files/opt/postgresql/:/opt/postgresql/`)
+					args.push('-v', `${postgresql.volume_lock ? 'locked_': ''}${config.run.base_name}-postgresql-${keys[i]}:/var/lib/postgresql`)
+					args.push('-e', `POSTGRES_LABEL=${keys[i]}`)
+					args.push('-e', `POSTGRES_HOST=${postgresql.host}`)
+					args.push('-e', `POSTGRES_DB=${postgresql.name}`)
+					args.push('-e', `POSTGRES_USER=${postgresql.user}`)
+					args.push('-e', `POSTGRES_PASSWORD=${postgresql.pass}`)
+					args.push('-e', `POSTGERS_ENCODING=${postgresql.encoding}`)
+					args.push('-e', `POSTGERS_LOCALE=${postgresql.locale}`)
 					if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
 					if(config.core.docker.options) args.push(`${config.core.docker.options}`)
-					if(mysql.external_port) args.push('-p', `${mysql.external_port}:3306`)
-					args.push('--entrypoint=/opt/mysql/before-entrypoint.sh')
+					if(postgresql.external_port) args.push('-p', `${postgresql.external_port}:5432`)
+					args.push('--entrypoint=/opt/postgresql/before-entrypoint.sh')
 					args.push('--restart=always')
-					args.push(mysql.repository)
-					args.push('mysqld')
-					if(mysql.charset) args.push(`--character-set-server=${mysql.charset}`)
-					if(mysql.collation) args.push(`--collation-server=${mysql.collation}`)
+					args.push(postgresql.repository)
+					args.push('postgres')
 
 					// dockerコマンド実行
 					let result = child.spawnSync('docker', args)
