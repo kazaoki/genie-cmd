@@ -525,11 +525,7 @@ else if(argv._[0]==='reject') {
 			choices: [
 				...list_containers,
 				...list_volumes,
-				],
-			validate: answer=>{
-				if(answer.length<1) return "１つ以上選ぶんだよ！";
-				return true;
-			}
+			],
 		}
 	]).then(answers=>{
 
