@@ -2,11 +2,12 @@
 
 'use strict'
 
+const inquirer = require('inquirer')
 const opt = require('optimist')
 const color = require('cli-color')
-const child = require('child_process');
-const cliui = require('cliui')();
-const lib = require('./libs.js');
+const child = require('child_process')
+const cliui = require('cliui')({width: color.windowSize.width-4})
+const lib = require('./libs.js')
 const d = lib.d
 const h = lib.h
 
@@ -89,60 +90,57 @@ else if(argv._[0]==='ls') {
 
 	// docker-machine が使える環境の場合はそれも一覧する
 	if(lib.hasDockerMachineEnv()) {
-		console.log('\n  DockerMachine一覧')
+		console.log('\n  DockeMachines')
 		let result = child.spawnSync('docker-machine', ['ls'])
+		if(result.status) lib.Error(result.stderr.toString())
 		lib.Message(result.stdout.toString(), 'primary', 1)
 	}
 
 	// イメージ一覧
 	{
-		console.log('\n  イメージ一覧')
+		console.log('\n  Images')
 		let result = child.spawnSync('docker', ['images'])
+		if(result.status) lib.Error(result.stderr.toString())
 		lib.Message(result.stdout.toString(), 'primary', 1)
 	}
 
 	// データボリューム一覧
 	{
-		console.log('\n  データボリューム一覧')
-		let result = child.spawnSync('docker', ['volume', 'ls'])
+		console.log('\n  Volumes')
+		let result = child.spawnSync('docker', ['volume', 'ls', '--format', 'table {{.Name}}\t{{.Driver}}\t{{.Scope}}\t{{.Mountpoint}}'])
+		if(result.status) lib.Error(result.stderr.toString())
 		lib.Message(result.stdout.toString(), 'primary', 1)
 	}
 
 	// コンテナ一覧
 	{
-		console.log('\n  コンテナ一覧')
-		let format = ['--format', '{{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}']
-		let header = ['ID', 'IMAGE', 'STATUS', 'PORTS', 'NAMES']
+		console.log('\n  Containers')
+		let format = ['--format', '{{.Names}}\t{{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}']
+		let header = ['NAMES', 'ID', 'IMAGE', 'STATUS', 'PORTS']
 		if(argv.long) {
-			format = ['--format', '{{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}\t{{.Labels}}']
-			header = ['ID', 'IMAGE', 'COMMAND', 'CREATED AT', 'STATUS', 'PORTS', 'NAMES', 'LABELS']
+			format = ['--format', '{{.Names}}\t{{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Ports}}\t{{.Labels}}']
+			header = ['NAMES', 'ID', 'IMAGE', 'COMMAND', 'CREATED AT', 'STATUS', 'PORTS', 'LABELS']
 		}
-		// if(argv.long) format = ['--format', 'table {{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Ports}}\t{{.Names}}']
 		let result = child.spawnSync('docker', ['ps', '-a', ...format])
-
+		if(result.status) lib.Error(result.stderr.toString())
 		let lines = result.stdout.toString().trim().split('\n')
-		if(argv.long) {
-			lines.unshift('CONTAINER ID\tIMAGE\tCOMMAND\tCREATED AT\tSTATUS\tPORTS\tNAMES\tLABELS')
-		} else {
-			lines.unshift('CONTAINER ID\tIMAGE\tSTATUS\tPORTS\tNAMES')
-		}
-
+		lines.unshift(header.join('\t'))
 		for(let i in lines) {
 			let column = lines[i].split(/\t/)
 			let set = []
 			for(let j in column) {
 				let width;
 				if(!argv.long) {
-					if(j==0) width = 15 // CONTAINER ID
-					// if(j==1) width = 30 // IMAGE
-					if(j==3) width = 30 // PORTS
-					if(j==4) width = 40 // NAMES
+					// if(j==0) width = 40 // NAMES
+					// if(j==1) width = 15 // ID
+					// // if(j==2) width = 30 // IMAGE
+					if(j==4) width = 30 // PORTS
 				} else {
-					if(j==0) width = 15 // CONTAINER ID
-					// if(j==1) width = 30 // IMAGE
-					if(j==5) width = 30 // PORTS
-					if(j==6) width = 40 // NAMES
-					if(j==7) width = 90 // LABELS
+					// if(j==0) width = 40 // NAMES
+					// if(j==1) width = 15 // ID
+					// // if(j==2) width = 30 // IMAGE
+					if(j==6) width = 30 // PORTS
+					if(j==7) width = 50 // LABELS
 				}
 				set.push({
 					text: column[j].replace(/, ?/g, '\n'),
@@ -193,25 +191,6 @@ else if(argv._[0]==='config') {
 			}
 		}
 	}
-
-	process.exit();
-}
-
-/**
- * clean
- * -----------------------------------------------------------------------------
- */
-else if(argv._[0]==='clean') {
-	// オプション設定
-	let argv = opt
-		.usage('Usage: genie|g clean [Options]')
-		.options('locked', {
-			alias: 'l',
-			describe: '`locked`を含むDataVolumeも削除'
-		})
-		.argv;
-	;
-	if(argv.help) opt.showHelp()
 
 	process.exit();
 }
@@ -481,15 +460,9 @@ else if(argv._[0]==='reject') {
 	// オプション設定
 	let argv = opt
 		.usage('Usage: genie|g reject [Options]')
-		.options('volumes', {
-			alias: 'v',
-			describe: 'ボリュームを対象にする',
-			default: false
-		})
 		.options('force', {
 			alias: 'f',
 			describe: 'lockedから始まる名前も対象にする',
-			default: false
 		})
 		.argv;
 	;
@@ -499,41 +472,99 @@ else if(argv._[0]==='reject') {
 		process.exit()
 	}
 
-	// 一覧取得
-	let result = child.spawnSync('docker',
-		argv.v
-			? ['volume', 'ls', '-q']
-			: ['ps', '-qa']
-	)
-	if(result.status) {
-		lib.Error(result.stderr.toString())
+	// コンテナ一覧取得
+	let list_containers = []
+	let result = child.spawnSync('docker', ['ps', '-qa', '--format', '{{.Names}}\t{{.Status}}'])
+	if(result.status) lib.Error(result.stderr.toString())
+	for(let line of result.stdout.toString().trim().split(/\n/)) {
+		if(!line) continue
+		let column = line.split(/\t/)
+		let name = column[0]
+		let status = column[1]
+		let is_locked = name.match(/^locked_/)
+		let label = `[Container] ${name}`
+		if(is_locked) label = color.blackBright(label)
+		list_containers.push({
+			name: label,
+			checked: (is_locked&&(!argv.f) ? false : true)
+		})
 	}
-	let ids = []
-	for(let id of result.stdout.toString().trim().split(/\n/)) {
-		if(!argv.f) if(id.match(/^locked_/i)) continue;
-		if(id) ids.push(id)
+
+	// ボリューム一覧取得
+	let list_volumes = []
+	result = child.spawnSync('docker', ['volume', 'ls', '--format', '{{.Name}}\t{{.Driver}}'])
+	if(result.status) lib.Error(result.stderr.toString())
+	for(let line of result.stdout.toString().trim().split(/\n/)) {
+		if(!line) continue
+		let column = line.split(/\t/)
+		let name = column[0]
+		let driver = column[1]
+		let is_locked = name.match(/^locked_/)
+		let label = `[Volume] ${name}`
+		if(is_locked) label = color.blackBright(label)
+		list_volumes.push({
+			name: label,
+			checked: (is_locked&&(!argv.f) ? false : true)
+		})
 	}
-	if(ids.length===0) {
-		h(`対象の${argv.v?'ボリューム':'コンテナ'}は見つかりませんでした。`)
+
+	// 対象数カウント
+	let list_count = list_containers.length + list_volumes.length
+	if(list_count===0) {
+		h('対象のオブジェクトはありませんでした。')
 		process.exit()
 	}
 
-	// 削除処理
-	for(let id of ids) {
-		process.stdout.write(`  ${id} - `);
-		let del_result = child.spawnSync('docker',
-			argv.v
-				? ['volume', 'rm', '-f', id]
-				: ['rm', '-f', id]
-		)
-		if(del_result.status) {
-			lib.Error(del_result.stderr.toString())
+	console.log()
+	inquirer.prompt([
+		{
+			type: 'checkbox',
+			message: '削除したいものにチェックを入れて Enter してください。',
+			name: 'rejects',
+			pageSize: 100,
+			choices: [
+				...list_containers,
+				...list_volumes,
+				],
+			validate: answer=>{
+				if(answer.length<1) return "１つ以上選ぶんだよ！";
+				return true;
+			}
 		}
-		process.stdout.write(color.green('deleted\n'));
-	}
+	]).then(answers=>{
 
-	process.exit()
+		// 画面クリア
+		process.stdout.write(color.move.up(list_count));
+		for(let i=0; i<list_count; i++){
+			process.stdout.write(color.erase.line);
+			process.stdout.write(color.move.down(1));
+		}
+		process.stdout.write(color.move.up(list_count-1));
 
+		// 削除処理開始
+		for(let label of answers.rejects) {
+			label = color.strip(label);
+			let matches = label.match(/^\[(Container|Volume)\] (.+)$/)
+			// d(matches)
+
+			// コンテナの削除
+			if(matches[1]==='Container') {
+				let name = matches[2];
+				process.stdout.write(`  [Container] ${name} - `);
+				let run = child.spawnSync('docker', ['rm', '-f', name])
+				if(run.status) lib.Error(run.stderr.toString())
+				process.stdout.write(color.green('deleted\n'));
+			}
+			// ボリュームの削除
+			else if(matches[1]==='Volume') {
+				let name = matches[2];
+				process.stdout.write(`  [Volume] ${name} - `);
+				let run = child.spawnSync('docker', ['volume', 'rm', '-f', name])
+				if(run.status) lib.Error(run.stderr.toString())
+				process.stdout.write(color.green('deleted\n'));
+			}
+		}
+	});
 }
 
 /**
@@ -544,9 +575,9 @@ else if(argv._[0]==='clean') {
 	// オプション設定
 	let argv = opt
 		.usage('Usage: genie|g clean [Options]')
-		.options('list', {
-			alias: 'l',
-			describe: 'イメージ・コンテナ・ボリュームの一覧から選んで削除する'
+		.options('force', {
+			alias: 'f',
+			describe: 'lockedから始まる名前も対象にする',
 		})
 		.argv;
 	;
@@ -556,7 +587,56 @@ else if(argv._[0]==='clean') {
 		process.exit()
 	}
 
-	// 一覧取得
+	let cmd;
+	let result;
+	let count = 0;
+
+	// コンテナ削除（exitedなやつ）
+	cmd = ['ps', '-qa', '--filter', 'exited=0', '--format', '{{.Names}}']
+	result = child.spawnSync('docker', cmd)
+	if(result.status) lib.Error(result.stderr.toString())
+	for(let name of result.stdout.toString().trim().split(/\n/)) {
+		if(!name) continue;
+		if(!argv.f) if(name.match(/^locked_/i)) continue;
+		if(!count++) console.log()
+		process.stdout.write(`  [Container] ${name} - `);
+		let run = child.spawnSync('docker', ['rm', '-fv', name])
+		if(run.status) lib.Error(run.stderr.toString())
+		process.stdout.write(color.green('deleted\n'));
+	}
+
+	// ボリューム削除（リンクされてないやつ）
+	cmd = ['volume', 'ls', '--filter', 'dangling=true', '--format', '{{.Name}}']
+	result = child.spawnSync('docker', cmd)
+	if(result.status) lib.Error(result.stderr.toString())
+	for(let name of result.stdout.toString().trim().split(/\n/)) {
+		if(!name) continue;
+		if(!argv.f) if(name.match(/^locked_/i)) continue;
+		if(!count++) console.log()
+		process.stdout.write(`  [Volume] ${name} - `);
+		let run = child.spawnSync('docker', ['volume', 'rm', '-f', name])
+		if(run.status) lib.Error(run.stderr.toString())
+		process.stdout.write(color.green('deleted\n'));
+	}
+
+	// イメージ削除（<none>のやつ）
+	cmd = ['images', '-q', '--filter', 'dangling=true']
+	result = child.spawnSync('docker', cmd)
+	if(result.status) lib.Error(result.stderr.toString())
+	for(let id of result.stdout.toString().trim().split(/\n/)) {
+		if(!id) continue;
+		if(!count++) console.log()
+		process.stdout.write(`  [Image] ${id} - `);
+		let run = child.spawnSync('docker', ['rmi', id])
+		if(run.status) lib.Error(run.stderr.toString())
+		process.stdout.write(color.green('deleted\n'));
+	}
+
+	if(!count){
+		h('対象のオブジェクトはありませんでした。')
+	}
+
+	process.exit()
 }
 
 /**
@@ -573,9 +653,9 @@ else {
 		'  up      設定に基づきDockerコンテナを起動する\n'+
 		'  down    関連するコンテナのみ終了する\n'+
 		'  update  \n'+
-		'  cli     コンテナ内でコマンドを実行。またはコンテナに入る。\n'+
-		'  reject  lockedから始まる名前以外のコンテナ・ボリュームを削除する\n'+
-		'  clean   \n'+
+		'  cli     コンテナ内でコマンドを実行。またはコンテナに入る\n'+
+		'  reject  genie対象外のコンテナまたはボリュームを一括削除する\n'+
+		'  clean   不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n'+
 		'  build   基本のdockerイメージをビルドする\n'+
 		'  langver 各種言語の利用可能なバージョンを確認する\n'+
 		'  mysql   \n'+
