@@ -349,7 +349,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 					// 引数用意
 					let args = [];
 					args.push('run', '-d', '-it')
-					args.push('-e', 'TERM=xterm')
+					args.push('-e', 'TERM=xterm-256color')
 					args.push('--name', `${config.run.base_name}-mysql-${keys[i]}`)
 					args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
 					if(config.run.shadow) args.push('--label', 'genie_shadow')
@@ -397,7 +397,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 					// 引数用意
 					let args = [];
 					args.push('run', '-d', '-it')
-					args.push('-e', 'TERM=xterm')
+					args.push('-e', 'TERM=xterm-256color')
 					args.push('--name', `${config.run.base_name}-postgresql-${keys[i]}`)
 					args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
 					if(config.run.shadow) args.push('--label', 'genie_shadow')
@@ -439,7 +439,7 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 			// 基本引数
 			let args = [];
 			args.push('run', '-d', '-it')
-			args.push('-e', 'TERM=xterm')
+			args.push('-e', 'TERM=xterm-256color')
 			args.push('-e', 'LANG=ja_JP.UTF-8')
 			args.push('-e', 'LC_ALL=ja_JP.UTF-8')
 			args.push('-v', config.run.project_dir+'/.genie/files/opt:/opt')

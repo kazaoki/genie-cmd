@@ -45,7 +45,7 @@ else if(argv._[0]==='langver') require('./cmd-langver.js')(option)
 // else if(argv._[0]==='psql')    require('./cmd-psql.js')(option)
 else if(argv._[0]==='open')    require('./cmd-open.js')(option)
 // else if(argv._[0]==='ngrok')   require('./cmd-ngrok.js')(option)
-// else if(argv._[0]==='logs')    require('./cmd-logs.js')(option)
+else if(argv._[0]==='logs')    require('./cmd-logs.js')(option)
 // else if(argv._[0]==='dlsync')  require('./cmd-dlsync.js')(option)
 
 /**
@@ -73,7 +73,7 @@ else {
 		'  psql      \n'+
 		'  open      ブラウザで開く\n'+
 		'  ngrok     \n'+
-		'  logs      \n'+
+		'  logs      実行ログを見る\n'+
 		'  dlsync    \n'+
 		'  httpd     \n'+
 		'  demo      デモ\n',

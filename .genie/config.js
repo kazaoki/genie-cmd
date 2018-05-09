@@ -89,18 +89,21 @@ config.lang =
 config.log =
 {
 	// ファイルログ監視
-	logs: {
-		files: [
-			// '/var/log/httpd/access_log',
-			'/var/log/httpd/error_log',
-			// '/var/log/httpd/ssl_access_log',
-			// '/var/log/httpd/ssl_request_log',
-			'/var/log/httpd/ssl_error_log',
-			// '/var/log/nginx/access.log',
-			// '/var/log/nginx/error.log',
+	// 複数のログファイルをマージして監視できます。一次元目の配列を複数記述すると横に分割していきます。
+	// それぞれ色も指定可能です → red, green, yellow, blue, magenta, cyan, white(default)
+	tail: [
+		[
+			'/var/log/apache2/access.log',
+			['/var/log/apache2/error.log', 'red'],
+			'/var/log/apache2/ssl_access.log',
+			'/var/log/apache2/ssl_request.log',
+			['/var/log/apache2/ssl_error.log', 'red'],
 		],
-		split: 2,
-	},
+		// [
+		// 	'/var/log/nginx/access.log',
+		// 	['/var/log/nginx/error.log', 'red'],
+		// ],
+	],
 
 	// Fluentd設定（サービスログ）
 	fluentd: {
