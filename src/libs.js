@@ -519,12 +519,12 @@ const dockerUp = module.exports.dockerUp = (type, config)=>{
 
 			// 追加マウント
 			args.push('-v', `${config.run.project_dir}/:/mnt/host/`)
-			if(config.core.docker.volumes && Array.isArray(config.core.docker.volumes) && config.core.docker.volumes.length) {
-				for(let i=0; i<config.core.docker.volumes.length; i++){
-					if(config.core.docker.volumes[i].match(/^\//)) {
-						args.push('-v', `${config.core.docker.volumes[i]}`)
+			if(config.core.docker.mounts && Array.isArray(config.core.docker.mounts) && config.core.docker.mounts.length) {
+				for(let i=0; i<config.core.docker.mounts.length; i++){
+					if(config.core.docker.mounts[i].match(/^\//)) {
+						args.push('-v', `${config.core.docker.mounts[i]}`)
 					} else {
-						args.push('-v', `${config.run.project_dir}/${config.core.docker.volumes[i]}`)
+						args.push('-v', `${config.run.project_dir}/${config.core.docker.mounts[i]}`)
 					}
 				}
 			}

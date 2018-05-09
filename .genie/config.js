@@ -24,7 +24,7 @@ config.core =
 			'genie-xxx.com:127.0.0.1',
 		],
 		// ip_force: '192.168.99.100',
-		volumes: [ // ホスト側(左側)を/以外で始めるとホームパスからの指定になります。
+		mounts: [ // ホスト側(左側)を/以外で始めるとホームパスからの指定になります。
 			// 'app:/app',
 			// 'home-data:/home/xxx/',
 			// 'emls:/sendlog/emls',

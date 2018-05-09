@@ -51,7 +51,7 @@ module.exports = option=>{
 	// データボリューム一覧
 	{
 		console.log('\n  Volumes')
-		let result = child.spawnSync('docker', ['volume', 'ls', '--format', 'table {{.Name}}\t{{.Driver}}\t{{.Scope}}\t{{.Mountpoint}}'])
+		let result = child.spawnSync('docker', ['volume', 'ls', '--format', 'table {{.Name}}\t{{.Driver}}\t{{.Scope}}'])
 		if(result.status) lib.Error(result.stderr.toString())
 		lib.Message(result.stdout.toString(), 'primary', 1)
 	}
