@@ -103,8 +103,9 @@ RUN sed -i 's/\#AddHandler\ cgi\-script\ \.cgi/AddHandler\ cgi\-script\ \.cgi/g'
     && sed -i 's/^User apache$/User docker/' /etc/apache2/httpd.conf \
     && sed -i 's/^Group apache$/Group docker/' /etc/apache2/httpd.conf \
     && sed -i 's/DocumentRoot "\/var\/www\/localhost\/htdocs"/DocumentRoot "\/var\/www\/html"/' /etc/apache2/httpd.conf \
-	&& sed -i 's/ScriptAlias \/cgi\-bin\//#ScriptAlias \/cgi\-bin\//' /etc/apache2/httpd.conf \
+    && sed -i 's/ScriptAlias \/cgi\-bin\//#ScriptAlias \/cgi\-bin\//' /etc/apache2/httpd.conf \
     && sed -i 's/\#ServerName www\.example\.com\:80/ServerName genie/g' /etc/apache2/httpd.conf \
+    && sed -i 's/^Listen 80/Listen 0.0.0.0:80/g' /etc/apache2/httpd.conf \
     && echo '<Directory /var/www/html>' >> /etc/apache2/httpd.conf \
     && echo '  Options FollowSymLinks ExecCGI' >> /etc/apache2/httpd.conf \
     && echo '  AllowOverride All' >> /etc/apache2/httpd.conf \
