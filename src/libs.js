@@ -331,245 +331,233 @@ const dockerDown = module.exports.dockerDown = (name_filter, config)=>{
 }
 
 /**
- * dockerUp
+ * dockerUpMySQL
  * -----------------------------------------------------------------------------
- * @param {string} type コンテナタイプ：genie|postgresql|mysql
+ * @param {key} key 設定キー名（main等）
  * @param {object} config 設定データ
  */
-const dockerUp = module.exports.dockerUp = (type, config)=>{
+const dockerUpMySQL = module.exports.dockerUpMySQL = (key, config)=>
+{
+	return new Promise((resolve, reject)=>{
 
-	// MySQLを起動
-	if(type==='mysql') {
-		return new Promise((resolve, reject)=>{
-			try {
-				let keys = Object.keys(config.db.mysql);
-				for(let i=0; i<keys.length; i++) {
-					let mysql = config.db.mysql[keys[i]]
+		// 引数用意
+		let mysql = config.db.mysql[key]
+		let args = [];
+		args.push('run', '-d', '-it')
+		args.push('-e', 'TERM=xterm-256color')
+		args.push('--name', `${config.run.base_name}-mysql-${key}`)
+		args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
+		if(config.run.shadow) args.push('--label', 'genie_shadow')
+		args.push('-v', `${config.run.project_dir}/.genie/files/opt/mysql/:/opt/mysql/`)
+		args.push('-v', `${mysql.volume_lock ? 'locked_': ''}${config.run.base_name}-mysql-${key}:/var/lib/mysql`)
+		args.push('-e', `MYSQL_LABEL=${key}`)
+		args.push('-e', `MYSQL_ROOT_PASSWORD=${mysql.pass}`)
+		args.push('-e', `MYSQL_DATABASE=${mysql.name}`)
+		args.push('-e', `MYSQL_USER=${mysql.user}`)
+		args.push('-e', `MYSQL_PASSWORD=${mysql.pass}`)
+		args.push('-e', `MYSQL_CHARSET=${mysql.charset}`)
+		if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
+		if(config.core.docker.options) args.push(`${config.core.docker.options}`)
+		if(mysql.external_port) args.push('-p', `${mysql.external_port}:3306`)
+		args.push('--entrypoint=/opt/mysql/before-entrypoint.sh')
+		args.push('--restart=always')
+		args.push(mysql.repository)
+		args.push('mysqld')
+		if(mysql.charset) args.push(`--character-set-server=${mysql.charset}`)
+		if(mysql.collation) args.push(`--collation-server=${mysql.collation}`)
 
-					// 引数用意
-					let args = [];
-					args.push('run', '-d', '-it')
-					args.push('-e', 'TERM=xterm-256color')
-					args.push('--name', `${config.run.base_name}-mysql-${keys[i]}`)
-					args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
-					if(config.run.shadow) args.push('--label', 'genie_shadow')
-					args.push('-v', `${config.run.project_dir}/.genie/files/opt/mysql/:/opt/mysql/`)
-					args.push('-v', `${mysql.volume_lock ? 'locked_': ''}${config.run.base_name}-mysql-${keys[i]}:/var/lib/mysql`)
-					args.push('-e', `MYSQL_LABEL=${keys[i]}`)
-					args.push('-e', `MYSQL_ROOT_PASSWORD=${mysql.pass}`)
-					args.push('-e', `MYSQL_DATABASE=${mysql.name}`)
-					args.push('-e', `MYSQL_USER=${mysql.user}`)
-					args.push('-e', `MYSQL_PASSWORD=${mysql.pass}`)
-					args.push('-e', `MYSQL_CHARSET=${mysql.charset}`)
-					if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
-					if(config.core.docker.options) args.push(`${config.core.docker.options}`)
-					if(mysql.external_port) args.push('-p', `${mysql.external_port}:3306`)
-					args.push('--entrypoint=/opt/mysql/before-entrypoint.sh')
-					args.push('--restart=always')
-					args.push(mysql.repository)
-					args.push('mysqld')
-					if(mysql.charset) args.push(`--character-set-server=${mysql.charset}`)
-					if(mysql.collation) args.push(`--collation-server=${mysql.collation}`)
+		// dockerコマンド実行
+		child.spawn('docker', args)
+			.stderr.on('data', data=>reject(data))
+			.on('close', code=>resolve())
 
-					// dockerコマンド実行
-					let result = child.spawnSync('docker', args)
-					if(result.stderr.toString()) {
-						reject(result.stderr.toString())
-					} else {
-						resolve();
-					}
-				}
-				resolve()
-			} catch(err) {
-				reject(err)
-			}
-		})
-	}
+	})
+}
 
-	// PostgreSQLを起動
-	else if(type==='postgresql') {
-		return new Promise((resolve, reject)=>{
-			try {
-				let keys = Object.keys(config.db.postgresql);
-				for(let i=0; i<keys.length; i++) {
-					let postgresql = config.db.postgresql[keys[i]]
+/**
+ * dockerUpPostgreSQL
+ * -----------------------------------------------------------------------------
+ * @param {key} key 設定キー名（main等）
+ * @param {object} config 設定データ
+ */
+const dockerUpPostgreSQL = module.exports.dockerUpPostgreSQL = (key, config)=>
+{
+	return new Promise((resolve, reject)=>{
 
-					// 引数用意
-					let args = [];
-					args.push('run', '-d', '-it')
-					args.push('-e', 'TERM=xterm-256color')
-					args.push('--name', `${config.run.base_name}-postgresql-${keys[i]}`)
-					args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
-					if(config.run.shadow) args.push('--label', 'genie_shadow')
-					args.push('-v', `${config.run.project_dir}/.genie/files/opt/postgresql/:/opt/postgresql/`)
-					args.push('-v', `${postgresql.volume_lock ? 'locked_': ''}${config.run.base_name}-postgresql-${keys[i]}:/var/lib/postgresql`)
-					args.push('-e', `POSTGRES_LABEL=${keys[i]}`)
-					args.push('-e', `POSTGRES_HOST=${postgresql.host}`)
-					args.push('-e', `POSTGRES_DB=${postgresql.name}`)
-					args.push('-e', `POSTGRES_USER=${postgresql.user}`)
-					args.push('-e', `POSTGRES_PASSWORD=${postgresql.pass}`)
-					args.push('-e', `POSTGERS_ENCODING=${postgresql.encoding}`)
-					args.push('-e', `POSTGERS_LOCALE=${postgresql.locale}`)
-					if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
-					if(config.core.docker.options) args.push(`${config.core.docker.options}`)
-					if(postgresql.external_port) args.push('-p', `${postgresql.external_port}:5432`)
-					args.push('--entrypoint=/opt/postgresql/before-entrypoint.sh')
-					args.push('--restart=always')
-					args.push(postgresql.repository)
-					args.push('postgres')
+		// 引数用意
+		let postgresql = config.db.postgresql[key]
+		let args = [];
+		args.push('run', '-d', '-it')
+		args.push('-e', 'TERM=xterm-256color')
+		args.push('--name', `${config.run.base_name}-postgresql-${key}`)
+		args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
+		if(config.run.shadow) args.push('--label', 'genie_shadow')
+		args.push('-v', `${config.run.project_dir}/.genie/files/opt/postgresql/:/opt/postgresql/`)
+		args.push('-v', `${postgresql.volume_lock ? 'locked_': ''}${config.run.base_name}-postgresql-${key}:/var/lib/postgresql`)
+		args.push('-e', `POSTGRES_LABEL=${key}`)
+		args.push('-e', `POSTGRES_HOST=${postgresql.host}`)
+		args.push('-e', `POSTGRES_DB=${postgresql.name}`)
+		args.push('-e', `POSTGRES_USER=${postgresql.user}`)
+		args.push('-e', `POSTGRES_PASSWORD=${postgresql.pass}`)
+		args.push('-e', `POSTGERS_ENCODING=${postgresql.encoding}`)
+		args.push('-e', `POSTGERS_LOCALE=${postgresql.locale}`)
+		if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
+		if(config.core.docker.options) args.push(`${config.core.docker.options}`)
+		if(postgresql.external_port) args.push('-p', `${postgresql.external_port}:5432`)
+		args.push('--entrypoint=/opt/postgresql/before-entrypoint.sh')
+		args.push('--restart=always')
+		args.push(postgresql.repository)
+		args.push('postgres')
 
-					// dockerコマンド実行
-					let result = child.spawnSync('docker', args)
-					if(result.stderr.toString()) {
-						reject(result.stderr.toString())
-					} else {
-						resolve();
-					}
-				}
-				resolve()
-			} catch(err) {
-				reject(err)
-			}
-		})
-	}
+		// dockerコマンド実行
+		child.spawn('docker', args)
+			.stderr.on('data', data=>reject(data))
+			.on('close', code=>resolve())
 
-	// genie本体を起動
-	else if(type==='genie') {
-		return new Promise((resolve, reject)=>{
-			// 基本引数
-			let args = [];
-			args.push('run', '-d', '-it')
-			args.push('-e', 'TERM=xterm-256color')
-			args.push('-e', 'LANG=ja_JP.UTF-8')
-			args.push('-e', 'LC_ALL=ja_JP.UTF-8')
-			args.push('-v', config.run.project_dir+'/.genie/files/opt:/opt')
-			args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
-			if(config.run.shadow) args.push('--label', 'genie_shadow')
-			args.push(`--name=${config.run.base_name}`)
-			if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
-			if(config.core.docker.options) args.push(`${config.core.docker.options}`)
-			args.push('--restart=always')
+	})
+}
 
-			// Perl関係
-			if(config.lang.perl.cpanfile_enabled) args.push('-e', 'PERL5LIB=/perl/cpanfile-modules/lib/perl5')
+/**
+ * dockerUp
+ * -----------------------------------------------------------------------------
+ * @param {object} config 設定データ
+ */
+const dockerUp = module.exports.dockerUp = config=>
+{
+	return new Promise((resolve, reject)=>{
+		// 基本引数
+		let args = [];
+		args.push('run', '-d', '-it')
+		args.push('-e', 'TERM=xterm-256color')
+		args.push('-e', 'LANG=ja_JP.UTF-8')
+		args.push('-e', 'LC_ALL=ja_JP.UTF-8')
+		args.push('-v', config.run.project_dir+'/.genie/files/opt:/opt')
+		args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
+		if(config.run.shadow) args.push('--label', 'genie_shadow')
+		args.push(`--name=${config.run.base_name}`)
+		if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
+		if(config.core.docker.options) args.push(`${config.core.docker.options}`)
+		args.push('--restart=always')
 
-			// PostgreSQL関係
-			if(config.db.postgresql){
-				let keys = Object.keys(config.db.postgresql);
-				for(let i=0; i<keys.length; i++) {
-					let container_name = `${config.run.base_name}-postgresql-${keys[i]}`;
-					args.push('--link', container_name)
-					args.push('--add-host', config.db.postgresql[keys[i]].host + ':' + getContainerIp(container_name, config))
-				}
-			}
+		// Perl関係
+		if(config.lang.perl.cpanfile_enabled) args.push('-e', 'PERL5LIB=/perl/cpanfile-modules/lib/perl5')
 
-			// MySQL関係
-			if(config.db.mysql){
-				let keys = Object.keys(config.db.mysql);
-				for(let i=0; i<keys.length; i++) {
-					let container_name = `${config.run.base_name}-mysql-${keys[i]}`;
-					args.push('--link', container_name)
-					args.push('--add-host', config.db.mysql[keys[i]].host + ':' + getContainerIp(container_name, config))
-				}
-			}
-
-			// SSHD関係
-			if(config.trans.sshd){
-				args.push('-p', `${config.trans.sshd.external_port}:22`)
-			}
-
-			// Apache関係
-			if(config.http.apache){
-				args.push('-v', `${config.run.project_dir}/${config.http.apache.public_dir}:/var/www/html`)
-				if(config.http.apache.external_http_port) {
-					args.push('-p', `${config.http.apache.external_http_port}:80`)
-				}
-				if(config.http.apache.external_https_port) {
-					args.push('-p', `${config.http.apache.external_https_port}:443`)
-				}
-			}
-
-			// Nginx関係
-			if(config.http.nginx){
-				args.push('-v', `${config.run.project_dir}/${config.http.nginx.public_dir}:/usr/share/nginx/html`)
-				if(config.http.nginx.external_http_port) {
-					args.push('-p', `${config.http.nginx.external_http_port}:80`)
-				}
-				if(config.http.nginx.external_https_port) {
-					args.push('-p', `${config.http.nginx.external_https_port}:443`)
-				}
-			}
-
-			// Sendlog関係
-			if(config.mail.sendlog.external_port) {
-				args.push('-p', `${config.mail.sendlog.external_port}:9981`)
-			}
-
-			// Fluentd関係
-			if(config.log.fluentd) {
-				args.push('-v', `${config.run.project_dir}/.genie/files/opt/td-agent:/etc/td-agent`)
-			}
-
-			// 追加ホスト
-			if(config.core.docker.hosts && Array.isArray(config.core.docker.hosts) && config.core.docker.hosts.length) {
-				for(let i=0; i<config.core.docker.hosts.length; i++){
-					args.push(`--add-host=${config.core.docker.hosts[i]}`)
-				}
-			}
-
-			// 追加マウント
-			args.push('-v', `${config.run.project_dir}/:/mnt/host/`)
-			if(config.core.docker.mounts && Array.isArray(config.core.docker.mounts) && config.core.docker.mounts.length) {
-				for(let i=0; i<config.core.docker.mounts.length; i++){
-					if(config.core.docker.mounts[i].match(/^\//)) {
-						args.push('-v', `${config.core.docker.mounts[i]}`)
-					} else {
-						args.push('-v', `${config.run.project_dir}/${config.core.docker.mounts[i]}`)
-					}
-				}
-			}
-
-			// 設定値を環境変数値に
-			let envs = {}
-			let conv = (data, parent_key)=>{
-				if(typeof(data)==='object' && !Array.isArray(data)) {
-					// 再帰
-					let keys = Object.keys(data)
-					for(let i =0; i<keys.length; i++){
-						conv(data[keys[i]], `${parent_key}_${keys[i].toUpperCase()}`)
-					}
-				} else {
-					// 変換してセット
-					if(typeof(data)==='object' && Array.isArray(data)) {
-						envs[parent_key] = JSON.stringify(data)
-					} else {
-						envs[parent_key] = data
-					}
-				}
-
-			}
-			conv(config, 'GENIE')
-			envs.GENIE_RUNMODE=config.runmode;
-			let keys = Object.keys(envs)
+		// PostgreSQL関係
+		if(config.db.postgresql){
+			let keys = Object.keys(config.db.postgresql);
 			for(let i=0; i<keys.length; i++) {
-				args.push('-e', `${keys[i]}=${envs[keys[i]]}`)
+				let container_name = `${config.run.base_name}-postgresql-${keys[i]}`;
+				args.push('--link', container_name)
+				args.push('--add-host', config.db.postgresql[keys[i]].host + ':' + getContainerIp(container_name, config))
 			}
+		}
 
-			// イメージ指定
-			args.push(config.core.docker.image)
+		// MySQL関係
+		if(config.db.mysql){
+			let keys = Object.keys(config.db.mysql);
+			for(let i=0; i<keys.length; i++) {
+				let container_name = `${config.run.base_name}-mysql-${keys[i]}`;
+				args.push('--link', container_name)
+				args.push('--add-host', config.db.mysql[keys[i]].host + ':' + getContainerIp(container_name, config))
+			}
+		}
 
-			d(args.join(' '))
+		// SSHD関係
+		if(config.trans.sshd){
+			args.push('-p', `${config.trans.sshd.external_port}:22`)
+		}
 
-			// dockerコマンド実行
-			let result = child.spawnSync('docker', args)
-			if(result.stderr.toString()) {
-				reject(result.stderr.toString())
+		// Apache関係
+		if(config.http.apache){
+			args.push('-v', `${config.run.project_dir}/${config.http.apache.public_dir}:/var/www/html`)
+			if(config.http.apache.external_http_port) {
+				args.push('-p', `${config.http.apache.external_http_port}:80`)
+			}
+			if(config.http.apache.external_https_port) {
+				args.push('-p', `${config.http.apache.external_https_port}:443`)
+			}
+		}
+
+		// Nginx関係
+		if(config.http.nginx){
+			args.push('-v', `${config.run.project_dir}/${config.http.nginx.public_dir}:/usr/share/nginx/html`)
+			if(config.http.nginx.external_http_port) {
+				args.push('-p', `${config.http.nginx.external_http_port}:80`)
+			}
+			if(config.http.nginx.external_https_port) {
+				args.push('-p', `${config.http.nginx.external_https_port}:443`)
+			}
+		}
+
+		// Sendlog関係
+		if(config.mail.sendlog.external_port) {
+			args.push('-p', `${config.mail.sendlog.external_port}:9981`)
+		}
+
+		// Fluentd関係
+		if(config.log.fluentd) {
+			args.push('-v', `${config.run.project_dir}/.genie/files/opt/td-agent:/etc/td-agent`)
+		}
+
+		// 追加ホスト
+		if(config.core.docker.hosts && Array.isArray(config.core.docker.hosts) && config.core.docker.hosts.length) {
+			for(let i=0; i<config.core.docker.hosts.length; i++){
+				args.push(`--add-host=${config.core.docker.hosts[i]}`)
+			}
+		}
+
+		// 追加マウント
+		args.push('-v', `${config.run.project_dir}/:/mnt/host/`)
+		if(config.core.docker.mounts && Array.isArray(config.core.docker.mounts) && config.core.docker.mounts.length) {
+			for(let i=0; i<config.core.docker.mounts.length; i++){
+				if(config.core.docker.mounts[i].match(/^\//)) {
+					args.push('-v', `${config.core.docker.mounts[i]}`)
+				} else {
+					args.push('-v', `${config.run.project_dir}/${config.core.docker.mounts[i]}`)
+				}
+			}
+		}
+
+		// 設定値を環境変数値に
+		let envs = {}
+		let conv = (data, parent_key)=>{
+			if(typeof(data)==='object' && !Array.isArray(data)) {
+				// 再帰
+				let keys = Object.keys(data)
+				for(let i =0; i<keys.length; i++){
+					conv(data[keys[i]], `${parent_key}_${keys[i].toUpperCase()}`)
+				}
 			} else {
-				resolve();
+				// 変換してセット
+				if(typeof(data)==='object' && Array.isArray(data)) {
+					envs[parent_key] = JSON.stringify(data)
+				} else {
+					envs[parent_key] = data
+				}
 			}
 
-		})
-	}
+		}
+		conv(config, 'GENIE')
+		envs.GENIE_RUNMODE=config.runmode;
+		let keys = Object.keys(envs)
+		for(let i=0; i<keys.length; i++) {
+			args.push('-e', `${keys[i]}=${envs[keys[i]]}`)
+		}
+
+		// イメージ指定
+		args.push(config.core.docker.image)
+
+		d(args.join(' '))
+
+		// dockerコマンド実行
+		let result = child.spawnSync('docker', args)
+		if(result.stderr.toString()) {
+			reject(result.stderr.toString())
+		} else {
+			resolve();
+		}
+
+	})
 }
 
 /**

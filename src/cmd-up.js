@@ -54,32 +54,33 @@ module.exports = option=>{
 			]).catch(err=>err)
 		}
 
-		let rundb_fucs = []
+		let rundb_funcs = []
 
 		// PostgreSQL起動関数用意
-		try {
-			let keys = Object.keys(config.db.postgresql)
-			if(keys.length) {
-				// h('PostgreSQL起動開始')
-				rundb_fucs.push(lib.dockerUp('postgresql', config))
+		if(config.db.postgresql) {
+			for(let key of Object.keys(config.db.postgresql)) {
+				// h(`PostgreSQL起動:${key}`)
+				rundb_funcs.push(lib.dockerUpPostgreSQL(key, config))
 			}
-		} catch(err) { Error(err) }
+		}
 
 		// MySQL起動関数用意
-		try {
-			let keys = Object.keys(config.db.mysql)
-			if(keys.length) {
-				// h('MySQL起動開始')
-				rundb_fucs.push(lib.dockerUp('mysql', config))
+		if(config.db.mysql) {
+			for(let key of Object.keys(config.db.mysql)) {
+				// h(`MySQL起動:${key}`)
+				rundb_funcs.push(lib.dockerUpMySQL(key, config))
 			}
-		} catch(err) { Error(err) }
+		}
 
-		// 先にDBを起動開始
-		await Promise.all(rundb_fucs).catch(err=>{lib.Error(err)})
+		// 先にDBを並列起動開始
+		await Promise.all(rundb_funcs).catch(err=>{lib.Error(err)})
 
-		// genie本体起動関数用意
-		// h('genie本体起動開始')
-		await lib.dockerUp('genie', config).catch(err=>lib.Error(err))
+		// 全てのDB起動完了したらgenie本体を開始する
+		h(`本体起動`)
+		await lib.dockerUp(config).catch(err=>lib.Error(err))
+
+		// 全コンテナで準備完了するまで、ステータスファイルを監視
+		;
 
 		// ブラウザ起動
 		;

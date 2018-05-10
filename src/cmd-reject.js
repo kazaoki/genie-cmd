@@ -95,30 +95,59 @@ module.exports = option=>{
 			process.stdout.write(color.erase.line);
 			process.stdout.write(color.move.down(1));
 		}
-		process.stdout.write(color.move.up(list_count-1));
+		process.stdout.write(color.move.up(list_count));
 
 		// 削除処理開始
-		for(let label of answers.rejects) {
-			label = color.strip(label);
-			let matches = label.match(/^\[(Container|Volume)\] (.+)$/)
-			// d(matches)
+		(async()=>{
+			let name_volumes = []
+			let name_containters = []
 
-			// コンテナの削除
-			if(matches[1]==='Container') {
-				let name = matches[2];
-				process.stdout.write(`  [Container] ${name} - `);
-				let run = child.spawnSync('docker', ['rm', '-f', name])
-				if(run.status) lib.Error(run.stderr.toString())
-				process.stdout.write(color.green('deleted\n'));
+			for(let label of answers.rejects) {
+				label = color.strip(label);
+				let matches = label.match(/^\[(Container|Volume)\] (.+)$/)
+				if(matches[1]==='Container') name_containters.push(matches[2])
+				else if(matches[1]==='Volume') name_volumes.push(matches[2])
 			}
-			// ボリュームの削除
-			else if(matches[1]==='Volume') {
-				let name = matches[2];
-				process.stdout.write(`  [Volume] ${name} - `);
-				let run = child.spawnSync('docker', ['volume', 'rm', '-f', name])
-				if(run.status) lib.Error(run.stderr.toString())
-				process.stdout.write(color.green('deleted\n'));
+
+			console.log()
+
+			// コンテナ削除実行
+			let funcs = []
+			for(let name of name_containters) {
+				funcs.push(new Promise((resolve, reject)=>{
+					child.spawn('docker', ['rm', '-fv', name])
+						.stderr.on('data', data=>{
+							console.log(`  [Container] ${name} - ${color.red('ng')}`)
+							reject(data)
+						})
+						.on('close', code=>{
+							console.log(`  [Container] ${name} - ${color.green('deleted')}`)
+							resolve()
+						})
+				}))
 			}
-		}
+			await Promise.all(funcs).catch(err=>{lib.Error(err)})
+
+			// コンテナ削除実行
+			funcs = []
+			for(let name of name_volumes) {
+				funcs.push(new Promise((resolve, reject)=>{
+					child.spawn('docker', ['volume', 'rm', '-f', name])
+						.stderr.on('data', data=>{
+							console.log(`  [Volume] ${name} - ${color.red('ng')}`)
+							reject(data)
+						})
+						.on('close', code=>{
+							console.log(`  [Volume] ${name} - ${color.green('deleted')}`)
+							resolve()
+						})
+				}))
+			}
+			await Promise.all(funcs).catch(err=>{lib.Error(err)})
+
+			process.exit()
+
+		})()
+
 	});
 }

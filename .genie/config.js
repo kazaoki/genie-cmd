@@ -172,10 +172,10 @@ config.db =
 			collation  : 'utf8mb4_unicode_ci',
 			dump_genel : 3,
 			// volume_lock: true,
-			// external_port: 3306
+			external_port: 3306
 		},
 		sub: {
-			repository : 'mysql:5.5',
+			repository : 'mysql:5.7',
 			host       : 'sub.mysql-server',
 			name       : 'sample_db',
 			user       : 'sample_user',
@@ -183,36 +183,36 @@ config.db =
 			charset    : 'utf8mb4',
 			collation  : 'utf8mb4_unicode_ci',
 			dump_genel : 3,
-			volume_lock: true,
-			// external_port: 3306
+			// volume_lock: true,
+			external_port: 3307
 		},
 	},
 
 	// PostgreSQL設定
 	// ※locale には ja_JP.UTF-8 | ja_JP.EUC-JP が指定可能で、encoding はこれにより自動的に設定されます。
 	postgresql: {
-		// main: {
-		// 	repository : 'postgres:9.4',
-		// 	host       : 'main.postgresql-server',
-		// 	name       : 'sample_db',
-		// 	user       : 'sample_user',
-		// 	pass       : '123456789',
-		// 	locale     : 'ja_JP.UTF-8',
-		// 	dump_genel : 3,
-		// 	// volume_lock: true,
-		// 	// external_port: 5432
-		// },
-		// sub: {
-		// 	repository : 'postgres:9.4',
-		// 	host       : 'sub.postgresql-server',
-		// 	name       : 'sample_db',
-		// 	user       : 'sample_user',
-		// 	pass       : '123456789',
-		// 	locale     : 'ja_JP.UTF-8',
-		// 	dump_genel : 3,
-		// 	// volume_lock: true,
-		// 	// external_port: 5432
-		// },
+		main: {
+			repository : 'postgres:9.4',
+			host       : 'main.postgresql-server',
+			name       : 'sample_db',
+			user       : 'sample_user',
+			pass       : '123456789',
+			locale     : 'ja_JP.UTF-8',
+			dump_genel : 3,
+			// volume_lock: true,
+			external_port: 5432
+		},
+		sub: {
+			repository : 'postgres:10',
+			host       : 'sub.postgresql-server',
+			name       : 'sample_db',
+			user       : 'sample_user',
+			pass       : '123456789',
+			locale     : 'ja_JP.UTF-8',
+			dump_genel : 3,
+			// volume_lock: true,
+			external_port: 5433
+		},
 	},
 }
 
