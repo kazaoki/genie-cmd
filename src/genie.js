@@ -42,7 +42,7 @@ else if(argv._[0]==='clean')   require('./cmd-clean.js')(option)
 else if(argv._[0]==='build')   require('./cmd-build.js')(option)
 else if(argv._[0]==='langver') require('./cmd-langver.js')(option)
 else if(argv._[0]==='mysql')   require('./cmd-mysql.js')(option)
-// else if(argv._[0]==='psql')    require('./cmd-psql.js')(option)
+else if(argv._[0]==='psql')    require('./cmd-psql.js')(option)
 else if(argv._[0]==='open')    require('./cmd-open.js')(option)
 // else if(argv._[0]==='ngrok')   require('./cmd-ngrok.js')(option)
 else if(argv._[0]==='logs')    require('./cmd-logs.js')(option)
@@ -69,8 +69,8 @@ else {
 		'  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n'+
 		'  build     基本のdockerイメージをビルドする\n'+
 		'  langver   各種言語の利用可能なバージョンを確認する\n'+
-		'  mysql     \n'+
-		'  psql      \n'+
+		'  mysql     MySQLを操作する\n'+
+		'  psql      PostgreSQLを操作する\n'+
 		'  open      ブラウザで開く\n'+
 		'  ngrok     \n'+
 		'  logs      実行ログを見る\n'+

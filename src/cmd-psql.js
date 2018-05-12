@@ -1,14 +1,14 @@
 
 /**
- * mysql: MySQL操作
+ * psql: psql操作
  * -----------------------------------------------------------------------------
- * ex. g mysql
- *     g mysql --cli
- *     g mysql --cli -n container1
- *     g mysql --dump
- *     g mysql --dump -n container1  -n container2
- *     g mysql --restore
- *     g mysql --restore -n container1  -n container2
+ * ex. g psql
+ *     g psql --cli
+ *     g psql --cli -n container1
+ *     g psql --dump
+ *     g psql --dump -n container1  -n container2
+ *     g psql --restore
+ *     g psql --restore -n container1  -n container2
  */
 
 'use strict'
@@ -23,21 +23,21 @@ module.exports = option=>{
 
 	// オプション設定
 	let argv = option
-		.usage('Usage: genie|g mysql [Options]')
+		.usage('Usage: genie|g psql [Options]')
 		.options('cli', {
-			describe: 'MySQLコンテナのCLIに入る',
+			describe: 'PostgreSQLコンテナのCLIに入る',
 		})
 		.options('dump', {
 			alias: 'd',
-			describe: 'MySQLのダンプを取る',
+			describe: 'PostgreSQLのダンプを取る',
 		})
 		.options('restore', {
 			alias: 'r',
-			describe: 'MySQLのリストアを行う',
+			describe: 'PostgreSQLのリストアを行う',
 		})
 		.options('name', {
 			alias: 'n',
-			describe: '対象のMySQLコンテナ名を直接指定する',
+			describe: '対象のPostgreSQLコンテナ名を直接指定する',
 		})
 		.argv;
 	;
@@ -49,8 +49,8 @@ module.exports = option=>{
 
 	// 設定
 	let config = lib.loadConfig(argv);
-	if(!(config.db.mysql && Object.keys(config.db.mysql).length)) {
-		lib.Error('MySQL設定がありません。')
+	if(!(config.db.postgresql && Object.keys(config.db.postgresql).length)) {
+		lib.Error('PostgreSQL設定がありません。')
 	}
 
 	// dockerが起動しているか
@@ -60,7 +60,7 @@ module.exports = option=>{
 
 	(async()=>{
 
-		// --cli: MySQLコンテナの中に入る
+		// --cli: PostgreSQLコンテナの中に入る
 		if(argv.cli) {
 			let container_name = await get_target_containers(config, argv, {is_single:true})
 			let key = get_key_from_container_name(config, container_name)
@@ -91,7 +91,7 @@ module.exports = option=>{
 			process.exit()
 		}
 
-		// mysqlコマンドに入る
+		// psqlコマンドに入る
 		else {
 			let container_name = await get_target_containers(config, argv, {is_single:true})
 			let key = get_key_from_container_name(config, container_name)
@@ -99,10 +99,10 @@ module.exports = option=>{
 				'exec',
 				'-it',
 				container_name,
-				'mysql',
-				config.db.mysql[key].name,
-				`-u${config.db.mysql[key].user}`,
-				`-p${config.db.mysql[key].pass}`,
+				'psql',
+				config.db.postgresql[key].name,
+				'-U',
+				config.db.postgresql[key].user
 			],
 				{stdio: 'inherit'}
 			)
@@ -125,8 +125,8 @@ function get_target_containers(config, argv, option={})
 	}
 
 	// １つしかなければそれ
-	if(Object.keys(config.db.mysql).length===1) {
-		return `${config.run.base_name}-mysql-${Object.keys(config.db.mysql)[0]}`
+	if(Object.keys(config.db.postgresql).length===1) {
+		return `${config.run.base_name}-postgresql-${Object.keys(config.db.postgresql)[0]}`
 	}
 
 	// ２つ以上あれば選択肢
@@ -136,8 +136,8 @@ function get_target_containers(config, argv, option={})
 
 		// 選択肢用意
 		let list = []
-		for(let name of Object.keys(config.db.mysql)) {
-			list.push(`${name} (${config.run.base_name}-mysql-${name})`)
+		for(let name of Object.keys(config.db.postgresql)) {
+			list.push(`${name} (${config.run.base_name}-postgresql-${name})`)
 		}
 
 		// 選択開始
@@ -146,7 +146,7 @@ function get_target_containers(config, argv, option={})
 		let result = await inquirer.prompt([
 			{
 				type: 'list',
-				message: '対象のMySQLコンテナを選択してください。',
+				message: '対象のPostgreSQLコンテナを選択してください。',
 				name: 'container',
 				pageSize: 100,
 				choices: list
@@ -158,13 +158,13 @@ function get_target_containers(config, argv, option={})
 		// 選択肢返却
 		if(result.container==='全て') {
 			let containers = []
-			for(let key of Object.keys(config.db.mysql)) {
-				containers.push(`${config.run.base_name}-mysql-${key}`)
+			for(let key of Object.keys(config.db.postgresql)) {
+				containers.push(`${config.run.base_name}-postgresql-${key}`)
 			}
 			return containers
 		} else {
 			let matches = result.container.match(/^(\w+) /)
-			return `${config.run.base_name}-mysql-${matches[1]}`
+			return `${config.run.base_name}-postgresql-${matches[1]}`
 		}
 
 	})()
@@ -175,8 +175,8 @@ function get_target_containers(config, argv, option={})
  */
 function get_key_from_container_name(config, container_name) {
 	let key
-	for(let tmpkey of Object.keys(config.db.mysql)) {
-		if(container_name === `${config.run.base_name}-mysql-${tmpkey}`) {
+	for(let tmpkey of Object.keys(config.db.postgresql)) {
+		if(container_name === `${config.run.base_name}-postgresql-${tmpkey}`) {
 			key = tmpkey
 			break
 		}

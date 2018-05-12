@@ -90,8 +90,14 @@ module.exports = option=>{
 			if(config.db.postgresql && Object.keys(config.db.postgresql).length) {
 				for(let key of Object.keys(config.db.postgresql)) {
 					let container_name = `${config.run.base_name}-postgresql-${key}`
-					let result = child.spawnSync('docker', ['exec', container_name, 'cat', '/var/log/init.log'])
-					if(done.indexOf(container_name)!==-1 || result.stdout.toString().match(/Process start/)) {
+					let result = child.spawnSync('docker', [
+						'exec',
+						container_name,
+						'sh',
+						'-c',
+						'ps aux|grep entrypoint.sh|grep -v grep|wc -l',
+					])
+					if(done.indexOf(container_name)!==-1 || result.stdout.toString().trim()==='0') {
 						line.push(`  ${container_name} ... ${color.green('ready!')}`)
 						if(done.indexOf(container_name)===-1) done.push(container_name);
 					} else {
@@ -162,6 +168,20 @@ module.exports = option=>{
 		;
 
 		h('起動完了!!')
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 		process.exit();
 	})();
 };

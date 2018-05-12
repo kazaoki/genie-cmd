@@ -486,6 +486,7 @@ const dockerUpPostgreSQL = module.exports.dockerUpPostgreSQL = (key, config) => 
 		args.push(postgresql.repository);
 		args.push('postgres');
 
+		// dockerコマンド実行
 		child.spawn('docker', args).stderr.on('data', data => {
 			if (data.toString().match(/Unable to find image '.+' locally/)) {
 				process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`] = true;
@@ -1071,8 +1072,8 @@ module.exports = option => {
 						let key = _step3.value;
 
 						let container_name = `${config.run.base_name}-postgresql-${key}`;
-						let result = child.spawnSync('docker', ['exec', container_name, 'cat', '/var/log/init.log']);
-						if (done.indexOf(container_name) !== -1 || result.stdout.toString().match(/Process start/)) {
+						let result = child.spawnSync('docker', ['exec', container_name, 'sh', '-c', 'ps aux|grep entrypoint.sh|grep -v grep|wc -l']);
+						if (done.indexOf(container_name) !== -1 || result.stdout.toString().trim() === '0') {
 							line.push(`  ${container_name} ... ${color.green('ready!')}`);
 							if (done.indexOf(container_name) === -1) done.push(container_name);
 						} else {
@@ -1196,6 +1197,7 @@ module.exports = option => {
 		} while (done.length !== line.length);
 
 		h('起動完了!!');
+
 		process.exit();
 	})();
 };
@@ -1857,7 +1859,12 @@ module.exports = option => {
  * mysql: MySQL操作
  * -----------------------------------------------------------------------------
  * ex. g mysql
- *     g mysql -f
+ *     g mysql --cli
+ *     g mysql --cli -n container1
+ *     g mysql --dump
+ *     g mysql --dump -n container1  -n container2
+ *     g mysql --restore
+ *     g mysql --restore -n container1  -n container2
  */
 
 'use strict';
@@ -1869,7 +1876,6 @@ const d = lib.d;
 const h = lib.h;
 const child = require('child_process');
 const inquirer = require('inquirer');
-const color = require('cli-color');
 
 module.exports = option => {
 
@@ -2051,6 +2057,231 @@ function get_key_from_container_name(config, container_name) {
 			let tmpkey = _step3.value;
 
 			if (container_name === `${config.run.base_name}-mysql-${tmpkey}`) {
+				key = tmpkey;
+				break;
+			}
+		}
+	} catch (err) {
+		_didIteratorError3 = true;
+		_iteratorError3 = err;
+	} finally {
+		try {
+			if (!_iteratorNormalCompletion3 && _iterator3.return) {
+				_iterator3.return();
+			}
+		} finally {
+			if (_didIteratorError3) {
+				throw _iteratorError3;
+			}
+		}
+	}
+
+	return key;
+}
+},{"./libs.js":14}],20:[function(require,module,exports) {
+
+/**
+ * psql: psql操作
+ * -----------------------------------------------------------------------------
+ * ex. g psql
+ *     g psql --cli
+ *     g psql --cli -n container1
+ *     g psql --dump
+ *     g psql --dump -n container1  -n container2
+ *     g psql --restore
+ *     g psql --restore -n container1  -n container2
+ */
+
+'use strict';
+
+function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, arguments); return new Promise(function (resolve, reject) { function step(key, arg) { try { var info = gen[key](arg); var value = info.value; } catch (error) { reject(error); return; } if (info.done) { resolve(value); } else { return Promise.resolve(value).then(function (value) { step("next", value); }, function (err) { step("throw", err); }); } } return step("next"); }); }; }
+
+const lib = require('./libs.js');
+const d = lib.d;
+const h = lib.h;
+const child = require('child_process');
+const inquirer = require('inquirer');
+
+module.exports = option => {
+
+	// オプション設定
+	let argv = option.usage('Usage: genie|g psql [Options]').options('cli', {
+		describe: 'PostgreSQLコンテナのCLIに入る'
+	}).options('dump', {
+		alias: 'd',
+		describe: 'PostgreSQLのダンプを取る'
+	}).options('restore', {
+		alias: 'r',
+		describe: 'PostgreSQLのリストアを行う'
+	}).options('name', {
+		alias: 'n',
+		describe: '対象のPostgreSQLコンテナ名を直接指定する'
+	}).argv;
+	;
+	if (argv.help) {
+		console.log();
+		lib.Message(option.help(), 'primary', 1);
+		process.exit();
+	}
+
+	// 設定
+	let config = lib.loadConfig(argv);
+	if (!(config.db.postgresql && Object.keys(config.db.postgresql).length)) {
+		lib.Error('PostgreSQL設定がありません。');
+	}
+
+	// dockerが起動しているか
+	if (!lib.existContainers(config, '/' + config.run.base_name + '$')) {
+		lib.Error('dockerコンテナが起動していません: ' + config.run.base_name);
+	}
+
+	_asyncToGenerator(function* () {
+
+		// --cli: PostgreSQLコンテナの中に入る
+		if (argv.cli) {
+			let container_name = yield get_target_containers(config, argv, { is_single: true });
+			let key = get_key_from_container_name(config, container_name);
+			child.spawnSync('docker', ['exec', '-it', container_name, 'bash'], { stdio: 'inherit' });
+			process.exit();
+		}
+
+		// --dump: ダンプを取る
+		else if (argv.dump) {
+				d('DUMP');
+				let container_name = yield get_target_containers(config, argv, { has_all: true });
+				d(container_name);
+				process.exit();
+			}
+
+			// --restore: レストアする
+			else if (argv.restore) {
+					d('RESTORE');
+					let container_name = yield get_target_containers(config, argv, { has_all: true });
+					d(container_name);
+					process.exit();
+				}
+
+				// psqlコマンドに入る
+				else {
+						let container_name = yield get_target_containers(config, argv, { is_single: true });
+						let key = get_key_from_container_name(config, container_name);
+						child.spawnSync('docker', ['exec', '-it', container_name, 'psql', config.db.postgresql[key].name, '-U', config.db.postgresql[key].user], { stdio: 'inherit' });
+						process.exit();
+					}
+	})();
+};
+
+/**
+ * コンテナを選択させる
+ */
+function get_target_containers(config, argv, option = {}) {
+	// 引数で指定があればそれ
+	if (argv.name) {
+		return option.is_single && Array.isArray(argv.name) ? argv.name[0] // single指定なのに複数引数に書いてある場合は最初のやつ
+		: argv.name;
+	}
+
+	// １つしかなければそれ
+	if (Object.keys(config.db.postgresql).length === 1) {
+		return `${config.run.base_name}-postgresql-${Object.keys(config.db.postgresql)[0]}`;
+	}
+
+	// ２つ以上あれば選択肢
+	return _asyncToGenerator(function* () {
+		let key;
+		let container_name;
+
+		// 選択肢用意
+		let list = [];
+		var _iteratorNormalCompletion = true;
+		var _didIteratorError = false;
+		var _iteratorError = undefined;
+
+		try {
+			for (var _iterator = Object.keys(config.db.postgresql)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+				let name = _step.value;
+
+				list.push(`${name} (${config.run.base_name}-postgresql-${name})`);
+			}
+
+			// 選択開始
+		} catch (err) {
+			_didIteratorError = true;
+			_iteratorError = err;
+		} finally {
+			try {
+				if (!_iteratorNormalCompletion && _iterator.return) {
+					_iterator.return();
+				}
+			} finally {
+				if (_didIteratorError) {
+					throw _iteratorError;
+				}
+			}
+		}
+
+		if (option.has_all) list.push('全て');
+		console.log();
+		let result = yield inquirer.prompt([{
+			type: 'list',
+			message: '対象のPostgreSQLコンテナを選択してください。',
+			name: 'container',
+			pageSize: 100,
+			choices: list
+		}]).catch(function (err) {
+			lib.Error(err);
+		});
+
+		// 選択肢返却
+		if (result.container === '全て') {
+			let containers = [];
+			var _iteratorNormalCompletion2 = true;
+			var _didIteratorError2 = false;
+			var _iteratorError2 = undefined;
+
+			try {
+				for (var _iterator2 = Object.keys(config.db.postgresql)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+					let key = _step2.value;
+
+					containers.push(`${config.run.base_name}-postgresql-${key}`);
+				}
+			} catch (err) {
+				_didIteratorError2 = true;
+				_iteratorError2 = err;
+			} finally {
+				try {
+					if (!_iteratorNormalCompletion2 && _iterator2.return) {
+						_iterator2.return();
+					}
+				} finally {
+					if (_didIteratorError2) {
+						throw _iteratorError2;
+					}
+				}
+			}
+
+			return containers;
+		} else {
+			let matches = result.container.match(/^(\w+) /);
+			return `${config.run.base_name}-postgresql-${matches[1]}`;
+		}
+	})();
+}
+
+/**
+ * コンテナ名からキー名を取得
+ */
+function get_key_from_container_name(config, container_name) {
+	let key;
+	var _iteratorNormalCompletion3 = true;
+	var _didIteratorError3 = false;
+	var _iteratorError3 = undefined;
+
+	try {
+		for (var _iterator3 = Object.keys(config.db.postgresql)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+			let tmpkey = _step3.value;
+
+			if (container_name === `${config.run.base_name}-postgresql-${tmpkey}`) {
 				key = tmpkey;
 				break;
 			}
@@ -2305,21 +2536,19 @@ let argv = option.usage('Usage: genie|g [Commands] [Options]').options('mode', {
  */
 if (argv._[0] === 'demo') require('./cmd-demo.js')(option);
 // else if(argv._[0]==='init')    require('./cmd-init.js')(option)
-else if (argv._[0] === 'config') require('./cmd-config.js')(option);else if (argv._[0] === 'ls') require('./cmd-ls.js')(option);else if (argv._[0] === 'up') require('./cmd-up.js')(option);else if (argv._[0] === 'down') require('./cmd-down.js')(option);else if (argv._[0] === 'cli') require('./cmd-cli.js')(option);else if (argv._[0] === 'reject') require('./cmd-reject.js')(option);else if (argv._[0] === 'clean') require('./cmd-clean.js')(option);else if (argv._[0] === 'build') require('./cmd-build.js')(option);else if (argv._[0] === 'langver') require('./cmd-langver.js')(option);else if (argv._[0] === 'mysql') require('./cmd-mysql.js')(option);
-	// else if(argv._[0]==='psql')    require('./cmd-psql.js')(option)
-	else if (argv._[0] === 'open') require('./cmd-open.js')(option);
-		// else if(argv._[0]==='ngrok')   require('./cmd-ngrok.js')(option)
-		else if (argv._[0] === 'logs') require('./cmd-logs.js')(option);
-			// else if(argv._[0]==='dlsync')  require('./cmd-dlsync.js')(option)
+else if (argv._[0] === 'config') require('./cmd-config.js')(option);else if (argv._[0] === 'ls') require('./cmd-ls.js')(option);else if (argv._[0] === 'up') require('./cmd-up.js')(option);else if (argv._[0] === 'down') require('./cmd-down.js')(option);else if (argv._[0] === 'cli') require('./cmd-cli.js')(option);else if (argv._[0] === 'reject') require('./cmd-reject.js')(option);else if (argv._[0] === 'clean') require('./cmd-clean.js')(option);else if (argv._[0] === 'build') require('./cmd-build.js')(option);else if (argv._[0] === 'langver') require('./cmd-langver.js')(option);else if (argv._[0] === 'mysql') require('./cmd-mysql.js')(option);else if (argv._[0] === 'psql') require('./cmd-psql.js')(option);else if (argv._[0] === 'open') require('./cmd-open.js')(option);
+	// else if(argv._[0]==='ngrok')   require('./cmd-ngrok.js')(option)
+	else if (argv._[0] === 'logs') require('./cmd-logs.js')(option);
+		// else if(argv._[0]==='dlsync')  require('./cmd-dlsync.js')(option)
 
-			/**
-    * help
-    * -----------------------------------------------------------------------------
-    */
-			else {
-					const lib = require('./libs.js');
-					console.log();
-					lib.Message(option.help() + '\n' + 'Commands:\n' + '  init      \n' + '  config    設定を確認する\n' + '  ls        Dockerコンテナ状況を確認する\n' + '  up        設定に基づきDockerコンテナを起動する\n' + '  down      関連するコンテナのみ終了する\n' + '  update    \n' + '  cli       コンテナ内でコマンドを実行。またはコンテナに入る\n' + '  reject    genie対象外のコンテナまたはボリュームを一括削除する\n' + '  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n' + '  build     基本のdockerイメージをビルドする\n' + '  langver   各種言語の利用可能なバージョンを確認する\n' + '  mysql     \n' + '  psql      \n' + '  open      ブラウザで開く\n' + '  ngrok     \n' + '  logs      実行ログを見る\n' + '  dlsync    \n' + '  httpd     \n' + '  demo      デモ\n', 'warning', 1);
-					process.exit();
-				}
-},{"./cmd-demo.js":2,"./cmd-config.js":3,"./cmd-ls.js":4,"./cmd-up.js":5,"./cmd-down.js":6,"./cmd-cli.js":7,"./cmd-reject.js":8,"./cmd-clean.js":9,"./cmd-build.js":10,"./cmd-langver.js":11,"./cmd-mysql.js":17,"./cmd-open.js":12,"./cmd-logs.js":13,"./libs.js":14}]},{},[1])
+		/**
+   * help
+   * -----------------------------------------------------------------------------
+   */
+		else {
+				const lib = require('./libs.js');
+				console.log();
+				lib.Message(option.help() + '\n' + 'Commands:\n' + '  init      \n' + '  config    設定を確認する\n' + '  ls        Dockerコンテナ状況を確認する\n' + '  up        設定に基づきDockerコンテナを起動する\n' + '  down      関連するコンテナのみ終了する\n' + '  update    \n' + '  cli       コンテナ内でコマンドを実行。またはコンテナに入る\n' + '  reject    genie対象外のコンテナまたはボリュームを一括削除する\n' + '  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n' + '  build     基本のdockerイメージをビルドする\n' + '  langver   各種言語の利用可能なバージョンを確認する\n' + '  mysql     MySQLを操作する\n' + '  psql      PostgreSQLを操作する\n' + '  open      ブラウザで開く\n' + '  ngrok     \n' + '  logs      実行ログを見る\n' + '  dlsync    \n' + '  httpd     \n' + '  demo      デモ\n', 'warning', 1);
+				process.exit();
+			}
+},{"./cmd-demo.js":2,"./cmd-config.js":3,"./cmd-ls.js":4,"./cmd-up.js":5,"./cmd-down.js":6,"./cmd-cli.js":7,"./cmd-reject.js":8,"./cmd-clean.js":9,"./cmd-build.js":10,"./cmd-langver.js":11,"./cmd-mysql.js":17,"./cmd-psql.js":20,"./cmd-open.js":12,"./cmd-logs.js":13,"./libs.js":14}]},{},[1])

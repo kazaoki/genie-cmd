@@ -424,6 +424,7 @@ const dockerUpPostgreSQL = module.exports.dockerUpPostgreSQL = (key, config)=>
 		args.push(postgresql.repository)
 		args.push('postgres')
 
+		// dockerコマンド実行
 		child.spawn('docker', args)
 			.stderr.on('data', data=>{
 				if(data.toString().match(/Unable to find image '.+' locally/)) {
