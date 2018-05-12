@@ -1337,7 +1337,10 @@ module.exports = option => {
 	// オプション設定
 	let argv = option.usage('Usage: genie|g reject [Options]').options('force', {
 		alias: 'f',
-		describe: 'lockedから始まる名前も対象にする'
+		describe: '選択肢を出さずにすぐに削除を開始する'
+	}).options('locked', {
+		alias: 'l',
+		describe: '「locked_」から始まるボリューム・コンテナも対象にする'
 	}).argv;
 	;
 	if (argv.help) {
@@ -1367,7 +1370,7 @@ module.exports = option => {
 			if (is_locked) label = color.blackBright(label);
 			list_containers.push({
 				name: label,
-				checked: is_locked && !argv.f ? false : true
+				checked: is_locked && !argv.locked ? false : true
 			});
 		}
 
@@ -1407,7 +1410,7 @@ module.exports = option => {
 			if (is_locked) label = color.blackBright(label);
 			list_volumes.push({
 				name: label,
-				checked: is_locked && !argv.f ? false : true
+				checked: is_locked && !argv.locked ? false : true
 			});
 		}
 
@@ -1433,39 +1436,24 @@ module.exports = option => {
 		process.exit();
 	}
 
-	console.log();
-	inquirer.prompt([{
-		type: 'checkbox',
-		message: '削除したいものにチェックを入れて Enter してください。',
-		name: 'rejects',
-		pageSize: 100,
-		choices: [...list_containers, ...list_volumes]
-	}]).then(answers => {
+	_asyncToGenerator(function* () {
 
-		// 画面クリア
-		process.stdout.write(color.move.up(list_count));
-		for (let i = 0; i < list_count; i++) {
-			process.stdout.write(color.erase.line);
-			process.stdout.write(color.move.down(1));
-		}
-		process.stdout.write(color.move.up(list_count));
+		let answers;
 
-		// 削除処理開始
-		_asyncToGenerator(function* () {
-			let name_volumes = [];
-			let name_containters = [];
-
+		if (argv.force) {
+			// 強制リストアップ
+			let list = [...list_containers, ...list_volumes];
+			answers = {};
+			answers.rejects = [];
 			var _iteratorNormalCompletion3 = true;
 			var _didIteratorError3 = false;
 			var _iteratorError3 = undefined;
 
 			try {
-				for (var _iterator3 = answers.rejects[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-					let label = _step3.value;
+				for (var _iterator3 = list[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+					let item = _step3.value;
 
-					label = color.strip(label);
-					let matches = label.match(/^\[(Container|Volume)\] (.+)$/);
-					if (matches[1] === 'Container') name_containters.push(matches[2]);else if (matches[1] === 'Volume') name_volumes.push(matches[2]);
+					item['checked'] && answers.rejects.push(item['name']);
 				}
 			} catch (err) {
 				_didIteratorError3 = true;
@@ -1481,90 +1469,139 @@ module.exports = option => {
 					}
 				}
 			}
-
+		} else {
+			// リスト選択
 			console.log();
+			answers = yield inquirer.prompt([{
+				type: 'checkbox',
+				message: '削除したいものにチェックを入れて Enter してください。',
+				name: 'rejects',
+				pageSize: 100,
+				choices: [...list_containers, ...list_volumes]
+			}]);
+			if (!answers.rejects.length) process.exit();
 
-			// コンテナ削除実行
-			let funcs = [];
-			var _iteratorNormalCompletion4 = true;
-			var _didIteratorError4 = false;
-			var _iteratorError4 = undefined;
+			// 画面クリア
+			process.stdout.write(color.move.up(list_count));
+			for (let i = 0; i < list_count; i++) {
+				process.stdout.write(color.erase.line);
+				process.stdout.write(color.move.down(1));
+			}
+			process.stdout.write(color.move.up(list_count));
+		}
 
+		// 削除対象のコンテナ名・ボリューム名をセット
+		let name_volumes = [];
+		let name_containters = [];
+		var _iteratorNormalCompletion4 = true;
+		var _didIteratorError4 = false;
+		var _iteratorError4 = undefined;
+
+		try {
+			for (var _iterator4 = answers.rejects[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+				let label = _step4.value;
+
+				label = color.strip(label);
+				let matches = label.match(/^\[(Container|Volume)\] (.+)$/);
+				if (matches[1] === 'Container') name_containters.push(matches[2]);else if (matches[1] === 'Volume') name_volumes.push(matches[2]);
+			}
+		} catch (err) {
+			_didIteratorError4 = true;
+			_iteratorError4 = err;
+		} finally {
 			try {
-				for (var _iterator4 = name_containters[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-					let name = _step4.value;
-
-					funcs.push(new Promise(function (resolve, reject) {
-						child.spawn('docker', ['rm', '-fv', name]).stderr.on('data', function (data) {
-							console.log(`  [Container] ${name} - ${color.red('ng')}`);
-							reject(data);
-						}).on('close', function (code) {
-							console.log(`  [Container] ${name} - ${color.green('deleted')}`);
-							resolve();
-						});
-					}));
+				if (!_iteratorNormalCompletion4 && _iterator4.return) {
+					_iterator4.return();
 				}
-			} catch (err) {
-				_didIteratorError4 = true;
-				_iteratorError4 = err;
 			} finally {
-				try {
-					if (!_iteratorNormalCompletion4 && _iterator4.return) {
-						_iterator4.return();
-					}
-				} finally {
-					if (_didIteratorError4) {
-						throw _iteratorError4;
-					}
+				if (_didIteratorError4) {
+					throw _iteratorError4;
 				}
 			}
+		}
 
-			yield Promise.all(funcs).catch(function (err) {
-				lib.Error(err);
-			});
+		console.log();
 
-			// コンテナ削除実行
-			funcs = [];
-			var _iteratorNormalCompletion5 = true;
-			var _didIteratorError5 = false;
-			var _iteratorError5 = undefined;
+		// コンテナ削除実行
+		let funcs = [];
+		var _iteratorNormalCompletion5 = true;
+		var _didIteratorError5 = false;
+		var _iteratorError5 = undefined;
 
+		try {
+			for (var _iterator5 = name_containters[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+				let name = _step5.value;
+
+				funcs.push(new Promise(function (resolve, reject) {
+					child.spawn('docker', ['rm', '-fv', name]).stderr.on('data', function (data) {
+						console.log(`  [Container] ${name} - ${color.red('ng')}`);
+						reject(data);
+					}).on('close', function (code) {
+						console.log(`  [Container] ${name} - ${color.green('deleted')}`);
+						resolve();
+					});
+				}));
+			}
+		} catch (err) {
+			_didIteratorError5 = true;
+			_iteratorError5 = err;
+		} finally {
 			try {
-				for (var _iterator5 = name_volumes[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-					let name = _step5.value;
-
-					funcs.push(new Promise(function (resolve, reject) {
-						child.spawn('docker', ['volume', 'rm', '-f', name]).stderr.on('data', function (data) {
-							console.log(`  [Volume] ${name} - ${color.red('ng')}`);
-							reject(data);
-						}).on('close', function (code) {
-							console.log(`  [Volume] ${name} - ${color.green('deleted')}`);
-							resolve();
-						});
-					}));
+				if (!_iteratorNormalCompletion5 && _iterator5.return) {
+					_iterator5.return();
 				}
-			} catch (err) {
-				_didIteratorError5 = true;
-				_iteratorError5 = err;
 			} finally {
-				try {
-					if (!_iteratorNormalCompletion5 && _iterator5.return) {
-						_iterator5.return();
-					}
-				} finally {
-					if (_didIteratorError5) {
-						throw _iteratorError5;
-					}
+				if (_didIteratorError5) {
+					throw _iteratorError5;
 				}
 			}
+		}
 
-			yield Promise.all(funcs).catch(function (err) {
-				lib.Error(err);
-			});
+		yield Promise.all(funcs).catch(function (err) {
+			lib.Error(err);
+		});
 
-			process.exit();
-		})();
-	});
+		// コンテナ削除実行
+		funcs = [];
+		var _iteratorNormalCompletion6 = true;
+		var _didIteratorError6 = false;
+		var _iteratorError6 = undefined;
+
+		try {
+			for (var _iterator6 = name_volumes[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+				let name = _step6.value;
+
+				funcs.push(new Promise(function (resolve, reject) {
+					child.spawn('docker', ['volume', 'rm', '-f', name]).stderr.on('data', function (data) {
+						console.log(`  [Volume] ${name} - ${color.red('ng')}`);
+						reject(data);
+					}).on('close', function (code) {
+						console.log(`  [Volume] ${name} - ${color.green('deleted')}`);
+						resolve();
+					});
+				}));
+			}
+		} catch (err) {
+			_didIteratorError6 = true;
+			_iteratorError6 = err;
+		} finally {
+			try {
+				if (!_iteratorNormalCompletion6 && _iterator6.return) {
+					_iterator6.return();
+				}
+			} finally {
+				if (_didIteratorError6) {
+					throw _iteratorError6;
+				}
+			}
+		}
+
+		yield Promise.all(funcs).catch(function (err) {
+			lib.Error(err);
+		});
+
+		process.exit();
+	})();
 };
 },{"./libs.js":14}],9:[function(require,module,exports) {
 
