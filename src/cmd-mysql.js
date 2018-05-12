@@ -58,9 +58,16 @@ module.exports = option=>{
 
 		// --cli: MySQLコンテナの中に入る
 		if(argv.cli) {
-			d('CLI')
 			let container_name = await get_target_containers(config, argv, {is_single:true})
-			d(container_name)
+			let key = get_key_from_container_name(config, container_name)
+			child.spawnSync('docker', [
+				'exec',
+				'-it',
+				container_name,
+				'bash',
+			],
+				{stdio: 'inherit'}
+			)
 			process.exit()
 		}
 
@@ -83,13 +90,7 @@ module.exports = option=>{
 		// mysqlコマンドに入る
 		else {
 			let container_name = await get_target_containers(config, argv, {is_single:true})
-			let key
-			for(let tmpkey of Object.keys(config.db.mysql)) {
-				if(container_name === `${config.run.base_name}-mysql-${tmpkey}`) {
-					key = tmpkey
-					break
-				}
-			}
+			let key = get_key_from_container_name(config, container_name)
 			child.spawnSync('docker', [
 				'exec',
 				'-it',
@@ -126,7 +127,6 @@ function get_target_containers(config, argv, option={})
 
 	// ２つ以上あれば選択肢
 	return (async ()=>{
-		// let running = await lib.existContainers(config, '/'+config.run.base_name+'-mysql')
 		let key
 		let container_name
 
@@ -164,4 +164,18 @@ function get_target_containers(config, argv, option={})
 		}
 
 	})()
+}
+
+/**
+ * コンテナ名からキー名を取得
+ */
+function get_key_from_container_name(config, container_name) {
+	let key
+	for(let tmpkey of Object.keys(config.db.mysql)) {
+		if(container_name === `${config.run.base_name}-mysql-${tmpkey}`) {
+			key = tmpkey
+			break
+		}
+	}
+	return key
 }

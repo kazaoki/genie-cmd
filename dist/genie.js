@@ -1913,9 +1913,9 @@ module.exports = option => {
 
 		// --cli: MySQLコンテナの中に入る
 		if (argv.cli) {
-			d('CLI');
 			let container_name = yield get_target_containers(config, argv, { is_single: true });
-			d(container_name);
+			let key = get_key_from_container_name(config, container_name);
+			child.spawnSync('docker', ['exec', '-it', container_name, 'bash'], { stdio: 'inherit' });
 			process.exit();
 		}
 
@@ -1938,35 +1938,7 @@ module.exports = option => {
 				// mysqlコマンドに入る
 				else {
 						let container_name = yield get_target_containers(config, argv, { is_single: true });
-						let key;
-						var _iteratorNormalCompletion = true;
-						var _didIteratorError = false;
-						var _iteratorError = undefined;
-
-						try {
-							for (var _iterator = Object.keys(config.db.mysql)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-								let tmpkey = _step.value;
-
-								if (container_name === `${config.run.base_name}-mysql-${tmpkey}`) {
-									key = tmpkey;
-									break;
-								}
-							}
-						} catch (err) {
-							_didIteratorError = true;
-							_iteratorError = err;
-						} finally {
-							try {
-								if (!_iteratorNormalCompletion && _iterator.return) {
-									_iterator.return();
-								}
-							} finally {
-								if (_didIteratorError) {
-									throw _iteratorError;
-								}
-							}
-						}
-
+						let key = get_key_from_container_name(config, container_name);
 						child.spawnSync('docker', ['exec', '-it', container_name, 'mysql', config.db.mysql[key].name, `-u${config.db.mysql[key].user}`, `-p${config.db.mysql[key].pass}`], { stdio: 'inherit' });
 						process.exit();
 					}
@@ -1990,35 +1962,34 @@ function get_target_containers(config, argv, option = {}) {
 
 	// ２つ以上あれば選択肢
 	return _asyncToGenerator(function* () {
-		// let running = await lib.existContainers(config, '/'+config.run.base_name+'-mysql')
 		let key;
 		let container_name;
 
 		// 選択肢用意
 		let list = [];
-		var _iteratorNormalCompletion2 = true;
-		var _didIteratorError2 = false;
-		var _iteratorError2 = undefined;
+		var _iteratorNormalCompletion = true;
+		var _didIteratorError = false;
+		var _iteratorError = undefined;
 
 		try {
-			for (var _iterator2 = Object.keys(config.db.mysql)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-				let name = _step2.value;
+			for (var _iterator = Object.keys(config.db.mysql)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+				let name = _step.value;
 
 				list.push(`${name} (${config.run.base_name}-mysql-${name})`);
 			}
 
 			// 選択開始
 		} catch (err) {
-			_didIteratorError2 = true;
-			_iteratorError2 = err;
+			_didIteratorError = true;
+			_iteratorError = err;
 		} finally {
 			try {
-				if (!_iteratorNormalCompletion2 && _iterator2.return) {
-					_iterator2.return();
+				if (!_iteratorNormalCompletion && _iterator.return) {
+					_iterator.return();
 				}
 			} finally {
-				if (_didIteratorError2) {
-					throw _iteratorError2;
+				if (_didIteratorError) {
+					throw _iteratorError;
 				}
 			}
 		}
@@ -2038,27 +2009,27 @@ function get_target_containers(config, argv, option = {}) {
 		// 選択肢返却
 		if (result.container === '全て') {
 			let containers = [];
-			var _iteratorNormalCompletion3 = true;
-			var _didIteratorError3 = false;
-			var _iteratorError3 = undefined;
+			var _iteratorNormalCompletion2 = true;
+			var _didIteratorError2 = false;
+			var _iteratorError2 = undefined;
 
 			try {
-				for (var _iterator3 = Object.keys(config.db.mysql)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-					let key = _step3.value;
+				for (var _iterator2 = Object.keys(config.db.mysql)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+					let key = _step2.value;
 
 					containers.push(`${config.run.base_name}-mysql-${key}`);
 				}
 			} catch (err) {
-				_didIteratorError3 = true;
-				_iteratorError3 = err;
+				_didIteratorError2 = true;
+				_iteratorError2 = err;
 			} finally {
 				try {
-					if (!_iteratorNormalCompletion3 && _iterator3.return) {
-						_iterator3.return();
+					if (!_iteratorNormalCompletion2 && _iterator2.return) {
+						_iterator2.return();
 					}
 				} finally {
-					if (_didIteratorError3) {
-						throw _iteratorError3;
+					if (_didIteratorError2) {
+						throw _iteratorError2;
 					}
 				}
 			}
@@ -2069,6 +2040,42 @@ function get_target_containers(config, argv, option = {}) {
 			return `${config.run.base_name}-mysql-${matches[1]}`;
 		}
 	})();
+}
+
+/**
+ * コンテナ名からキー名を取得
+ */
+function get_key_from_container_name(config, container_name) {
+	let key;
+	var _iteratorNormalCompletion3 = true;
+	var _didIteratorError3 = false;
+	var _iteratorError3 = undefined;
+
+	try {
+		for (var _iterator3 = Object.keys(config.db.mysql)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+			let tmpkey = _step3.value;
+
+			if (container_name === `${config.run.base_name}-mysql-${tmpkey}`) {
+				key = tmpkey;
+				break;
+			}
+		}
+	} catch (err) {
+		_didIteratorError3 = true;
+		_iteratorError3 = err;
+	} finally {
+		try {
+			if (!_iteratorNormalCompletion3 && _iterator3.return) {
+				_iterator3.return();
+			}
+		} finally {
+			if (_didIteratorError3) {
+				throw _iteratorError3;
+			}
+		}
+	}
+
+	return key;
 }
 },{"./libs.js":14}],12:[function(require,module,exports) {
 
