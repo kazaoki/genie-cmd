@@ -11,27 +11,17 @@ echo 'Asia/Tokyo' > /etc/timezone
 
 # Conf files copy from host
 # -------------------------
-cp /mysql/opt/conf.d/* /etc/mysql/conf.d
+cp /opt/mysql/conf.d/* /etc/mysql/conf.d
 sed -i "s/<__MYSQL_CHARSET__>/$MYSQL_CHARSET/" /etc/mysql/conf.d/*
 chmod -R 0644 /etc/mysql/conf.d
 
 # Copy shell file
 # ---------------
-cp /mysql/opt/docker-entrypoint-initdb.d/* /docker-entrypoint-initdb.d
+cp /opt/mysql/docker-entrypoint-initdb.d/* /docker-entrypoint-initdb.d
 
 # Copy dump file
 # --------------
-cp /mysql/opt/dumps/$MYSQL_LABEL.* /docker-entrypoint-initdb.d
-
-# Copy directories other than /opt/
-# ---------------------------------
-for target in `ls /mysql`
-do
-  if [ $target != 'opt' ]; then
-    echo $target
-    \cp -rf /mysql/$target /
-  fi
-done
+cp /opt/mysql/dumps/$MYSQL_LABEL.* /docker-entrypoint-initdb.d
 
 # Pass to true shell
 # ------------------

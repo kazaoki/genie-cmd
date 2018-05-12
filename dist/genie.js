@@ -997,7 +997,6 @@ module.exports = option => {
 				for (var _iterator = Object.keys(config.db.postgresql)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 					let key = _step.value;
 
-					// h(`PostgreSQL起動:${key}`)
 					rundb_funcs.push(lib.dockerUpPostgreSQL(key, config));
 				}
 			} catch (err) {
@@ -1026,7 +1025,6 @@ module.exports = option => {
 				for (var _iterator2 = Object.keys(config.db.mysql)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 					let key = _step2.value;
 
-					// h(`MySQL起動:${key}`)
 					rundb_funcs.push(lib.dockerUpMySQL(key, config));
 				}
 			} catch (err) {
@@ -1048,10 +1046,7 @@ module.exports = option => {
 		// 先にDBを並列起動開始
 		Promise.all(rundb_funcs).catch(function (err) {
 			lib.Error(err);
-		}).then(
-		// 全てのDB起動完了したらgenie本体を開始する
-		// h(`本体起動開始`)
-		function () {
+		}).then(function () {
 			return lib.dockerUp(config).catch(function (err) {
 				return lib.Error(err);
 			});
@@ -1111,8 +1106,8 @@ module.exports = option => {
 						let key = _step4.value;
 
 						let container_name = `${config.run.base_name}-mysql-${key}`;
-						let result = child.spawnSync('docker', ['exec', container_name, 'cat', '/var/log/init.log']);
-						if (done.indexOf(container_name) !== -1 || result.stdout.toString().match(/Process start/)) {
+						let result = child.spawnSync('docker', ['logs', container_name]);
+						if (done.indexOf(container_name) !== -1 || result.stdout.toString().match(/MySQL Community Server \(GPL\)/)) {
 							line.push(`  ${container_name} ... ${color.green('ready!')}`);
 							if (done.indexOf(container_name) === -1) done.push(container_name);
 						} else if (process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`]) {

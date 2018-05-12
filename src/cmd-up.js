@@ -60,7 +60,6 @@ module.exports = option=>{
 		// PostgreSQL起動関数用意
 		if(config.db.postgresql) {
 			for(let key of Object.keys(config.db.postgresql)) {
-				// h(`PostgreSQL起動:${key}`)
 				rundb_funcs.push(lib.dockerUpPostgreSQL(key, config))
 			}
 		}
@@ -68,7 +67,6 @@ module.exports = option=>{
 		// MySQL起動関数用意
 		if(config.db.mysql) {
 			for(let key of Object.keys(config.db.mysql)) {
-				// h(`MySQL起動:${key}`)
 				rundb_funcs.push(lib.dockerUpMySQL(key, config))
 			}
 		}
@@ -77,8 +75,6 @@ module.exports = option=>{
 		Promise.all(rundb_funcs)
 			.catch(err=>{lib.Error(err)})
 			.then(
-				// 全てのDB起動完了したらgenie本体を開始する
-				// h(`本体起動開始`)
 				()=>lib.dockerUp(config).catch(err=>lib.Error(err))
 			)
 
@@ -108,8 +104,8 @@ module.exports = option=>{
 			if(config.db.mysql && Object.keys(config.db.mysql).length) {
 				for(let key of Object.keys(config.db.mysql)) {
 					let container_name = `${config.run.base_name}-mysql-${key}`
-					let result = child.spawnSync('docker', ['exec', container_name, 'cat', '/var/log/init.log'])
-					if(done.indexOf(container_name)!==-1 || result.stdout.toString().match(/Process start/)) {
+					let result = child.spawnSync('docker', ['logs', container_name])
+					if(done.indexOf(container_name)!==-1 || result.stdout.toString().match(/MySQL Community Server \(GPL\)/)) {
 						line.push(`  ${container_name} ... ${color.green('ready!')}`)
 						if(done.indexOf(container_name)===-1) done.push(container_name);
 					} else if(process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`]) {
