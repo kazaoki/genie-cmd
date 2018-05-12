@@ -89,7 +89,7 @@ module.exports = option=>{
 				child.spawn('docker', ['rmi', id])
 					.stderr.on('data', data=>reject(data))
 					.on('close', code=>{
-						console.log(`  [Image] ${name} - ${color.green('deleted')}`)
+						console.log(`  [Image] ${id} - ${color.green('deleted')}`)
 						resolve()
 					})
 			}))

@@ -307,26 +307,32 @@ const Error = module.exports.Error = (message)=>{
 const dockerDown = module.exports.dockerDown = (name_filter, config)=>{
 	return new Promise((resolve, reject)=>{
 		let containers = existContainers(config, name_filter);
+		if(!containers) resolve()
 		let delfuncs = [];
-		for(let i=0; i<containers.length; i++){
+		for(let container of containers){
 			delfuncs.push(
 				new Promise((ok,ng)=>{
-					process.stdout.write(color.blackBright(`  ${containers[i].name} (${containers[i].id}) ...`))
-					let result = child.spawnSync('docker', ['rm', '-f', containers[i].id])
-					if(result.stderr.toString()){
-						process.stdout.write(color.red(' delete NG!\n'))
-						ng(result.stderr.toString())
-					} else {
-						process.stdout.write(color.green(' deleted.\n'))
-						ok()
-					}
+					child.spawn('docker', ['rm', '-f', container.id])
+						.stderr.on('data', data=>{
+							console.log(
+								color.blackBright(`  [Container] ${container.name} (${container.id}) ... `)+
+								color.red('delete NG!')
+							)
+							ng(data)
+						})
+						.on('close', code=>{
+							console.log(
+								color.blackBright(`  [Container] ${container.name} (${container.id}) ... `)+
+								color.green('deleted')
+							)
+							ok()
+						})
 				})
 			)
 		}
-		(async()=>{
-			await Promise.all(delfuncs).catch(err=>err)
-		})()
-		resolve()
+		Promise.all(delfuncs)
+			.catch(err=>{Error(err)})
+			.then(()=>{resolve()})
 	})
 }
 
@@ -342,14 +348,15 @@ const dockerUpMySQL = module.exports.dockerUpMySQL = (key, config)=>
 
 		// 引数用意
 		let mysql = config.db.mysql[key]
+		let container_name = `${config.run.base_name}-mysql-${key}`
 		let args = [];
 		args.push('run', '-d', '-it')
 		args.push('-e', 'TERM=xterm-256color')
-		args.push('--name', `${config.run.base_name}-mysql-${key}`)
+		args.push('--name', container_name)
 		args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
 		if(config.run.shadow) args.push('--label', 'genie_shadow')
 		args.push('-v', `${config.run.project_dir}/.genie/files/opt/mysql/:/opt/mysql/`)
-		args.push('-v', `${mysql.volume_lock ? 'locked_': ''}${config.run.base_name}-mysql-${key}:/var/lib/mysql`)
+		args.push('-v', `${mysql.volume_lock ? 'locked_': ''}${container_name}:/var/lib/mysql`)
 		args.push('-e', `MYSQL_LABEL=${key}`)
 		args.push('-e', `MYSQL_ROOT_PASSWORD=${mysql.pass}`)
 		args.push('-e', `MYSQL_DATABASE=${mysql.name}`)
@@ -368,8 +375,15 @@ const dockerUpMySQL = module.exports.dockerUpMySQL = (key, config)=>
 
 		// dockerコマンド実行
 		child.spawn('docker', args)
-			.stderr.on('data', data=>reject(data))
-			.on('close', code=>resolve())
+			.stderr.on('data', data=>{
+				if(data.toString().match(/Unable to find image '.+' locally/)) {
+					process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`] = true
+				}
+			})
+			.on('close', code=>{
+				delete process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`]
+				resolve()
+			})
 
 	})
 }
@@ -386,14 +400,15 @@ const dockerUpPostgreSQL = module.exports.dockerUpPostgreSQL = (key, config)=>
 
 		// 引数用意
 		let postgresql = config.db.postgresql[key]
+		let container_name = `${config.run.base_name}-postgresql-${key}`
 		let args = [];
 		args.push('run', '-d', '-it')
 		args.push('-e', 'TERM=xterm-256color')
-		args.push('--name', `${config.run.base_name}-postgresql-${key}`)
+		args.push('--name', container_name)
 		args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
 		if(config.run.shadow) args.push('--label', 'genie_shadow')
 		args.push('-v', `${config.run.project_dir}/.genie/files/opt/postgresql/:/opt/postgresql/`)
-		args.push('-v', `${postgresql.volume_lock ? 'locked_': ''}${config.run.base_name}-postgresql-${key}:/var/lib/postgresql`)
+		args.push('-v', `${postgresql.volume_lock ? 'locked_': ''}${container_name}:/var/lib/postgresql/data`)
 		args.push('-e', `POSTGRES_LABEL=${key}`)
 		args.push('-e', `POSTGRES_HOST=${postgresql.host}`)
 		args.push('-e', `POSTGRES_DB=${postgresql.name}`)
@@ -409,10 +424,16 @@ const dockerUpPostgreSQL = module.exports.dockerUpPostgreSQL = (key, config)=>
 		args.push(postgresql.repository)
 		args.push('postgres')
 
-		// dockerコマンド実行
 		child.spawn('docker', args)
-			.stderr.on('data', data=>reject(data))
-			.on('close', code=>resolve())
+			.stderr.on('data', data=>{
+				if(data.toString().match(/Unable to find image '.+' locally/)) {
+					process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`] = true
+				}
+			})
+			.on('close', code=>{
+				delete process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`]
+				resolve()
+			})
 
 	})
 }
@@ -547,11 +568,9 @@ const dockerUp = module.exports.dockerUp = config=>
 		// イメージ指定
 		args.push(config.core.docker.image)
 
-		d(args.join(' '))
-
 		// dockerコマンド実行
 		let result = child.spawnSync('docker', args)
-		if(result.stderr.toString()) {
+		if(result.status) {
 			reject(result.stderr.toString())
 		} else {
 			resolve();
@@ -579,18 +598,18 @@ const existContainers = module.exports.existContainers = (config, name_filter)=>
 	}
 	if(name_filter) filters.push('--filter', `name=${name_filter}`)
 	let result = child.spawnSync('docker', ['ps', '-a', '--format', '{{.ID}}\t{{.Names}}', ...filters])
-	let conts = result.stdout.toString().split(/\n/);
-	let cont_ids = [];
-	for(let i=0; i<conts.length; i++){
-		let colums = conts[i].split(/\s+/)
+	if(result.status) { Error(result.stderr.toString()) }
+	let containers = [];
+	for(let container of result.stdout.toString().split(/\n/)){
+		let colums = container.split(/\t+/)
 		if(colums[0]) {
-			cont_ids.push({
+			containers.push({
 				id:   colums[0],
 				name: colums[1],
 			})
 		}
 	}
-	return cont_ids.length ? cont_ids : false
+	return containers.length ? containers : false
 }
 
 // /**
@@ -631,4 +650,15 @@ const getContainerIp = module.exports.getContainerIp = (container_name, config)=
 	} catch(err) {
 		Error(err)
 	}
+}
+
+/**
+ * sleep
+ * -----------------------------------------------------------------------------
+ * @param {number} msec
+ */
+const sleep = module.exports.sleep = (msec)=>{
+	return new Promise(resole=>{
+		setTimeout(resole, msec)
+	})
 }

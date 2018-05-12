@@ -43,18 +43,15 @@ module.exports = option=>{
 
 	(async()=>
 	{
-		// 各コンテナ終了
-		if(lib.existContainers(config)) {
-			// h('対象の既存コンテナのみ削除します', color.blackBright);
-			await Promise.all([
-				lib.dockerDown('/'+config.run.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
-				lib.dockerDown('/'+config.run.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
-				lib.dockerDown('/'+config.run.base_name+'$', config), // 完全一致のgenie本体コンテナ名
-				lib.dockerDown(null, config), // プロジェクトパスとshadowが一致するもの（＝ゴミコンテナ）削除
-			]).catch(err=>err)
-		}
-
-		h('DONE!')
-		process.exit();
+		await Promise.all([
+			// lib.dockerDown('/'+config.run.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
+			// lib.dockerDown('/'+config.run.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
+			// lib.dockerDown('/'+config.run.base_name+'$', config), // 完全一致のgenie本体コンテナ名
+			lib.dockerDown(null, config), // プロジェクトパスとshadowが一致するもの（＝ゴミコンテナ）削除
+		]).catch(err=>err)
+		.then(()=>{
+			h('DONE!')
+			process.exit();
+		})
 	})();
 };
