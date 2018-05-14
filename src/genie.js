@@ -10,12 +10,12 @@ const option = require('optimist')
 let argv = option
 	.usage('Usage: genie|g [Commands] [Options]')
 	.options('mode', {
-		alias: 'm',
+		alias: 'M',
 		default: 'develop',
 		describe: '実行モードを指定可能'
 	})
 	.options('config', {
-		alias: 'c',
+		alias: 'C',
 		default: 'config.js',
 		describe: '設定ファイルを指定可能'
 	})
@@ -30,23 +30,24 @@ let argv = option
  * 各コマンド機能を実行する
  * -----------------------------------------------------------------------------
  */
-     if(argv._[0]==='demo')    require('./cmd-demo.js')(option)
-// else if(argv._[0]==='init')    require('./cmd-init.js')(option)
-else if(argv._[0]==='config')  require('./cmd-config.js')(option)
-else if(argv._[0]==='ls')      require('./cmd-ls.js')(option)
-else if(argv._[0]==='up')      require('./cmd-up.js')(option)
-else if(argv._[0]==='down')    require('./cmd-down.js')(option)
-else if(argv._[0]==='cli')     require('./cmd-cli.js')(option)
-else if(argv._[0]==='reject')  require('./cmd-reject.js')(option)
-else if(argv._[0]==='clean')   require('./cmd-clean.js')(option)
-else if(argv._[0]==='build')   require('./cmd-build.js')(option)
-else if(argv._[0]==='langver') require('./cmd-langver.js')(option)
-else if(argv._[0]==='mysql')   require('./cmd-mysql.js')(option)
-else if(argv._[0]==='psql')    require('./cmd-psql.js')(option)
-else if(argv._[0]==='open')    require('./cmd-open.js')(option)
-// else if(argv._[0]==='ngrok')   require('./cmd-ngrok.js')(option)
-else if(argv._[0]==='logs')    require('./cmd-logs.js')(option)
-// else if(argv._[0]==='dlsync')  require('./cmd-dlsync.js')(option)
+let cmd = argv._.shift()
+     if(cmd==='demo')    require('./cmd-demo.js')(option)
+// else if(cmd==='init')    require('./cmd-init.js')(option)
+else if(cmd==='config')  require('./cmd-config.js')(option)
+else if(cmd==='ls')      require('./cmd-ls.js')(option)
+else if(cmd==='up')      require('./cmd-up.js')(option)
+else if(cmd==='down')    require('./cmd-down.js')(option)
+else if(cmd==='cli')     require('./cmd-cli.js')(option)
+else if(cmd==='reject')  require('./cmd-reject.js')(option)
+else if(cmd==='clean')   require('./cmd-clean.js')(option)
+else if(cmd==='build')   require('./cmd-build.js')(option)
+else if(cmd==='langver') require('./cmd-langver.js')(option)
+else if(cmd==='mysql')   require('./cmd-mysql.js')(option)
+else if(cmd==='psql')    require('./cmd-psql.js')(option)
+else if(cmd==='open')    require('./cmd-open.js')(option)
+// else if(cmd==='ngrok')   require('./cmd-ngrok.js')(option)
+else if(cmd==='logs')    require('./cmd-logs.js')(option)
+// else if(cmd==='dlsync')  require('./cmd-dlsync.js')(option)
 
 /**
  * help

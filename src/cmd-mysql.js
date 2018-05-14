@@ -3,12 +3,13 @@
  * mysql: MySQL操作
  * -----------------------------------------------------------------------------
  * ex. g mysql
+ *     g mysql container1
  *     g mysql --cli
- *     g mysql --cli -n container1
+ *     g mysql --cli container1
  *     g mysql --dump
- *     g mysql --dump -n container1  -n container2
+ *     g mysql --dump container1 container2
  *     g mysql --restore
- *     g mysql --restore -n container1  -n container2
+ *     g mysql --restore container1 container2
  */
 
 'use strict'
@@ -18,6 +19,7 @@ const d = lib.d
 const h = lib.h
 const child = require('child_process')
 const inquirer = require('inquirer')
+const fs = require('fs')
 
 module.exports = option=>{
 
@@ -25,19 +27,28 @@ module.exports = option=>{
 	let argv = option
 		.usage('Usage: genie|g mysql [Options]')
 		.options('cli', {
+			alias: 'c',
 			describe: 'MySQLコンテナのCLIに入る',
+			boolean: true,
 		})
 		.options('dump', {
 			alias: 'd',
 			describe: 'MySQLのダンプを取る',
+			boolean: true,
 		})
 		.options('restore', {
 			alias: 'r',
 			describe: 'MySQLのリストアを行う',
+			boolean: true,
 		})
-		.options('name', {
-			alias: 'n',
-			describe: '対象のMySQLコンテナ名を直接指定する',
+		// .options('name', {
+		// 	alias: 'n',
+		// 	describe: '対象のMySQLコンテナ名を直接指定する',
+		// })
+		.options('all', {
+			alias: 'a',
+			describe: '管轄全てのMySQLを対象とする（--dump, --restoreのみ）',
+			boolean: true,
 		})
 		.argv;
 	;
@@ -62,7 +73,9 @@ module.exports = option=>{
 
 		// --cli: MySQLコンテナの中に入る
 		if(argv.cli) {
-			let container_name = await get_target_containers(config, argv, {is_single:true})
+			let container_name = argv._[1]
+				? `${config.run.base_name}-mysql-${argv._[1]}`
+				: await get_target_containers(config, {is_single:true})
 			let key = get_key_from_container_name(config, container_name)
 			child.spawnSync('docker', [
 				'exec',
@@ -77,23 +90,47 @@ module.exports = option=>{
 
 		// --dump: ダンプを取る
 		else if(argv.dump) {
-			d('DUMP')
-			let container_name = await get_target_containers(config, argv, {has_all:true})
-			d(container_name)
+			// 対象のコンテナを特定
+			argv._.shift()
+			let container_names = argv.all
+				? Object.keys(config.db.mysql).map(key=>`${config.run.base_name}-mysql-${key}`)
+				: argv._.length
+					? argv._.map(key=>`${config.run.base_name}-mysql-${key}`)
+					: await get_target_containers(config, {has_all:true})
+			// d(container_names)
+
+			// 設定ごとに回す
+			for(let container_name of container_names)
+			{
+				// ダンプを保存するディレクトリが無ければ作成する
+				let dump_dir = '/opt/mysql/dumps'
+				let cmd = `docker exec ${container_name} mkdir -p ${dump_dir}`;
+				child.execSync(cmd)
+				// d(cmd)
+
+				//
+
+			}
+
 			process.exit()
+
+
 		}
 
-		// --restore: レストアする
+		// --restore: リストアする
 		else if(argv.restore) {
 			d('RESTORE')
-			let container_name = await get_target_containers(config, argv, {has_all:true})
+			let container_name = await get_target_containers(config, {has_all:true})
 			d(container_name)
 			process.exit()
 		}
 
 		// mysqlコマンドに入る
 		else {
-			let container_name = await get_target_containers(config, argv, {is_single:true})
+			if(!config.db.mysql[argv._[1]]) lib.Error('指定のキーのMySQL設定が定義されていません。'+argv._[1])
+			let container_name = argv._[1]
+				? `${config.run.base_name}-mysql-${argv._[1]}`
+				: await get_target_containers(config, {is_single:true})
 			let key = get_key_from_container_name(config, container_name)
 			child.spawnSync('docker', [
 				'exec',
@@ -115,15 +152,8 @@ module.exports = option=>{
 /**
  * コンテナを選択させる
  */
-function get_target_containers(config, argv, option={})
+function get_target_containers(config, option={})
 {
-	// 引数で指定があればそれ
-	if(argv.name) {
-		return (option.is_single && Array.isArray(argv.name))
-			? argv.name[0] // single指定なのに複数引数に書いてある場合は最初のやつ
-			: argv.name
-	}
-
 	// １つしかなければそれ
 	if(Object.keys(config.db.mysql).length===1) {
 		return `${config.run.base_name}-mysql-${Object.keys(config.db.mysql)[0]}`
