@@ -29,6 +29,7 @@ config.core =
 			// 'home-data:/home/xxx/',
 			// 'emls:/sendlog/emls',
 		],
+		mount_mode: process.env['GENIE_RUNMODE']==='test' ? 'copy' : 'share',
 		// network: 'my_docker_nw',
 	},
 
@@ -69,6 +70,7 @@ config.lang =
 	php: {
 		// version: '5.3.3', // `genie langver --php` でリストアップされるバージョン文字列を指定
 		// configure: '--with-apxs2=/usr/bin/apxs', // `うまくいかないときは '--with-apxs2=/usr/bin/apxs --disable-fpm' など
+		error_report: process.env['GENIE_RUNMODE']!=='product',
 	},
 
 	// Ruby設定
@@ -264,23 +266,42 @@ config.trans =
 	},
 }
 
-// /**
-//  * CI設定
-//  * -----------------------------------------------------------------------------
-//  */
-// config.ci =
-// {
-// 	// SPEC設定
-// 	spec: {
-// 		default_capture_width: 1280,
-// 		default_user_agent   : '',
-// 		js_errors            : 0,
-// 		silent_fast          : 1,  // 1にするとfastモード時に実行するか否か聞いてこないように
-// 		no_sendmail          : 1,  // 1にするとSPEC中はメール送信を行いません。（但し、/sendlogには記録されます）
-// 	},
+/**
+ * CI設定
+ * -----------------------------------------------------------------------------
+ */
+config.ci =
+{
+	// test設定
+	test: {
+		script               : 'node test/index.js',
+		at_container         : false, // コンテナ内で実行するコマンド
+		mount_mode_is_copy   : true, // マウントモードをリンクではなくファイルコピーにする
+		// もうちょっと考えたほうが良いかな・・。
+	},
 
-// 	// ZAP設定
-// 	zap: {
-// 		no_sendmail          : 1,  // 1にするとZAP中はメール送信を行いません。（但し、/sendlogには記録されます）
-// 	},
-// }
+	// // SPEC設定
+	// spec: {
+	// 	default_capture_width: 1280,
+	// 	default_user_agent   : '',
+	// 	js_errors            : 0,
+	// 	silent_fast          : 1,  // 1にするとfastモード時に実行するか否か聞いてこないように
+	// 	no_sendmail          : 1,  // 1にするとSPEC中はメール送信を行いません。（但し、/sendlogには記録されます）
+	// },
+
+	// // ZAP設定
+	// zap: {
+	// 	no_sendmail          : 1,  // 1にするとZAP中はメール送信を行いません。（但し、/sendlogには記録されます）
+	// },
+}
+
+/**
+ * 独自コマンド追加
+ * -----------------------------------------------------------------------------
+ * コンテナ内で実行される
+ */
+config.command =
+{
+	// ll
+	ll: 'ls -la /',
+}
