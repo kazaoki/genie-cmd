@@ -365,7 +365,13 @@ const dockerUpMySQL = module.exports.dockerUpMySQL = (key, config)=>
 		args.push('-e', `MYSQL_CHARSET=${mysql.charset}`)
 		if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
 		if(config.core.docker.options) args.push(`${config.core.docker.options}`)
-		if(mysql.external_port) args.push('-p', `${mysql.external_port}:3306`)
+		if(mysql.external_port) {
+			args.push('-p',
+				mysql.external_port==='auto'
+					? '3306'
+					: `${mysql.external_port}:3306`
+			)
+		}
 		args.push('--entrypoint=/opt/mysql/before-entrypoint.sh')
 		args.push('--restart=always')
 		args.push(mysql.repository)
@@ -418,7 +424,13 @@ const dockerUpPostgreSQL = module.exports.dockerUpPostgreSQL = (key, config)=>
 		args.push('-e', `POSTGERS_LOCALE=${postgresql.locale}`)
 		if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
 		if(config.core.docker.options) args.push(`${config.core.docker.options}`)
-		if(postgresql.external_port) args.push('-p', `${postgresql.external_port}:5432`)
+		if(postgresql.external_port) {
+			args.push('-p',
+				postgresql.external_port==='auto'
+					? '5432'
+					: `${postgresql.external_port}:5432`
+			)
+		}
 		args.push('--entrypoint=/opt/postgresql/before-entrypoint.sh')
 		args.push('--restart=always')
 		args.push(postgresql.repository)
@@ -485,35 +497,63 @@ const dockerUp = module.exports.dockerUp = config=>
 		}
 
 		// SSHD関係
-		if(config.trans.sshd){
-			args.push('-p', `${config.trans.sshd.external_port}:22`)
+		if(config.trans.sshd && config.trans.sshd.enabled){
+			if(config.trans.sshd.external_port) {
+				args.push('-p',
+					config.trans.sshd.external_port==='auto'
+						? '22'
+						: `${config.trans.sshd.external_port}:22`
+				)
+			}
 		}
 
 		// Apache関係
-		if(config.http.apache){
+		if(config.http.apache && config.http.apache.enabled){
 			args.push('-v', `${config.run.project_dir}/${config.http.apache.public_dir}:/var/www/html`)
 			if(config.http.apache.external_http_port) {
-				args.push('-p', `${config.http.apache.external_http_port}:80`)
+				args.push('-p',
+					config.http.apache.external_http_port==='auto'
+						? '80'
+						: `${config.http.apache.external_http_port}:80`
+				)
 			}
 			if(config.http.apache.external_https_port) {
-				args.push('-p', `${config.http.apache.external_https_port}:443`)
+				args.push('-p',
+					config.http.apache.external_https_port==='auto'
+						? '443'
+						: `${config.http.apache.external_https_port}:443`
+				)
 			}
 		}
 
 		// Nginx関係
-		if(config.http.nginx){
+		if(config.http.nginx && config.http.nginx.enabled){
 			args.push('-v', `${config.run.project_dir}/${config.http.nginx.public_dir}:/usr/share/nginx/html`)
 			if(config.http.nginx.external_http_port) {
-				args.push('-p', `${config.http.nginx.external_http_port}:80`)
+				args.push('-p',
+					config.http.nginx.external_http_port==='auto'
+						? '80'
+						: `${config.http.nginx.external_http_port}:80`
+				)
 			}
 			if(config.http.nginx.external_https_port) {
-				args.push('-p', `${config.http.nginx.external_https_port}:443`)
+				args.push('-p',
+					config.http.nginx.external_https_port==='auto'
+						? '443'
+						: `${config.http.nginx.external_https_port}:443`
+				)
 			}
 		}
 
 		// Sendlog関係
-		if(config.mail.sendlog.external_port) {
-			args.push('-p', `${config.mail.sendlog.external_port}:9981`)
+		if(config.mail.sendlog && config.mail.sendlog.enabled) {
+			if(config.mail.sendlog.external_port) {
+				args.push('-p',
+					config.mail.sendlog.external_port==='auto'
+						? '9981'
+						: `${config.mail.sendlog.external_port}:9981`
+				)
+			}
 		}
 
 		// Fluentd関係

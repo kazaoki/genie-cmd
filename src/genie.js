@@ -48,6 +48,7 @@ else if(cmd==='open')    require('./cmd-open.js')(option)
 // else if(cmd==='ngrok')   require('./cmd-ngrok.js')(option)
 else if(cmd==='logs')    require('./cmd-logs.js')(option)
 // else if(cmd==='dlsync')  require('./cmd-dlsync.js')(option)
+// else if(cmd==='test')    require('./cmd-test.js')(option)
 
 /**
  * help
@@ -77,6 +78,7 @@ else {
 		'  logs      実行ログを見る\n'+
 		'  dlsync    \n'+
 		'  httpd     \n'+
+		'  test      \n'+
 		'  demo      デモ\n',
 		'warning',
 		1

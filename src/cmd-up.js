@@ -46,6 +46,7 @@ module.exports = option=>{
 	{
 		// 各コンテナ終了
 		if(lib.existContainers(config)) {
+			// TODO: 同じラベル `パス` と `ランレベル` で削除するように修正したい。
 			// h('対象の既存コンテナのみ削除します', color.blackBright);
 			await Promise.all([
 				// lib.dockerDown('/'+config.run.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
@@ -127,27 +128,27 @@ module.exports = option=>{
 			let output = result.stdout.toString()
 			if(done.indexOf(config.run.base_name)!==-1 || output.match(/entrypoint\.sh setup done\./)) {
 				if(done.indexOf(config.run.base_name)===-1) done.push(config.run.base_name);
-				line.push(`  genie ... ${color.green('ready!')}`)
+				line.push(`  ${config.run.base_name} ... ${color.green('ready!')}`)
 			} else if(output.match(/init\.sh setup done\./)){
-				line.push(`  genie ... ${color.yellow('init.sh setup')}`)
+				line.push(`  ${config.run.base_name} ... ${color.yellow('init.sh setup')}`)
 			} else if(output.match(/Postfix setup done\./)){
-				line.push(`  genie ... ${color.yellow('Postfix setup')}`)
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Postfix setup')}`)
 			} else if(output.match(/Nginx setup done\./)){
-				line.push(`  genie ... ${color.yellow('Nginx setup')}`)
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Nginx setup')}`)
 			} else if(output.match(/Apache setup done\./)){
-				line.push(`  genie ... ${color.yellow('Apache setup')}`)
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Apache setup')}`)
 			} else if(output.match(/Node.js setup done\./)){
-				line.push(`  genie ... ${color.yellow('Node.js setup')}`)
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Node.js setup')}`)
 			} else if(output.match(/Ruby setup done\./)){
-				line.push(`  genie ... ${color.yellow('Ruby setup')}`)
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Ruby setup')}`)
 			} else if(output.match(/PHP setup done\./)){
-				line.push(`  genie ... ${color.yellow('PHP setup')}`)
+				line.push(`  ${config.run.base_name} ... ${color.yellow('PHP setup')}`)
 			} else if(output.match(/Perl setup done\./)){
-				line.push(`  genie ... ${color.yellow('Perl setup')}`)
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Perl setup')}`)
 			} else if(output.match(/entrypoint\.sh setup start\./)){
-				line.push(`  genie ... ${color.yellow('loading')}`)
+				line.push(`  ${config.run.base_name} ... ${color.yellow('loading')}`)
 			} else {
-				line.push(`  genie ... ${color.yellow('waiting')}`)
+				line.push(`  ${config.run.base_name} ... ${color.yellow('waiting')}`)
 			}
 
 			// 状況出力
@@ -168,19 +169,6 @@ module.exports = option=>{
 		;
 
 		h('起動完了!!')
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 		process.exit();
 	})();

@@ -4,6 +4,7 @@ const config = module.exports.config = {}; // この行は削除や変更をし�
 /**
  * genie設定ファイル
  * =============================================================================
+ * - external_port系の設定はポート番号以外に'auto'が使用可能です。割り当てられたポートが環境変数に入ってきます。
  */
 
 /**
@@ -29,7 +30,7 @@ config.core =
 			// 'home-data:/home/xxx/',
 			// 'emls:/sendlog/emls',
 		],
-		mount_mode: process.env['GENIE_RUNMODE']==='test' ? 'copy' : 'share',
+		mount_mode: 'share',
 		// network: 'my_docker_nw',
 	},
 
@@ -41,17 +42,9 @@ config.core =
 		],
 		down: [{success: '終了します。'}],
 	},
-	// memo_up: {info: 'いつもお疲れ様です。'},
-	// memo_down: {success: 'お疲れ様でした。'},
 
 	// 音声スピーチの有効/無効
 	enable_say: true,
-
-	// 追加コマンド設定（実行中のコンテナ内で実行されます）
-	add_command: {
-		// htop => 'htop',
-		// ll => 'ls -la',
-	},
 }
 
 /**
@@ -132,6 +125,7 @@ config.http =
 
 	// Apache設定
 	apache: {
+		enabled: true,
 		public_dir: 'public_html',
 		no_log_regex: '\.(gif|jpg|jpeg|jpe|png|css|js|ico)$',
 		real_ip_log_enabled: false,
@@ -141,6 +135,7 @@ config.http =
 
 	// Nginx設定
 	// nginx: {
+	// 	enabled: true,
 	// 	public_dir: 'public_html',
 	// 	external_http_port: 80,
 	// 	external_https_port: 443,
@@ -174,7 +169,7 @@ config.db =
 			collation  : 'utf8mb4_unicode_ci',
 			dump_genel : 3,
 			// volume_lock: true,
-			external_port: 3306
+			external_port: 3306,
 		},
 		sub: {
 			repository : 'mysql:5.7',
@@ -186,7 +181,7 @@ config.db =
 			collation  : 'utf8mb4_unicode_ci',
 			dump_genel : 3,
 			volume_lock: true,
-			external_port: 3307
+			external_port: 3307,
 		},
 	},
 
@@ -202,7 +197,7 @@ config.db =
 			locale     : 'ja_JP.UTF-8',
 			dump_genel : 3,
 			// volume_lock: true,
-			external_port: 5432
+			external_port: 5432,
 		},
 		sub: {
 			repository : 'postgres:10',
@@ -213,7 +208,7 @@ config.db =
 			locale     : 'ja_JP.UTF-8',
 			dump_genel : 3,
 			// volume_lock: true,
-			external_port: 5433
+			external_port: 5433,
 		},
 	},
 }
@@ -227,13 +222,14 @@ config.mail =
 	// Postfix設定
 	postfix: {
 		// enabled: true,
-		force_envelope: 'test@xx.xx',
+		// force_envelope: 'test@xx.xx',
 	},
 
 	// Sendlog設定
 	sendlog: {
+		enabled: true,
 		// hide_desc: 1, // 一覧ページ上部の説明文を表示する(1)か否か
-		external_port: 9981
+		external_port: 9981,
 	},
 }
 
@@ -262,37 +258,8 @@ config.trans =
 		login_user: 'genie',
 		login_pass: '123456789',
 		login_path: '/mnt/host',
-		external_port: 22
+		external_port: 22,
 	},
-}
-
-/**
- * CI設定
- * -----------------------------------------------------------------------------
- */
-config.ci =
-{
-	// test設定
-	test: {
-		script               : 'node test/index.js',
-		at_container         : false, // コンテナ内で実行するコマンド
-		mount_mode_is_copy   : true, // マウントモードをリンクではなくファイルコピーにする
-		// もうちょっと考えたほうが良いかな・・。
-	},
-
-	// // SPEC設定
-	// spec: {
-	// 	default_capture_width: 1280,
-	// 	default_user_agent   : '',
-	// 	js_errors            : 0,
-	// 	silent_fast          : 1,  // 1にするとfastモード時に実行するか否か聞いてこないように
-	// 	no_sendmail          : 1,  // 1にするとSPEC中はメール送信を行いません。（但し、/sendlogには記録されます）
-	// },
-
-	// // ZAP設定
-	// zap: {
-	// 	no_sendmail          : 1,  // 1にするとZAP中はメール送信を行いません。（但し、/sendlogには記録されます）
-	// },
 }
 
 /**

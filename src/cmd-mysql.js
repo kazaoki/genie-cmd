@@ -92,21 +92,38 @@ module.exports = option=>{
 		else if(argv.dump) {
 			// 対象のコンテナを特定
 			argv._.shift()
-			let container_names = argv.all
-				? Object.keys(config.db.mysql).map(key=>`${config.run.base_name}-mysql-${key}`)
-				: argv._.length
-					? argv._.map(key=>`${config.run.base_name}-mysql-${key}`)
-					: await get_target_containers(config, {has_all:true})
-			// d(container_names)
 
-			// 設定ごとに回す
-			for(let container_name of container_names)
+			// 対象キーを設定
+			let keys = argv.all
+				? Object.keys(config.db.mysql)
+				: argv._.length
+					? argv._
+					: await get_target_containers(config, {has_all:true, is_key_return:true})
+			if(!Array.isArray(keys)) keys = [keys]
+
+// d(keys)
+// process.exit()
+
+
+			// let container_names = argv.all
+			// 	? Object.keys(config.db.mysql).map(key=>`${config.run.base_name}-mysql-${key}`)
+			// 	: argv._.length
+			// 		? argv._.map(key=>`${config.run.base_name}-mysql-${key}`)
+			// 		: await get_target_containers(config, {has_all:true})
+			// if(!Array.isArray(container_names)) container_names = [container_names]
+
+			// ダンプを保存するディレクトリが無ければ作成する
+			let dump_dir = `${config.run.project_dir}/.genie/files/opt/mysql/dumps`
+			if(!fs.existsSync(dump_dir)) fs.mkdirSync(dump_dir, 0o755)
+
+
+			// キーごとに回す
+			for(let key of keys)
 			{
-				// ダンプを保存するディレクトリが無ければ作成する
-				let dump_dir = '/opt/mysql/dumps'
-				let cmd = `docker exec ${container_name} mkdir -p ${dump_dir}`;
-				child.execSync(cmd)
-				// d(cmd)
+				// キー名チェック
+				if(!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。'+key)
+
+				d(key)
 
 				//
 
@@ -127,11 +144,11 @@ module.exports = option=>{
 
 		// mysqlコマンドに入る
 		else {
-			if(!config.db.mysql[argv._[1]]) lib.Error('指定のキーのMySQL設定が定義されていません。'+argv._[1])
 			let container_name = argv._[1]
 				? `${config.run.base_name}-mysql-${argv._[1]}`
 				: await get_target_containers(config, {is_single:true})
 			let key = get_key_from_container_name(config, container_name)
+			if(!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。'+key)
 			child.spawnSync('docker', [
 				'exec',
 				'-it',
@@ -187,14 +204,14 @@ function get_target_containers(config, option={})
 
 		// 選択肢返却
 		if(result.container==='全て') {
-			let containers = []
-			for(let key of Object.keys(config.db.mysql)) {
-				containers.push(`${config.run.base_name}-mysql-${key}`)
-			}
-			return containers
+			return option.is_key_return
+				? Object.keys(config.db.mysql)
+				: Object.keys(config.db.mysql).map(key=>`${config.run.base_name}-mysql-${key}`)
 		} else {
 			let matches = result.container.match(/^(\w+) /)
-			return `${config.run.base_name}-mysql-${matches[1]}`
+			return option.is_key_return
+				? matches[1]
+				: `${config.run.base_name}-mysql-${matches[1]}`
 		}
 
 	})()

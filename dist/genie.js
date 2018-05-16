@@ -77,7 +77,7 @@ parcelRequire = (function (modules, cache, entry) {
 
   // Override the current require with this new one
   return newRequire;
-})({17:[function(require,module,exports) {
+})({16:[function(require,module,exports) {
 
 'use strict';
 
@@ -729,7 +729,7 @@ const sleep = module.exports.sleep = msec => {
 		setTimeout(resole, msec);
 	});
 };
-},{}],3:[function(require,module,exports) {
+},{}],2:[function(require,module,exports) {
 
 /**
  * demo: デモ実行
@@ -780,7 +780,7 @@ module.exports = (() => {
 		return _ref.apply(this, arguments);
 	};
 })();
-},{"./libs.js":17}],4:[function(require,module,exports) {
+},{"./libs.js":16}],3:[function(require,module,exports) {
 
 /**
  * config: 設定ファイルを見る・開く
@@ -828,7 +828,7 @@ module.exports = option => {
 
 	process.exit();
 };
-},{"./libs.js":17}],5:[function(require,module,exports) {
+},{"./libs.js":16}],4:[function(require,module,exports) {
 
 /**
  * ls: Dockerオブジェクト一覧
@@ -928,7 +928,7 @@ module.exports = option => {
 
 	process.exit();
 };
-},{"./libs.js":17}],6:[function(require,module,exports) {
+},{"./libs.js":16}],5:[function(require,module,exports) {
 
 /**
  * up: 設定に基づいてdockerを起動する
@@ -1138,27 +1138,27 @@ module.exports = option => {
 			let output = result.stdout.toString();
 			if (done.indexOf(config.run.base_name) !== -1 || output.match(/entrypoint\.sh setup done\./)) {
 				if (done.indexOf(config.run.base_name) === -1) done.push(config.run.base_name);
-				line.push(`  genie ... ${color.green('ready!')}`);
+				line.push(`  ${config.run.base_name} ... ${color.green('ready!')}`);
 			} else if (output.match(/init\.sh setup done\./)) {
-				line.push(`  genie ... ${color.yellow('init.sh setup')}`);
+				line.push(`  ${config.run.base_name} ... ${color.yellow('init.sh setup')}`);
 			} else if (output.match(/Postfix setup done\./)) {
-				line.push(`  genie ... ${color.yellow('Postfix setup')}`);
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Postfix setup')}`);
 			} else if (output.match(/Nginx setup done\./)) {
-				line.push(`  genie ... ${color.yellow('Nginx setup')}`);
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Nginx setup')}`);
 			} else if (output.match(/Apache setup done\./)) {
-				line.push(`  genie ... ${color.yellow('Apache setup')}`);
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Apache setup')}`);
 			} else if (output.match(/Node.js setup done\./)) {
-				line.push(`  genie ... ${color.yellow('Node.js setup')}`);
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Node.js setup')}`);
 			} else if (output.match(/Ruby setup done\./)) {
-				line.push(`  genie ... ${color.yellow('Ruby setup')}`);
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Ruby setup')}`);
 			} else if (output.match(/PHP setup done\./)) {
-				line.push(`  genie ... ${color.yellow('PHP setup')}`);
+				line.push(`  ${config.run.base_name} ... ${color.yellow('PHP setup')}`);
 			} else if (output.match(/Perl setup done\./)) {
-				line.push(`  genie ... ${color.yellow('Perl setup')}`);
+				line.push(`  ${config.run.base_name} ... ${color.yellow('Perl setup')}`);
 			} else if (output.match(/entrypoint\.sh setup start\./)) {
-				line.push(`  genie ... ${color.yellow('loading')}`);
+				line.push(`  ${config.run.base_name} ... ${color.yellow('loading')}`);
 			} else {
-				line.push(`  genie ... ${color.yellow('waiting')}`);
+				line.push(`  ${config.run.base_name} ... ${color.yellow('waiting')}`);
 			}
 
 			// 状況出力
@@ -1201,7 +1201,7 @@ module.exports = option => {
 		process.exit();
 	})();
 };
-},{"./libs.js":17}],7:[function(require,module,exports) {
+},{"./libs.js":16}],6:[function(require,module,exports) {
 
 /**
  * down: 設定に基づいてdockerを終了する
@@ -1258,7 +1258,7 @@ module.exports = option => {
 		});
 	})();
 };
-},{"./libs.js":17}],8:[function(require,module,exports) {
+},{"./libs.js":16}],7:[function(require,module,exports) {
 
 /**
  * cli: 起動中のコンテナ内でコマンドを実行する・コンテナのシェルに入る
@@ -1312,7 +1312,7 @@ module.exports = option => {
 			process.exit();
 		}
 };
-},{"./libs.js":17}],9:[function(require,module,exports) {
+},{"./libs.js":16}],8:[function(require,module,exports) {
 
 /**
  * reject: 全てのdockerコンテナ・ボリュームを削除する
@@ -1603,7 +1603,7 @@ module.exports = option => {
 		process.exit();
 	})();
 };
-},{"./libs.js":17}],10:[function(require,module,exports) {
+},{"./libs.js":16}],9:[function(require,module,exports) {
 
 /**
  * clean: 不要なdockerオブジェクトを削除する
@@ -1779,7 +1779,7 @@ module.exports = option => {
 		process.exit();
 	})();
 };
-},{"./libs.js":17}],11:[function(require,module,exports) {
+},{"./libs.js":16}],10:[function(require,module,exports) {
 
 /**
  * build: 設定に基づいてイメージをビルドする
@@ -1843,7 +1843,7 @@ module.exports = option => {
 		}
 	})();
 };
-},{"./libs.js":17}],12:[function(require,module,exports) {
+},{"./libs.js":16}],12:[function(require,module,exports) {
 
 /**
  * langver: 指定可能な各言語のバージョンを確認する
@@ -1890,20 +1890,13 @@ module.exports = option => {
 
 	process.exit();
 };
-},{"./libs.js":17}],13:[function(require,module,exports) {
+},{"./libs.js":16}],11:[function(require,module,exports) {
 
 /**
  * mysql: MySQL操作
  * -----------------------------------------------------------------------------
  * ex. g mysql
- *     g mysql --cli
- *     g mysql --cli -n container1
- *     g mysql --dump
- *     g mysql --dump -n container1  -n container2
- *     g mysql --restore
- *     g mysql --restore -n container1  -n container2
- *
- * ex. g mysql
+ *     g mysql container1
  *     g mysql --cli
  *     g mysql --cli container1
  *     g mysql --dump
@@ -1921,6 +1914,7 @@ const d = lib.d;
 const h = lib.h;
 const child = require('child_process');
 const inquirer = require('inquirer');
+const fs = require('fs');
 
 module.exports = option => {
 
@@ -1942,7 +1936,11 @@ module.exports = option => {
 	// 	alias: 'n',
 	// 	describe: '対象のMySQLコンテナ名を直接指定する',
 	// })
-	.argv;
+	.options('all', {
+		alias: 'a',
+		describe: '管轄全てのMySQLを対象とする（--dump, --restoreのみ）',
+		boolean: true
+	}).argv;
 	;
 	if (argv.help) {
 		console.log();
@@ -1965,11 +1963,7 @@ module.exports = option => {
 
 		// --cli: MySQLコンテナの中に入る
 		if (argv.cli) {
-
-			d(argv);
-			process.exit();
-
-			let container_name = yield get_target_containers(config, argv, { is_single: true });
+			let container_name = argv._[1] ? `${config.run.base_name}-mysql-${argv._[1]}` : yield get_target_containers(config, { is_single: true });
 			let key = get_key_from_container_name(config, container_name);
 			child.spawnSync('docker', ['exec', '-it', container_name, 'bash'], { stdio: 'inherit' });
 			process.exit();
@@ -1977,25 +1971,75 @@ module.exports = option => {
 
 		// --dump: ダンプを取る
 		else if (argv.dump) {
-				d('DUMP');
-				let container_name = yield get_target_containers(config, argv, { has_all: true });
-				d(container_name);
-				d(argv);
+				// 対象のコンテナを特定
+				argv._.shift();
+
+				// 対象キーを設定
+				let keys = argv.all ? Object.keys(config.db.mysql) : argv._.length ? argv._ : yield get_target_containers(config, { has_all: true, is_key_return: true });
+				if (!Array.isArray(keys)) keys = [keys];
+
+				// d(keys)
+				// process.exit()
+
+
+				// let container_names = argv.all
+				// 	? Object.keys(config.db.mysql).map(key=>`${config.run.base_name}-mysql-${key}`)
+				// 	: argv._.length
+				// 		? argv._.map(key=>`${config.run.base_name}-mysql-${key}`)
+				// 		: await get_target_containers(config, {has_all:true})
+				// if(!Array.isArray(container_names)) container_names = [container_names]
+
+				// ダンプを保存するディレクトリが無ければ作成する
+				let dump_dir = `${config.run.project_dir}/.genie/files/opt/mysql/dumps`;
+				if (!fs.existsSync(dump_dir)) fs.mkdirSync(dump_dir, 0o755);
+
+				// キーごとに回す
+				var _iteratorNormalCompletion = true;
+				var _didIteratorError = false;
+				var _iteratorError = undefined;
+
+				try {
+					for (var _iterator = keys[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+						let key = _step.value;
+
+						// キー名チェック
+						if (!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。' + key);
+
+						d(key);
+
+						//
+					}
+				} catch (err) {
+					_didIteratorError = true;
+					_iteratorError = err;
+				} finally {
+					try {
+						if (!_iteratorNormalCompletion && _iterator.return) {
+							_iterator.return();
+						}
+					} finally {
+						if (_didIteratorError) {
+							throw _iteratorError;
+						}
+					}
+				}
+
 				process.exit();
 			}
 
-			// --restore: レストアする
+			// --restore: リストアする
 			else if (argv.restore) {
 					d('RESTORE');
-					let container_name = yield get_target_containers(config, argv, { has_all: true });
+					let container_name = yield get_target_containers(config, { has_all: true });
 					d(container_name);
 					process.exit();
 				}
 
 				// mysqlコマンドに入る
 				else {
-						let container_name = yield get_target_containers(config, argv, { is_single: true });
+						let container_name = argv._[1] ? `${config.run.base_name}-mysql-${argv._[1]}` : yield get_target_containers(config, { is_single: true });
 						let key = get_key_from_container_name(config, container_name);
+						if (!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。' + key);
 						child.spawnSync('docker', ['exec', '-it', container_name, 'mysql', config.db.mysql[key].name, `-u${config.db.mysql[key].user}`, `-p${config.db.mysql[key].pass}`], { stdio: 'inherit' });
 						process.exit();
 					}
@@ -2005,13 +2049,7 @@ module.exports = option => {
 /**
  * コンテナを選択させる
  */
-function get_target_containers(config, argv, option = {}) {
-	// 引数で指定があればそれ
-	if (argv.name) {
-		return option.is_single && Array.isArray(argv.name) ? argv.name[0] // single指定なのに複数引数に書いてある場合は最初のやつ
-		: argv.name;
-	}
-
+function get_target_containers(config, option = {}) {
 	// １つしかなければそれ
 	if (Object.keys(config.db.mysql).length === 1) {
 		return `${config.run.base_name}-mysql-${Object.keys(config.db.mysql)[0]}`;
@@ -2024,29 +2062,29 @@ function get_target_containers(config, argv, option = {}) {
 
 		// 選択肢用意
 		let list = [];
-		var _iteratorNormalCompletion = true;
-		var _didIteratorError = false;
-		var _iteratorError = undefined;
+		var _iteratorNormalCompletion2 = true;
+		var _didIteratorError2 = false;
+		var _iteratorError2 = undefined;
 
 		try {
-			for (var _iterator = Object.keys(config.db.mysql)[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-				let name = _step.value;
+			for (var _iterator2 = Object.keys(config.db.mysql)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+				let name = _step2.value;
 
 				list.push(`${name} (${config.run.base_name}-mysql-${name})`);
 			}
 
 			// 選択開始
 		} catch (err) {
-			_didIteratorError = true;
-			_iteratorError = err;
+			_didIteratorError2 = true;
+			_iteratorError2 = err;
 		} finally {
 			try {
-				if (!_iteratorNormalCompletion && _iterator.return) {
-					_iterator.return();
+				if (!_iteratorNormalCompletion2 && _iterator2.return) {
+					_iterator2.return();
 				}
 			} finally {
-				if (_didIteratorError) {
-					throw _iteratorError;
+				if (_didIteratorError2) {
+					throw _iteratorError2;
 				}
 			}
 		}
@@ -2065,36 +2103,12 @@ function get_target_containers(config, argv, option = {}) {
 
 		// 選択肢返却
 		if (result.container === '全て') {
-			let containers = [];
-			var _iteratorNormalCompletion2 = true;
-			var _didIteratorError2 = false;
-			var _iteratorError2 = undefined;
-
-			try {
-				for (var _iterator2 = Object.keys(config.db.mysql)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-					let key = _step2.value;
-
-					containers.push(`${config.run.base_name}-mysql-${key}`);
-				}
-			} catch (err) {
-				_didIteratorError2 = true;
-				_iteratorError2 = err;
-			} finally {
-				try {
-					if (!_iteratorNormalCompletion2 && _iterator2.return) {
-						_iterator2.return();
-					}
-				} finally {
-					if (_didIteratorError2) {
-						throw _iteratorError2;
-					}
-				}
-			}
-
-			return containers;
+			return option.is_key_return ? Object.keys(config.db.mysql) : Object.keys(config.db.mysql).map(function (key) {
+				return `${config.run.base_name}-mysql-${key}`;
+			});
 		} else {
 			let matches = result.container.match(/^(\w+) /);
-			return `${config.run.base_name}-mysql-${matches[1]}`;
+			return option.is_key_return ? matches[1] : `${config.run.base_name}-mysql-${matches[1]}`;
 		}
 	})();
 }
@@ -2134,7 +2148,7 @@ function get_key_from_container_name(config, container_name) {
 
 	return key;
 }
-},{"./libs.js":17}],14:[function(require,module,exports) {
+},{"./libs.js":16}],13:[function(require,module,exports) {
 
 /**
  * psql: psql操作
@@ -2359,7 +2373,7 @@ function get_key_from_container_name(config, container_name) {
 
 	return key;
 }
-},{"./libs.js":17}],15:[function(require,module,exports) {
+},{"./libs.js":16}],14:[function(require,module,exports) {
 
 /**
  * open: 設定されたURL情報を指定のブラウザで開く
@@ -2452,7 +2466,7 @@ module.exports = option => {
 
 	process.exit();
 };
-},{"./libs.js":17}],16:[function(require,module,exports) {
+},{"./libs.js":16}],15:[function(require,module,exports) {
 
 /**
  * logs: 起動中のコンテナのログを見る
@@ -2562,7 +2576,7 @@ module.exports = option => {
 
 	process.exit();
 };
-},{"./libs.js":17}],1:[function(require,module,exports) {
+},{"./libs.js":16}],1:[function(require,module,exports) {
 ///usr/bin/env node
 
 'use strict';
@@ -2608,4 +2622,4 @@ else if (cmd === 'config') require('./cmd-config.js')(option);else if (cmd === '
 				lib.Message(option.help() + '\n' + 'Commands:\n' + '  init      \n' + '  config    設定を確認する\n' + '  ls        Dockerコンテナ状況を確認する\n' + '  up        設定に基づきDockerコンテナを起動する\n' + '  down      関連するコンテナのみ終了する\n' + '  update    \n' + '  cli       コンテナ内でコマンドを実行。またはコンテナに入る\n' + '  reject    genie対象外のコンテナまたはボリュームを一括削除する\n' + '  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n' + '  build     基本のdockerイメージをビルドする\n' + '  langver   各種言語の利用可能なバージョンを確認する\n' + '  mysql     MySQLを操作する\n' + '  psql      PostgreSQLを操作する\n' + '  open      ブラウザで開く\n' + '  ngrok     \n' + '  logs      実行ログを見る\n' + '  dlsync    \n' + '  httpd     \n' + '  demo      デモ\n', 'warning', 1);
 				process.exit();
 			}
-},{"./cmd-demo.js":3,"./cmd-config.js":4,"./cmd-ls.js":5,"./cmd-up.js":6,"./cmd-down.js":7,"./cmd-cli.js":8,"./cmd-reject.js":9,"./cmd-clean.js":10,"./cmd-build.js":11,"./cmd-langver.js":12,"./cmd-mysql.js":13,"./cmd-psql.js":14,"./cmd-open.js":15,"./cmd-logs.js":16,"./libs.js":17}]},{},[1])
+},{"./cmd-demo.js":2,"./cmd-config.js":3,"./cmd-ls.js":4,"./cmd-up.js":5,"./cmd-down.js":6,"./cmd-cli.js":7,"./cmd-reject.js":8,"./cmd-clean.js":9,"./cmd-build.js":10,"./cmd-langver.js":12,"./cmd-mysql.js":11,"./cmd-psql.js":13,"./cmd-open.js":14,"./cmd-logs.js":15,"./libs.js":16}]},{},[1])
