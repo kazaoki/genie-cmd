@@ -17,6 +17,7 @@ const cliui = require('cliui')({width: color.windowSize.width-4})
 
 module.exports = option=>{
 
+	// ランモード表示
 	lib.showRunmode()
 
 	// オプション設定

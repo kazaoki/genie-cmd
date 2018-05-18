@@ -20,21 +20,14 @@ const color = require('cli-color')
 
 module.exports = option=>{
 
-	// 指定がなければランモードを test に
-
-
-	...
-
-
-
-
-
-
-	lib.showRunmode()
-
 	// オプション設定
 	let argv = option
 		.usage('Usage: genie|g test [Options] [test paths/files]')
+		.options('mode', {
+			alias: 'M',
+			default: 'test',
+			describe: '実行モードを指定可能（test時はデフォルト`test`）'
+		})
 		.options('open', {
 			alias: 'o',
 			describe: 'dockerホスト側のChromeブラウザで自動テストを実行する',
@@ -46,6 +39,12 @@ module.exports = option=>{
 		lib.Message(option.help(), 'primary', 1)
 		process.exit()
 	}
+	// ランモードを環境変数にセット
+	process.env.GENIE_RUNMODE = argv.mode
+
+	// ランモード表示
+	lib.showRunmode()
+
 
 	// GENIE_RUNMODE の指定はあるか
 
