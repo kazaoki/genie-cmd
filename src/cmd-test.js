@@ -20,6 +20,18 @@ const color = require('cli-color')
 
 module.exports = option=>{
 
+	// 指定がなければランモードを test に
+
+
+	...
+
+
+
+
+
+
+	lib.showRunmode()
+
 	// オプション設定
 	let argv = option
 		.usage('Usage: genie|g test [Options] [test paths/files]')

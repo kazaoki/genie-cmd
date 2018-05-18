@@ -207,6 +207,14 @@ const Say = module.exports.Say = message=>{
 }
 
 /**
+ * showRunmode
+ * -----------------------------------------------------------------------------
+ */
+const showRunmode = module.exports.showRunmode = message=>{
+	console.log(color.blackBright(`<${process.env.GENIE_RUNMODE}>`))
+}
+
+/**
  * loadConfig
  * -----------------------------------------------------------------------------
  * @param {object} argv コマンド引数

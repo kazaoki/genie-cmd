@@ -17,6 +17,8 @@ const cliui = require('cliui')({width: color.windowSize.width-4})
 
 module.exports = option=>{
 
+	lib.showRunmode()
+
 	// オプション設定
 	let argv = option
 		.usage('Usage: genie|g ls [Options]')

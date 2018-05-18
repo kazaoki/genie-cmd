@@ -2,11 +2,13 @@
 
 'use strict'
 
+const lib = require('./libs.js')
+const option = require('optimist')
+
 /**
  * 標準引数定義
  * -----------------------------------------------------------------------------
  */
-const option = require('optimist')
 let argv = option
 	.usage('Usage: genie|g [Commands] [Options]')
 	.options('mode', {
@@ -25,8 +27,10 @@ let argv = option
 	})
 	.argv
 ;
+// ランモードを環境変数にセット
+process.env.GENIE_RUNMODE = argv.mode
 
-/**
+ /**
  * 各コマンド機能を実行する
  * -----------------------------------------------------------------------------
  */
@@ -48,14 +52,13 @@ else if(cmd==='open')    require('./cmd-open.js')(option)
 // else if(cmd==='ngrok')   require('./cmd-ngrok.js')(option)
 else if(cmd==='logs')    require('./cmd-logs.js')(option)
 // else if(cmd==='dlsync')  require('./cmd-dlsync.js')(option)
-// else if(cmd==='test')    require('./cmd-test.js')(option)
+else if(cmd==='test')    require('./cmd-test.js')(option)
 
 /**
  * help
  * -----------------------------------------------------------------------------
  */
 else {
-	const lib = require('./libs.js')
 	console.log()
 	lib.Message(
 		option.help()+'\n'+
