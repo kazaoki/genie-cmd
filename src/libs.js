@@ -26,11 +26,11 @@ const d = module.exports.d = data=>console.log(util.inspect(data, {colors: true,
 const h = module.exports.h = (title, clc=color.white)=>console.log('\n  '+clc(title))
 
 /**
- * プロジェクトルートパスを返す（.genie/ がある直近の親ディレクトリを返す）
+ * ルートパスを返す（.genie/ がある直近の親ディレクトリを返す）
  * -----------------------------------------------------------------------------
- * @return {string} プロジェクトルートパス。失敗した場合はfalse
+ * @return {string} ルートパス。失敗した場合はfalse
  */
-const getProjectRootDir = module.exports.getProjectRootDir = ()=>{
+const getRootDir = module.exports.getRootDir = ()=>{
 	let root_dir = ''
 	let check_dir = __dirname
 	let cont = true
@@ -221,8 +221,8 @@ const showRunmode = module.exports.showRunmode = message=>{
  */
 const loadConfig = module.exports.loadConfig = argv=>{
 
-	// プロジェクトルートパス取得
-	let root_dir = getProjectRootDir();
+	// ルートパス取得
+	let root_dir = getRootDir();
 	let config_js = `${root_dir}/.genie/${argv.config}`;
 	try {
 		fs.accessSync(config_js)
@@ -236,20 +236,11 @@ const loadConfig = module.exports.loadConfig = argv=>{
 	// 実行モードをセット
 	config.runmode = argv.mode
 
-	// 実行時の定義をセット
-	config.run = {}
-	{
-		// コンテナベース名セット
-		config.run.base_name = argv.shadow
-			? config.core.docker.name + '-SHADOW'
-			: config.core.docker.name
+	// コンテナベース名セット
+	config.base_name = config.core.docker.name
 
-		// プロジェクトルートセット
-		config.run.project_dir = getProjectRootDir()
-
-		// シャドウモードかセット
-		if(argv.shadow) config.run.shadow = 1
-	}
+	// ルートセット
+	config.root = getRootDir()
 
 	// config.jsでDockerMachine名が未指定でも環境変数に入っていればセット
 	if(!config.core.docker.machine && process.env.DOCKER_MACHINE_NAME) {
@@ -258,14 +249,29 @@ const loadConfig = module.exports.loadConfig = argv=>{
 
 	// ブラウザから見る用のホストIPを取得しておく
 	if(config.core.docker.ip_force) {
-		config.run.host_ip = config.core.docker.ip_force
+		config.host_ip = config.core.docker.ip_force
 	} else if(hasDockerMachineEnv() && config.core.docker.machine){
 		let result = child.spawnSync('docker-machine', ['ip', config.core.docker.machine])
 		if(result.status) Error(result.stderr.toString())
-		config.run.host_ip = result.stdout.toString().trim()
+		config.host_ip = result.stdout.toString().trim()
 	} else {
-		config.run.host_ip = 'localhost'
+		config.host_ip = 'localhost'
 	}
+
+	// 追加の設定（config-[ランモード].js）があればロード
+	let paths = path.parse(config_js);
+	let add_config_js
+	if(path.isAbsolute(config_js)) {
+		add_config_js = `${paths.dir}/${paths.name}-${config.runmode}${paths.ext}`;
+	} else {
+		add_config_js = `${root_dir}/.genie/${paths.dir}/${paths.name}-${config.runmode}${paths.ext}`;
+	}
+	try {
+		fs.accessSync(add_config_js)
+		eval(fs.readFileSync(add_config_js).toString())
+	} catch (err) {}
+
+d(config.core.docker.name)
 
 	return config
 }
@@ -356,14 +362,14 @@ const dockerUpMySQL = module.exports.dockerUpMySQL = (key, config)=>
 
 		// 引数用意
 		let mysql = config.db.mysql[key]
-		let container_name = `${config.run.base_name}-mysql-${key}`
+		let container_name = `${config.base_name}-mysql-${key}`
 		let args = [];
 		args.push('run', '-d', '-it')
 		args.push('-e', 'TERM=xterm-256color')
 		args.push('--name', container_name)
-		args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
-		if(config.run.shadow) args.push('--label', 'genie_shadow')
-		args.push('-v', `${config.run.project_dir}/.genie/files/opt/mysql/:/opt/mysql/`)
+		args.push('--label', `genie_runmode="${config.runmode}"`)
+		args.push('--label', `genie_root="${config.root}"`)
+		args.push('-v', `${config.root}/.genie/files/opt/mysql/:/opt/mysql/`)
 		args.push('-v', `${mysql.volume_lock ? 'locked_': ''}${container_name}:/var/lib/mysql`)
 		args.push('-e', `MYSQL_LABEL=${key}`)
 		args.push('-e', `MYSQL_ROOT_PASSWORD=${mysql.pass}`)
@@ -414,14 +420,14 @@ const dockerUpPostgreSQL = module.exports.dockerUpPostgreSQL = (key, config)=>
 
 		// 引数用意
 		let postgresql = config.db.postgresql[key]
-		let container_name = `${config.run.base_name}-postgresql-${key}`
+		let container_name = `${config.base_name}-postgresql-${key}`
 		let args = [];
 		args.push('run', '-d', '-it')
 		args.push('-e', 'TERM=xterm-256color')
 		args.push('--name', container_name)
-		args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
-		if(config.run.shadow) args.push('--label', 'genie_shadow')
-		args.push('-v', `${config.run.project_dir}/.genie/files/opt/postgresql/:/opt/postgresql/`)
+		args.push('--label', `genie_runmode="${config.runmode}"`)
+		args.push('--label', `genie_root="${config.root}"`)
+		args.push('-v', `${config.root}/.genie/files/opt/postgresql/:/opt/postgresql/`)
 		args.push('-v', `${postgresql.volume_lock ? 'locked_': ''}${container_name}:/var/lib/postgresql/data`)
 		args.push('-e', `POSTGRES_LABEL=${key}`)
 		args.push('-e', `POSTGRES_HOST=${postgresql.host}`)
@@ -473,10 +479,10 @@ const dockerUp = module.exports.dockerUp = config=>
 		args.push('-e', 'TERM=xterm-256color')
 		args.push('-e', 'LANG=ja_JP.UTF-8')
 		args.push('-e', 'LC_ALL=ja_JP.UTF-8')
-		args.push('-v', config.run.project_dir+'/.genie/files/opt:/opt')
-		args.push('--label', `genie_project_dir="${config.run.project_dir}"`)
-		if(config.run.shadow) args.push('--label', 'genie_shadow')
-		args.push(`--name=${config.run.base_name}`)
+		args.push('-v', config.root+'/.genie/files/opt:/opt')
+		args.push('--label', `genie_runmode="${config.runmode}"`)
+		args.push('--label', `genie_root="${config.root}"`)
+		args.push(`--name=${config.base_name}`)
 		if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
 		if(config.core.docker.options) args.push(`${config.core.docker.options}`)
 		args.push('--restart=always')
@@ -488,7 +494,7 @@ const dockerUp = module.exports.dockerUp = config=>
 		if(config.db.postgresql){
 			let keys = Object.keys(config.db.postgresql);
 			for(let i=0; i<keys.length; i++) {
-				let container_name = `${config.run.base_name}-postgresql-${keys[i]}`;
+				let container_name = `${config.base_name}-postgresql-${keys[i]}`;
 				args.push('--link', container_name)
 				args.push('--add-host', config.db.postgresql[keys[i]].host + ':' + getContainerIp(container_name, config))
 			}
@@ -498,7 +504,7 @@ const dockerUp = module.exports.dockerUp = config=>
 		if(config.db.mysql){
 			let keys = Object.keys(config.db.mysql);
 			for(let i=0; i<keys.length; i++) {
-				let container_name = `${config.run.base_name}-mysql-${keys[i]}`;
+				let container_name = `${config.base_name}-mysql-${keys[i]}`;
 				args.push('--link', container_name)
 				args.push('--add-host', config.db.mysql[keys[i]].host + ':' + getContainerIp(container_name, config))
 			}
@@ -517,7 +523,7 @@ const dockerUp = module.exports.dockerUp = config=>
 
 		// Apache関係
 		if(config.http.apache && config.http.apache.enabled){
-			args.push('-v', `${config.run.project_dir}/${config.http.apache.public_dir}:/var/www/html`)
+			args.push('-v', `${config.root}/${config.http.apache.public_dir}:/var/www/html`)
 			if(config.http.apache.external_http_port) {
 				args.push('-p',
 					config.http.apache.external_http_port==='auto'
@@ -536,7 +542,7 @@ const dockerUp = module.exports.dockerUp = config=>
 
 		// Nginx関係
 		if(config.http.nginx && config.http.nginx.enabled){
-			args.push('-v', `${config.run.project_dir}/${config.http.nginx.public_dir}:/usr/share/nginx/html`)
+			args.push('-v', `${config.root}/${config.http.nginx.public_dir}:/usr/share/nginx/html`)
 			if(config.http.nginx.external_http_port) {
 				args.push('-p',
 					config.http.nginx.external_http_port==='auto'
@@ -566,7 +572,7 @@ const dockerUp = module.exports.dockerUp = config=>
 
 		// Fluentd関係
 		if(config.log.fluentd) {
-			args.push('-v', `${config.run.project_dir}/.genie/files/opt/td-agent:/etc/td-agent`)
+			args.push('-v', `${config.root}/.genie/files/opt/td-agent:/etc/td-agent`)
 		}
 
 		// 追加ホスト
@@ -577,13 +583,13 @@ const dockerUp = module.exports.dockerUp = config=>
 		}
 
 		// 追加マウント
-		args.push('-v', `${config.run.project_dir}/:/mnt/host/`)
+		args.push('-v', `${config.root}/:/mnt/host/`)
 		if(config.core.docker.mounts && Array.isArray(config.core.docker.mounts) && config.core.docker.mounts.length) {
 			for(let i=0; i<config.core.docker.mounts.length; i++){
 				if(config.core.docker.mounts[i].match(/^\//)) {
 					args.push('-v', `${config.core.docker.mounts[i]}`)
 				} else {
-					args.push('-v', `${config.run.project_dir}/${config.core.docker.mounts[i]}`)
+					args.push('-v', `${config.root}/${config.core.docker.mounts[i]}`)
 				}
 			}
 		}
@@ -632,19 +638,13 @@ const dockerUp = module.exports.dockerUp = config=>
  * existContainers
  * -----------------------------------------------------------------------------
  * @param {object} config 設定データ
- * @param {string} name_filter dockerの--filter引数渡す`name=`以降の値。無ければ genie_project_dir と genie_shadow のラベルのみフィルター対象になる
+ * @param {string} name_filter dockerの--filter引数渡す`name=`以降の値。無ければ genie_root と genie_runmode のラベルのみフィルター対象になる
  */
 const existContainers = module.exports.existContainers = (config, name_filter)=>{
 	let filters = [
-		'--filter',
-		`label=genie_project_dir="${config.run.project_dir}"`,
+		'--filter', `label=genie_root="${config.root}"`,
+		'--filter', `label=genie_runmode="${config.runmode}"`,
 	]
-	if(config.run.shadow) {
-		filters.push(
-			'--filter',
-			`label=genie_shadow`,
-		)
-	}
 	if(name_filter) filters.push('--filter', `name=${name_filter}`)
 	let result = child.spawnSync('docker', ['ps', '-a', '--format', '{{.ID}}\t{{.Names}}', ...filters])
 	if(result.status) { Error(result.stderr.toString()) }

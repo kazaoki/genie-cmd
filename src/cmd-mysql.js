@@ -65,8 +65,8 @@ module.exports = option=>{
 	}
 
 	// dockerが起動しているか
-	if(!lib.existContainers(config, '/'+config.run.base_name+'$')) {
-		lib.Error('dockerコンテナが起動していません: '+config.run.base_name)
+	if(!lib.existContainers(config, '/'+config.base_name+'$')) {
+		lib.Error('dockerコンテナが起動していません: '+config.base_name)
 	}
 
 	(async()=>{
@@ -74,7 +74,7 @@ module.exports = option=>{
 		// --cli: MySQLコンテナの中に入る
 		if(argv.cli) {
 			let container_name = argv._[1]
-				? `${config.run.base_name}-mysql-${argv._[1]}`
+				? `${config.base_name}-mysql-${argv._[1]}`
 				: await get_target_containers(config, {is_single:true})
 			let key = get_key_from_container_name(config, container_name)
 			child.spawnSync('docker', [
@@ -106,14 +106,14 @@ module.exports = option=>{
 
 
 			// let container_names = argv.all
-			// 	? Object.keys(config.db.mysql).map(key=>`${config.run.base_name}-mysql-${key}`)
+			// 	? Object.keys(config.db.mysql).map(key=>`${config.base_name}-mysql-${key}`)
 			// 	: argv._.length
-			// 		? argv._.map(key=>`${config.run.base_name}-mysql-${key}`)
+			// 		? argv._.map(key=>`${config.base_name}-mysql-${key}`)
 			// 		: await get_target_containers(config, {has_all:true})
 			// if(!Array.isArray(container_names)) container_names = [container_names]
 
 			// ダンプを保存するディレクトリが無ければ作成する
-			let dump_dir = `${config.run.project_dir}/.genie/files/opt/mysql/dumps`
+			let dump_dir = `${config.root}/.genie/files/opt/mysql/dumps`
 			if(!fs.existsSync(dump_dir)) fs.mkdirSync(dump_dir, 0o755)
 
 
@@ -145,7 +145,7 @@ module.exports = option=>{
 		// mysqlコマンドに入る
 		else {
 			let container_name = argv._[1]
-				? `${config.run.base_name}-mysql-${argv._[1]}`
+				? `${config.base_name}-mysql-${argv._[1]}`
 				: await get_target_containers(config, {is_single:true})
 			let key = get_key_from_container_name(config, container_name)
 			if(!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。'+key)
@@ -173,7 +173,7 @@ function get_target_containers(config, option={})
 {
 	// １つしかなければそれ
 	if(Object.keys(config.db.mysql).length===1) {
-		return `${config.run.base_name}-mysql-${Object.keys(config.db.mysql)[0]}`
+		return `${config.base_name}-mysql-${Object.keys(config.db.mysql)[0]}`
 	}
 
 	// ２つ以上あれば選択肢
@@ -184,7 +184,7 @@ function get_target_containers(config, option={})
 		// 選択肢用意
 		let list = []
 		for(let name of Object.keys(config.db.mysql)) {
-			list.push(`${name} (${config.run.base_name}-mysql-${name})`)
+			list.push(`${name} (${config.base_name}-mysql-${name})`)
 		}
 
 		// 選択開始
@@ -206,12 +206,12 @@ function get_target_containers(config, option={})
 		if(result.container==='全て') {
 			return option.is_key_return
 				? Object.keys(config.db.mysql)
-				: Object.keys(config.db.mysql).map(key=>`${config.run.base_name}-mysql-${key}`)
+				: Object.keys(config.db.mysql).map(key=>`${config.base_name}-mysql-${key}`)
 		} else {
 			let matches = result.container.match(/^(\w+) /)
 			return option.is_key_return
 				? matches[1]
-				: `${config.run.base_name}-mysql-${matches[1]}`
+				: `${config.base_name}-mysql-${matches[1]}`
 		}
 
 	})()
@@ -223,7 +223,7 @@ function get_target_containers(config, option={})
 function get_key_from_container_name(config, container_name) {
 	let key
 	for(let tmpkey of Object.keys(config.db.mysql)) {
-		if(container_name === `${config.run.base_name}-mysql-${tmpkey}`) {
+		if(container_name === `${config.base_name}-mysql-${tmpkey}`) {
 			key = tmpkey
 			break
 		}

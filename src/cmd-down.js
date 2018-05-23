@@ -3,7 +3,6 @@
  * down: 設定に基づいてdockerを終了する
  * -----------------------------------------------------------------------------
  * ex. g down
- *     g down -s
  */
 
 'use strict'
@@ -18,10 +17,6 @@ module.exports = option=>{
 	// オプション設定
 	let argv = option
 		.usage('Usage: genie|g down [Options]')
-		.options('shadow', {
-			alias: 's',
-			describe: 'データをマウントではなくコンテナにコピーした別のコンテナを終了する'
-		})
 		.argv;
 	;
 	if(argv.help) {
@@ -44,10 +39,10 @@ module.exports = option=>{
 	(async()=>
 	{
 		await Promise.all([
-			// lib.dockerDown('/'+config.run.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
-			// lib.dockerDown('/'+config.run.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
-			// lib.dockerDown('/'+config.run.base_name+'$', config), // 完全一致のgenie本体コンテナ名
-			lib.dockerDown(null, config), // プロジェクトパスとshadowが一致するもの（＝ゴミコンテナ）削除
+			// lib.dockerDown('/'+config.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
+			// lib.dockerDown('/'+config.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
+			// lib.dockerDown('/'+config.base_name+'$', config), // 完全一致のgenie本体コンテナ名
+			lib.dockerDown(null, config), // ルートパスとランモードが一致するもの（＝ゴミコンテナ）削除
 		]).catch(err=>err)
 		.then(()=>{
 			h('DONE!')

@@ -29,7 +29,7 @@ module.exports = option=>{
 	let config = lib.loadConfig(argv);
 
 	// dockerが起動しているか
-	if(!lib.existContainers(config, `/${config.run.base_name}$`)) lib.Error('dockerコンテナが起動していません: '+docker.run.base_name)
+	if(!lib.existContainers(config, `/${config.base_name}$`)) lib.Error('dockerコンテナが起動していません: '+docker.run.base_name)
 
 	// コマンド用意
 	let args = [];
@@ -63,7 +63,7 @@ module.exports = option=>{
 	}
 
 	// multitail実行
-	child.spawnSync('docker', ['exec', '-it', config.run.base_name, 'multitail', ...args], {stdio: 'inherit'})
+	child.spawnSync('docker', ['exec', '-it', config.base_name, 'multitail', ...args], {stdio: 'inherit'})
 
 	process.exit()
 

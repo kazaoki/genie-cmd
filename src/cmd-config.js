@@ -38,7 +38,7 @@ module.exports = option=>{
 		d(config)
 	} else {
 		// エディタで開く
-		let config_js = `${lib.getProjectRootDir()}/.genie/${argv.config}`;
+		let config_js = `${lib.getRootDir()}/.genie/${argv.config}`;
 		if(lib.isWindows()) {
 			child.execSync(`start ${config_js}`)
 		} else if(lib.isMac()) {

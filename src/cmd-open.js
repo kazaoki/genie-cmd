@@ -40,7 +40,7 @@ module.exports = option=>{
 	}
 	let app = ''
 	let internal_port = config.http.browser.schema==='https' ? 443 : 80
-	let result = child.spawnSync('docker', ['port', config.run.base_name, internal_port])
+	let result = child.spawnSync('docker', ['port', config.base_name, internal_port])
 	if(result.status) Error(result.stderr.toString())
 	let matches = result.stdout.toString().trim().match(/(\d+)$/);
 	let port = matches[1];
@@ -52,7 +52,7 @@ module.exports = option=>{
 	} else {
 		port = `:${port}`
 	}
-	let url = `${config.http.browser.schema}://${config.run.host_ip}${port}${config.http.browser.path}`
+	let url = `${config.http.browser.schema}://${config.host_ip}${port}${config.http.browser.path}`
 	if(!(config.http.browser.apps && config.http.browser.apps.length)) config.http.browser.apps = ['']
 	for(app of config.http.browser.apps) {
 		let arg = ''

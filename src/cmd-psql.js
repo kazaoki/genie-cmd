@@ -54,8 +54,8 @@ module.exports = option=>{
 	}
 
 	// dockerが起動しているか
-	if(!lib.existContainers(config, '/'+config.run.base_name+'$')) {
-		lib.Error('dockerコンテナが起動していません: '+config.run.base_name)
+	if(!lib.existContainers(config, '/'+config.base_name+'$')) {
+		lib.Error('dockerコンテナが起動していません: '+config.base_name)
 	}
 
 	(async()=>{
@@ -126,7 +126,7 @@ function get_target_containers(config, argv, option={})
 
 	// １つしかなければそれ
 	if(Object.keys(config.db.postgresql).length===1) {
-		return `${config.run.base_name}-postgresql-${Object.keys(config.db.postgresql)[0]}`
+		return `${config.base_name}-postgresql-${Object.keys(config.db.postgresql)[0]}`
 	}
 
 	// ２つ以上あれば選択肢
@@ -137,7 +137,7 @@ function get_target_containers(config, argv, option={})
 		// 選択肢用意
 		let list = []
 		for(let name of Object.keys(config.db.postgresql)) {
-			list.push(`${name} (${config.run.base_name}-postgresql-${name})`)
+			list.push(`${name} (${config.base_name}-postgresql-${name})`)
 		}
 
 		// 選択開始
@@ -159,12 +159,12 @@ function get_target_containers(config, argv, option={})
 		if(result.container==='全て') {
 			let containers = []
 			for(let key of Object.keys(config.db.postgresql)) {
-				containers.push(`${config.run.base_name}-postgresql-${key}`)
+				containers.push(`${config.base_name}-postgresql-${key}`)
 			}
 			return containers
 		} else {
 			let matches = result.container.match(/^(\w+) /)
-			return `${config.run.base_name}-postgresql-${matches[1]}`
+			return `${config.base_name}-postgresql-${matches[1]}`
 		}
 
 	})()
@@ -176,7 +176,7 @@ function get_target_containers(config, argv, option={})
 function get_key_from_container_name(config, container_name) {
 	let key
 	for(let tmpkey of Object.keys(config.db.postgresql)) {
-		if(container_name === `${config.run.base_name}-postgresql-${tmpkey}`) {
+		if(container_name === `${config.base_name}-postgresql-${tmpkey}`) {
 			key = tmpkey
 			break
 		}

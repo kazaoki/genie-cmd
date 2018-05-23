@@ -43,7 +43,7 @@ module.exports = option=>{
 		if(input.match(/^y$/i)) {
 			let args = ['build', '-t', config.core.docker.image]
 			if(argv['no-cache']) args.push('--no-cache')
-			args.push(`${lib.getProjectRootDir()}/.genie/image/`)
+			args.push(`${lib.getRootDir()}/.genie/image/`)
 			lib.Message(`ビルドを開始します。\ndocker ${args.join(' ')}`, 'info');
 			console.log()
 			let stream = child.spawn('docker', args);
