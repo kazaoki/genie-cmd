@@ -12,6 +12,7 @@ const d = lib.d
 const h = lib.h
 const child = require('child_process')
 const color = require('cli-color')
+const fs = require('fs')
 
 module.exports = option=>{
 
@@ -55,6 +56,7 @@ module.exports = option=>{
 
 		// PostgreSQL起動関数用意
 		if(config.db.postgresql) {
+			fs.chmodSync(`${config.root}/.genie/files/opt/postgresql/before-entrypoint.sh`, 0o755)
 			for(let key of Object.keys(config.db.postgresql)) {
 				rundb_funcs.push(lib.dockerUpPostgreSQL(key, config))
 			}
@@ -62,6 +64,7 @@ module.exports = option=>{
 
 		// MySQL起動関数用意
 		if(config.db.mysql) {
+			fs.chmodSync(`${config.root}/.genie/files/opt/mysql/before-entrypoint.sh`, 0o755)
 			for(let key of Object.keys(config.db.mysql)) {
 				rundb_funcs.push(lib.dockerUpMySQL(key, config))
 			}
@@ -71,6 +74,7 @@ module.exports = option=>{
 		Promise.all(rundb_funcs)
 			.catch(err=>{lib.Error(err)})
 			.then(
+				// DB全てdocker起動完了したらgenie本体を起動開始
 				()=>lib.dockerUp(config).catch(err=>lib.Error(err))
 			)
 
