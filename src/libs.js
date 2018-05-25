@@ -236,11 +236,24 @@ const loadConfig = module.exports.loadConfig = argv=>{
 	// 実行モードをセット
 	config.runmode = argv.mode
 
-	// コンテナベース名セット
-	config.base_name = config.core.docker.name
-
 	// ルートセット
 	config.root = getRootDir()
+
+	// 追加の設定（config-[ランモード].js）があればロード
+	let paths = path.parse(config_js);
+	let add_config_js
+	if(path.isAbsolute(config_js)) {
+		add_config_js = `${paths.dir}/${paths.name}-${config.runmode}${paths.ext}`;
+	} else {
+		add_config_js = `${root_dir}/.genie/${paths.dir}/${paths.name}-${config.runmode}${paths.ext}`;
+	}
+	try {
+		fs.accessSync(add_config_js)
+		eval(fs.readFileSync(add_config_js).toString())
+	} catch (err) { Error(err) }
+
+	// コンテナベース名セット
+	config.base_name = config.core.docker.name
 
 	// config.jsでDockerMachine名が未指定でも環境変数に入っていればセット
 	if(!config.core.docker.machine && process.env.DOCKER_MACHINE_NAME) {
@@ -257,21 +270,6 @@ const loadConfig = module.exports.loadConfig = argv=>{
 	} else {
 		config.host_ip = 'localhost'
 	}
-
-	// 追加の設定（config-[ランモード].js）があればロード
-	let paths = path.parse(config_js);
-	let add_config_js
-	if(path.isAbsolute(config_js)) {
-		add_config_js = `${paths.dir}/${paths.name}-${config.runmode}${paths.ext}`;
-	} else {
-		add_config_js = `${root_dir}/.genie/${paths.dir}/${paths.name}-${config.runmode}${paths.ext}`;
-	}
-	try {
-		fs.accessSync(add_config_js)
-		eval(fs.readFileSync(add_config_js).toString())
-	} catch (err) {}
-
-d(config.core.docker.name)
 
 	return config
 }
@@ -597,7 +595,7 @@ const dockerUp = module.exports.dockerUp = config=>
 		// 設定値を環境変数値に
 		let envs = {}
 		let conv = (data, parent_key)=>{
-			if(typeof(data)==='object' && !Array.isArray(data)) {
+			if(data && typeof(data)==='object' && !Array.isArray(data)) {
 				// 再帰
 				let keys = Object.keys(data)
 				for(let i =0; i<keys.length; i++){
@@ -611,8 +609,8 @@ const dockerUp = module.exports.dockerUp = config=>
 					envs[parent_key] = data
 				}
 			}
-
 		}
+
 		conv(config, 'GENIE')
 		envs.GENIE_RUNMODE=config.runmode;
 		let keys = Object.keys(envs)

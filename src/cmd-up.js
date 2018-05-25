@@ -30,12 +30,17 @@ module.exports = option=>{
 	// 設定ファイルロード
 	let config = lib.loadConfig(argv);
 
+	// ランモード表示
+	lib.showRunmode()
+
 	// 起動時メモの表示
-	try {
-		let memo = config.core.memo.up
-		if(memo) lib.Messages(memo);
-	} catch(err) {
-		Error('メモの設定が異常です。')
+	if(config.core.memo) {
+		try {
+			let memo = config.core.memo.up
+			if(memo) lib.Messages(memo);
+		} catch(err) {
+			Error('メモの設定が異常です。')
+		}
 	}
 
 	(async()=>

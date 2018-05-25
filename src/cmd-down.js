@@ -29,11 +29,13 @@ module.exports = option=>{
 	let config = lib.loadConfig(argv);
 
 	// 終了時メモの表示
-	try {
-		let memo = config.core.memo.down
-		if(memo) lib.Messages(memo);
-	} catch(err) {
-		Error('メモの設定が異常です。')
+	if(config.core.memo) {
+		try {
+			let memo = config.core.memo.down
+			if(memo) lib.Messages(memo);
+		} catch(err) {
+			Error('メモの設定が異常です。')
+		}
 	}
 
 	(async()=>

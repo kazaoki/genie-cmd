@@ -7,9 +7,14 @@
 
 config.core.docker.name += '-TEST'
 config.core.docker.mount_mode = 'copy'
-config.core.memo = null
+config.core.memo = undefined
 config.lang.php.error_report = false
-// config.log = fluentd: null
-config.http.apache.external_http_port = 'auto'
-config.http.apache.external_https_port = 'auto'
+config.log.fluentd = undefined
+config.http.apache.external_http_port = undefined
+config.http.apache.external_https_port = undefined
 config.mail.postfix.enabled = false
+config.db.mysql.main.external_port = undefined
+config.db.mysql.sub.external_port = undefined
+config.db.postgresql.main.external_port = undefined
+config.db.postgresql.sub.external_port = undefined
+config.mail.sendlog.external_port = undefined
