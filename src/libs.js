@@ -250,7 +250,7 @@ const loadConfig = module.exports.loadConfig = argv=>{
 	try {
 		fs.accessSync(add_config_js)
 		eval(fs.readFileSync(add_config_js).toString())
-	} catch (err) { Error(err) }
+	} catch (err) {}
 
 	// コンテナベース名セット
 	config.base_name = config.core.docker.name

@@ -30,7 +30,7 @@ module.exports = option=>{
 		})
 		.options('open', {
 			alias: 'o',
-			describe: 'dockerホスト側のChromeブラウザで自動テストを実行する',
+			describe: 'dockerホスト側のChromeブラウザを開きオートテストを実行する',
 		})
 		.argv;
 	;
@@ -44,14 +44,6 @@ module.exports = option=>{
 
 	// ランモード表示
 	lib.showRunmode()
-
-
-	// GENIE_RUNMODE の指定はあるか
-
-	// --modeの指定はあるか
-
-	// なければ develop ではなく test モードでの実行に切り替え
-	argv.mode = argv.m = 'test'
 
 	// 設定読み込み
 	let config = lib.loadConfig(argv);
