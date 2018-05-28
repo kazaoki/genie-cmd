@@ -8,8 +8,6 @@
 'use strict'
 
 const lib = require('./libs.js')
-const d = lib.d
-const h = lib.h
 const child = require('child_process')
 const color = require('cli-color')
 const fs = require('fs')
@@ -43,7 +41,7 @@ module.exports = option=>{
 		}
 	}
 
-	(async()=>
+	return new Promise(async (resolve, reject)=>
 	{
 		// 各コンテナ終了
 		if(lib.existContainers(config)) {
@@ -173,7 +171,6 @@ module.exports = option=>{
 		;
 
 		h('起動完了!!')
-
-		process.exit();
-	})();
+		resolve()
+	})
 };

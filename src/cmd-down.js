@@ -8,8 +8,6 @@
 'use strict'
 
 const lib = require('./libs.js')
-const d = lib.d
-const h = lib.h
 const child = require('child_process')
 
 module.exports = option=>{
@@ -17,6 +15,10 @@ module.exports = option=>{
 	// オプション設定
 	let argv = option
 		.usage('Usage: genie|g down [Options]')
+		.options('volumes', {
+			alias: 'v',
+			describe: '関連するVolumeも一緒に削除する'
+		})
 		.argv;
 	;
 	if(argv.help) {
@@ -38,17 +40,14 @@ module.exports = option=>{
 		}
 	}
 
-	(async()=>
+	return new Promise(async (resolve, reject)=>
 	{
 		await Promise.all([
-			// lib.dockerDown('/'+config.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
-			// lib.dockerDown('/'+config.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
-			// lib.dockerDown('/'+config.base_name+'$', config), // 完全一致のgenie本体コンテナ名
-			lib.dockerDown(null, config), // ルートパスとランモードが一致するもの（＝ゴミコンテナ）削除
+			lib.dockerDown(config, argv.v),
 		]).catch(err=>err)
 		.then(()=>{
-			h('DONE!')
-			process.exit();
+			h('停止/削除完了!!')
+			resolve()
 		})
-	})();
+	})
 };

@@ -20,6 +20,8 @@
     "cliui": "^4.1.0",
     "inquirer": "^5.2.0",
     "jp-wrap": "^0.2.2",
+    "mocha": "^5.2.0",
+    "mochawesome": "^3.0.2",
     "optimist": "^0.6.1",
     "string-width": "^2.1.1"
   }

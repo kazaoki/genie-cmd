@@ -4,6 +4,34 @@
 
 const lib = require('./libs.js')
 const option = require('optimist')
+global.d = lib.d
+global.h = lib.h
+
+/**
+ * 各機能のファイルを読み込み
+ * -----------------------------------------------------------------------------
+ */
+global.CMDS = {
+	demo:      require('./cmd-demo.js'),
+	// init:      require('./cmd-init.js'),
+	config:    require('./cmd-config.js'),
+	ls:        require('./cmd-ls.js'),
+	up:        require('./cmd-up.js'),
+	down:      require('./cmd-down.js'),
+	cli:       require('./cmd-cli.js'),
+	reject:    require('./cmd-reject.js'),
+	clean:     require('./cmd-clean.js'),
+	build:     require('./cmd-build.js'),
+	langver:   require('./cmd-langver.js'),
+	mysql:     require('./cmd-mysql.js'),
+	psql:      require('./cmd-psql.js'),
+	open:      require('./cmd-open.js'),
+	// ngrok:     require('./cmd-ngrok.js'),
+	logs:      require('./cmd-logs.js'),
+	// dlsync:    require('./cmd-dlsync.js'),
+	test:      require('./cmd-test.js'),
+	// version:   require('./cmd-version.js'),
+}
 
 /**
  * 標準引数定義
@@ -35,24 +63,25 @@ process.env.GENIE_RUNMODE = argv.mode
  * -----------------------------------------------------------------------------
  */
 let cmd = argv._.shift()
-     if(cmd==='demo')    require('./cmd-demo.js')(option)
-// else if(cmd==='init')    require('./cmd-init.js')(option)
-else if(cmd==='config')  require('./cmd-config.js')(option)
-else if(cmd==='ls')      require('./cmd-ls.js')(option)
-else if(cmd==='up')      require('./cmd-up.js')(option)
-else if(cmd==='down')    require('./cmd-down.js')(option)
-else if(cmd==='cli')     require('./cmd-cli.js')(option)
-else if(cmd==='reject')  require('./cmd-reject.js')(option)
-else if(cmd==='clean')   require('./cmd-clean.js')(option)
-else if(cmd==='build')   require('./cmd-build.js')(option)
-else if(cmd==='langver') require('./cmd-langver.js')(option)
-else if(cmd==='mysql')   require('./cmd-mysql.js')(option)
-else if(cmd==='psql')    require('./cmd-psql.js')(option)
-else if(cmd==='open')    require('./cmd-open.js')(option)
-// else if(cmd==='ngrok')   require('./cmd-ngrok.js')(option)
-else if(cmd==='logs')    require('./cmd-logs.js')(option)
-// else if(cmd==='dlsync')  require('./cmd-dlsync.js')(option)
-else if(cmd==='test')    require('./cmd-test.js')(option)
+     if(cmd==='demo')    CMDS.demo(option)
+// else if(cmd==='init')    CMDS.init(option)
+else if(cmd==='config')  CMDS.config(option)
+else if(cmd==='ls')      CMDS.ls(option)
+else if(cmd==='up')      CMDS.up(option)
+else if(cmd==='down')    CMDS.down(option)
+else if(cmd==='cli')     CMDS.cli(option)
+else if(cmd==='reject')  CMDS.reject(option)
+else if(cmd==='clean')   CMDS.clean(option)
+else if(cmd==='build')   CMDS.build(option)
+else if(cmd==='langver') CMDS.langver(option)
+else if(cmd==='mysql')   CMDS.mysql(option)
+else if(cmd==='psql')    CMDS.psql(option)
+else if(cmd==='open')    CMDS.open(option)
+// else if(cmd==='ngrok')   CMDS.ngrok(option)
+else if(cmd==='logs')    CMDS.logs(option)
+// else if(cmd==='dlsync')  CMDS.dlsync(option)
+else if(cmd==='test')    CMDS.test(option)
+// else if(cmd==='version') CMDS.test(option)
 
 /**
  * help
@@ -83,6 +112,7 @@ else {
 		'  httpd     \n'+
 		'  test      \n'+
 		'  demo      デモ\n',
+		'  version   バージョン表示\n',
 		'warning',
 		1
 	)

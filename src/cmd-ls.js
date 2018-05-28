@@ -9,8 +9,6 @@
 'use strict'
 
 const lib = require('./libs.js')
-const d = lib.d
-const h = lib.h
 const child = require('child_process')
 const color = require('cli-color')
 const cliui = require('cliui')({width: color.windowSize.width-4})

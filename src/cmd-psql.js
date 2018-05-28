@@ -14,8 +14,6 @@
 'use strict'
 
 const lib = require('./libs.js')
-const d = lib.d
-const h = lib.h
 const child = require('child_process')
 const inquirer = require('inquirer')
 

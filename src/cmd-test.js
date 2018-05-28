@@ -12,8 +12,7 @@
 'use strict'
 
 const lib = require('./libs.js')
-const d = lib.d
-const h = lib.h
+const fs = require('fs')
 const child = require('child_process')
 const inquirer = require('inquirer')
 const color = require('cli-color')
@@ -43,10 +42,42 @@ module.exports = option=>{
 	process.env.GENIE_RUNMODE = argv.mode
 
 	// ランモード表示
-	lib.showRunmode()
+	// lib.showRunmode()
 
 	// 設定読み込み
 	let config = lib.loadConfig(argv);
-	process.exit()
 
+	// テストスクリプトがあるかチェック
+	let test_dir = `${lib.getRootDir()}/tests/`;
+	try {
+		if(!fs.readdirSync(test_dir).length)
+			lib.Error(`${test_dir} にテストスクリプトを配置してください。`)
+	} catch(err) {
+		lib.Error(`${test_dir} にテストスクリプトを配置してください。`)
+	}
+
+	(async ()=>{
+
+		// test環境アップ
+		await CMDS.up(option)
+
+		// テストスクリプト実行
+		let args = [
+			'npx',
+			'mocha',
+			'--reporter',
+			'mochawesome',
+			'--recursive',
+			'tests',
+		]
+		lib.Message(`テストコマンドを実行します。\n${args.join(' ')}`, 'primary', 1)
+
+		// レポート表示
+
+		// test環境ダウン
+		await CMDS.down(option)
+
+		process.exit()
+
+	})()
 }

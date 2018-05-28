@@ -32,6 +32,7 @@ config.core =
 		],
 		mount_mode: 'share',
 		// network: 'my_docker_nw',
+		down_with_volumes: false, // down時に、関連するVolumeも一緒に削除するかどうか（lockedも消えます）
 	},
 
 	// up時/down時のメッセージ表示

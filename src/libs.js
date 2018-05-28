@@ -230,7 +230,9 @@ const loadConfig = module.exports.loadConfig = argv=>{
 		Error(`設定ファイル（.genie/${argv.config}）が見つかりませんでした。`)
 	}
 
+
 	// ファイルロード
+	delete require.cache[require.resolve(config_js)]
 	let config = require(config_js).config;
 
 	// 実行モードをセット
@@ -246,7 +248,8 @@ const loadConfig = module.exports.loadConfig = argv=>{
 		add_config_js = `${paths.dir}/${paths.name}-${config.runmode}${paths.ext}`;
 	} else {
 		add_config_js = `${root_dir}/.genie/${paths.dir}/${paths.name}-${config.runmode}${paths.ext}`;
-	}
+}
+
 	try {
 		fs.accessSync(add_config_js)
 		eval(fs.readFileSync(add_config_js).toString())
@@ -316,9 +319,9 @@ const Error = module.exports.Error = (message)=>{
  * @param {string} コンテナタイプ：genie|postgresql|mysql
  * @param {object} config
  */
-const dockerDown = module.exports.dockerDown = (name_filter, config)=>{
+const dockerDown = module.exports.dockerDown = (config, wz_volumes)=>{
 	return new Promise((resolve, reject)=>{
-		let containers = existContainers(config, name_filter);
+		let containers = existContainers(config);
 		if(!containers) resolve()
 		let delfuncs = [];
 		for(let container of containers){
@@ -344,7 +347,43 @@ const dockerDown = module.exports.dockerDown = (name_filter, config)=>{
 		}
 		Promise.all(delfuncs)
 			.catch(err=>{Error(err)})
-			.then(()=>{resolve()})
+			.then(()=>{
+				if(config.core.docker.down_with_volumes || wz_volumes) {
+					// 関連ボリューム削除
+					let delfuncs = [];
+					let regex = new RegExp(`^(locked_)?${config.base_name}`);
+					let result = child.spawnSync('docker', ['volume', 'ls', '--format', '{{.Name}}'])
+					if(result.status) Error(result.stderr.toString())
+					for(let volume_name of result.stdout.toString().trim().split(/\n/)) {
+						if(volume_name.match(regex)) {
+							delfuncs.push(
+								new Promise((ok,ng)=>{
+									child.spawn('docker', ['volume', 'rm', '-f', volume_name])
+										.stderr.on('data', data=>{
+											console.log(
+												color.blackBright(`  [Volume] ${volume_name} ... `)+
+												color.red('delete NG!')
+											)
+											ng(data)
+										})
+										.on('close', code=>{
+											console.log(
+												color.blackBright(`  [Volume] ${volume_name} ... `)+
+												color.green('deleted')
+											)
+											ok()
+										})
+								})
+							)
+						}
+					}
+					Promise.all(delfuncs)
+						.catch(err=>{Error(err)})
+						.then(()=>{resolve()})
+				} else {
+					resolve()
+				}
+			})
 	})
 }
 
