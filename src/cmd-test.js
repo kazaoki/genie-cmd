@@ -41,9 +41,6 @@ module.exports = option=>{
 	// ランモードを環境変数にセット
 	process.env.GENIE_RUNMODE = argv.mode
 
-	// ランモード表示
-	// lib.showRunmode()
-
 	// 設定読み込み
 	let config = lib.loadConfig(argv);
 
@@ -51,7 +48,7 @@ module.exports = option=>{
 	let test_dir = `${lib.getRootDir()}/tests/`;
 	try {
 		if(!fs.readdirSync(test_dir).length)
-			lib.Error(`${test_dir} にテストスクリプトを配置してください。`)
+			throw new Error()
 	} catch(err) {
 		lib.Error(`${test_dir} にテストスクリプトを配置してください。`)
 	}
