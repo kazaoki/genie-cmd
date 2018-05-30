@@ -1,39 +1,35 @@
+
 'use strict'
 
-const puppeteer = require('puppeteer')
+const puptester = require('puptester')
 const assert = require('assert')
 
-describe('Google先生の検索結果テスト', function() {
+describe('ローカルフォーム', function() {
 
 	/**
 	 * mocha のタイムアウトを設定
 	 * ---------------------------------------------------------------------------------------------
 	 */
-	this.timeout(5000)
-	let browser, page
+	this.timeout(60000)
+	let pt, browser, page
 
 	/**
 	 * 初期設定
 	 * ---------------------------------------------------------------------------------------------
 	 */
 	before(async () => {
-		let conf = {}
-		if(process.env.NODE_PUPP=='browser') {
-			conf = {
-				headless: false,
-				slowMo: 100
+		pt = await puptester.init(
+			'https://kazaoki.jp',
+			{
+				width: 320,
+				height: 150,
+				launch_options: {
+					// headless: false,
+				}
 			}
-		} else {
-			conf = {
-				args: [
-					'--no-sandbox',
-					'--disable-setuid-sandbox'
-				]
-			}
-		}
-		browser = await puppeteer.launch(conf)
-		page = await browser.newPage()
-		page.on('console', console.log)
+		);
+		browser = pt.browser
+		page = pt.page
 	})
 
 	/**
@@ -41,23 +37,29 @@ describe('Google先生の検索結果テスト', function() {
 	 * ---------------------------------------------------------------------------------------------
 	 */
 	after(async () => {
-		browser.close()
+		await browser.close()
 	})
 
 	/**
-	 * カザオキトップ
+	 * 1
 	 * ---------------------------------------------------------------------------------------------
 	 */
-	describe('カザオキトップ', async () => {
+	describe('てすとやんけ', async () => {
 
-		before(async function(){
-			await page.goto('https://kazaoki.jp', {waitUntil: 'networkidle2'});
-		});
+		before(async ()=>{
+			await page.goto('https://kazaoki.jp/inquiry/', {waitUntil: 'networkidle2'})
+		})
 
-		it('ウェブサービス紹介が２つあること', async () => {
-			const articles = await page.$$('#service-summary article');
-			assert.equal(articles.length, 2);
-		});
-	});
+		it('INPUT', async ()=>{
+			await page.screenshot({path: `tests-report/captures/${__capfilename}`})
+			await page.type('input[name=company_name]', 'サンプル企業１')
+			await page.type('input[name=company_kana]', 'サンプルキギョウイチ')
+			await page.screenshot({path: `tests-report/captures/${__capfilename}`})
+			await page.click('input[type=submit]')
+			await page.screenshot({path: `tests-report/captures/${__capfilename}`})
+			assert(true)
+		})
+
+	})
 
 })

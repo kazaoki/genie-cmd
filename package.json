@@ -10,10 +10,13 @@
   },
   "scripts": {
     "dev": "npx parcel watch src/genie.js --out-dir dist --out-file genie --target node --no-source-maps",
-    "build": "npx parcel build src/genie.js --out-dir dist --out-file genie --target node --no-source-maps --no-cache && node src/build-after.js"
+    "build": "npx parcel build src/genie.js --out-dir dist --out-file genie --target node --no-source-maps --no-cache && node src/build-after.js",
+    "test": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report/,quiet=true & start chrome tests-report/mochawesome-report/mochawesome.html",
+    "test-in-mac": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report,quiet=true,autoOpen=true"
   },
   "devDependencies": {
-    "parcel-bundler": "^1.7.1"
+    "parcel-bundler": "^1.7.1",
+    "puptester": "^0.0.2"
   },
   "dependencies": {
     "cli-color": "^1.2.0",

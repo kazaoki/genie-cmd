@@ -3228,6 +3228,13 @@ punycode@^1.2.4:
   version "1.4.1"
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-1.4.1.tgz#c0d5a63b2718800ad8e1eb0fa5269c84dd41845e"
 
+puptester@^0.0.2:
+  version "0.0.2"
+  resolved "https://registry.yarnpkg.com/puptester/-/puptester-0.0.2.tgz#4a47300aa8f170912d8aa09e6d79791e9cbf3019"
+  dependencies:
+    mocha "^5.2.0"
+    mochawesome "^3.0.2"
+
 q@^1.1.2:
   version "1.5.1"
   resolved "https://registry.yarnpkg.com/q/-/q-1.5.1.tgz#7e32f75b41381291d04611f1bf14109ac00651d7"

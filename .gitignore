@@ -1,2 +1,4 @@
+mochawesome-report/
 node_modules/
 .cache/
+yarn-error.log
