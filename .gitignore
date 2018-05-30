@@ -1,4 +1,6 @@
-mochawesome-report/
+tests-report/mochawesome-report/
+tests-report/captures/**/*.png
+tests-report/captures/**/*.jpg
 node_modules/
 .cache/
 yarn-error.log
