@@ -17,7 +17,7 @@ const child = require('child_process')
 const inquirer = require('inquirer')
 const color = require('cli-color')
 
-module.exports = option=>{
+module.exports = async option=>{
 
 	// オプション設定
 	let argv = option
@@ -35,8 +35,7 @@ module.exports = option=>{
 	;
 	if(argv.help) {
 		console.log()
-		lib.Message(option.help(), 'primary', 1)
-		process.exit()
+		return lib.Message(option.help(), 'primary', 1)
 	}
 	// ランモードを環境変数にセット
 	process.env.GENIE_RUNMODE = argv.mode
@@ -53,28 +52,26 @@ module.exports = option=>{
 		lib.Error(`${test_dir} にテストスクリプトを配置してください。`)
 	}
 
-	(async ()=>{
+	// test環境アップ
+	await CMDS.up(option)
 
-		// test環境アップ
-		await CMDS.up(option)
-
-		// テストスクリプト実行
-		let args = [
-			'npx',
-			'mocha',
-			'--reporter',
-			'mochawesome',
-			'--recursive',
-			'tests',
-			'--reporter-options',
-			'reportDir=tests-report/mochawesome-report/,quiet=true',
-		]
-		lib.Message(`テストコマンドを実行します。\n${args.join(' ')}`, 'primary', 1)
-		// CMD.open('-o ')
+	// テストスクリプト実行
+	let args = [
+		'npx',
+		'mocha',
+		'--reporter',
+		'mochawesome',
+		'--recursive',
+		'tests',
+		'--reporter-options',
+		'reportDir=tests-report/mochawesome-report/,quiet=true',
+	]
+	lib.Message(`テストコマンドを実行します。\n${args.join(' ')}`, 'primary', 1)
+	// CMD.open('-o ')
 
 
-		// "test": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report/,quiet=true & start chrome tests-report/mochawesome-report/mochawesome.html",
-		// n-mac": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report,quiet=true,autoOpen=true"
+	// "test": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report/,quiet=true & start chrome tests-report/mochawesome-report/mochawesome.html",
+	// n-mac": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report,quiet=true,autoOpen=true"
 
 
 
@@ -83,12 +80,9 @@ module.exports = option=>{
 
 
 
-		// レポート表示
+	// レポート表示
 
-		// test環境ダウン
-		await CMDS.down(option)
+	// test環境ダウン
+	await CMDS.down(option)
 
-		process.exit()
-
-	})()
 }

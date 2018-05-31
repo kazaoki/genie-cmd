@@ -12,7 +12,7 @@ const lib = require('./libs.js')
 const child = require('child_process')
 const color = require('cli-color')
 
-module.exports = option=>{
+module.exports = async option=>{
 
 	// オプション設定
 	let argv = option
@@ -25,39 +25,34 @@ module.exports = option=>{
 	;
 	if(argv.help) {
 		console.log()
-		lib.Message(option.help(), 'primary', 1)
-		process.exit()
+		return lib.Message(option.help(), 'primary', 1)
 	}
 
 	// 設定ファイルロード
 	let config = lib.loadConfig(argv);
 
-	(async()=>
-	{
-		// 確認
-		let input = await lib.Input(`${config.core.docker.image} イメージをビルドしてもよろしいでしょうか。[y/N]: `)
+	// 確認
+	let input = await lib.Input(`${config.core.docker.image} イメージをビルドしてもよろしいでしょうか。[y/N]: `)
 
-		// ビルド実行
-		if(input.match(/^y$/i)) {
-			let args = ['build', '-t', config.core.docker.image]
-			if(argv['no-cache']) args.push('--no-cache')
-			args.push(`${lib.getRootDir()}/.genie/image/`)
-			lib.Message(`ビルドを開始します。\ndocker ${args.join(' ')}`, 'info');
-			console.log()
-			let stream = child.spawn('docker', args);
-			stream.stdout.on('data', (data)=>{
-				console.log(color.blackBright(data.toString().trim()))
-			})
-			stream.stderr.on('data', (data)=>{
-				lib.Error(data)
-				process.exit();
-			})
-			stream.on('close', (code) => {
-				let mes = 'ビルドが完了しました。'
-				lib.Message(mes)
-				lib.Say(mes)
-				process.exit();
-			});
-		}
-	})();
+	// ビルド実行
+	if(input.match(/^y$/i)) {
+		let args = ['build', '-t', config.core.docker.image]
+		if(argv['no-cache']) args.push('--no-cache')
+		args.push(`${lib.getRootDir()}/.genie/image/`)
+		lib.Message(`ビルドを開始します。\ndocker ${args.join(' ')}`, 'info');
+		console.log()
+		let stream = child.spawn('docker', args);
+		stream.stdout.on('data', (data)=>{
+			console.log(color.blackBright(data.toString().trim()))
+		})
+		stream.stderr.on('data', (data)=>{
+			lib.Error(data)
+		})
+		stream.on('close', (code) => {
+			let mes = 'ビルドが完了しました。'
+			lib.Message(mes)
+			lib.Say(mes)
+		});
+	}
+
 };

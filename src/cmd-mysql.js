@@ -19,7 +19,7 @@ const child = require('child_process')
 const inquirer = require('inquirer')
 const fs = require('fs')
 
-module.exports = option=>{
+module.exports = async option=>{
 
 	// オプション設定
 	let argv = option
@@ -52,8 +52,7 @@ module.exports = option=>{
 	;
 	if(argv.help) {
 		console.log()
-		lib.Message(option.help(), 'primary', 1)
-		process.exit()
+		return lib.Message(option.help(), 'primary', 1)
 	}
 
 	// 設定
@@ -67,101 +66,88 @@ module.exports = option=>{
 		lib.Error('dockerコンテナが起動していません: '+config.base_name)
 	}
 
-	(async()=>{
+	// --cli: MySQLコンテナの中に入る
+	if(argv.cli) {
+		let container_name = argv._[1]
+			? `${config.base_name}-mysql-${argv._[1]}`
+			: await get_target_containers(config, {is_single:true})
+		let key = get_key_from_container_name(config, container_name)
+		child.spawnSync('docker', [
+			'exec',
+			'-it',
+			container_name,
+			'bash',
+		],
+			{stdio: 'inherit'}
+		)
+	}
 
-		// --cli: MySQLコンテナの中に入る
-		if(argv.cli) {
-			let container_name = argv._[1]
-				? `${config.base_name}-mysql-${argv._[1]}`
-				: await get_target_containers(config, {is_single:true})
-			let key = get_key_from_container_name(config, container_name)
-			child.spawnSync('docker', [
-				'exec',
-				'-it',
-				container_name,
-				'bash',
-			],
-				{stdio: 'inherit'}
-			)
-			process.exit()
-		}
+	// --dump: ダンプを取る
+	else if(argv.dump) {
+		// 対象のコンテナを特定
+		argv._.shift()
 
-		// --dump: ダンプを取る
-		else if(argv.dump) {
-			// 対象のコンテナを特定
-			argv._.shift()
+		// 対象キーを設定
+		let keys = argv.all
+			? Object.keys(config.db.mysql)
+			: argv._.length
+				? argv._
+				: await get_target_containers(config, {has_all:true, is_key_return:true})
+		if(!Array.isArray(keys)) keys = [keys]
 
-			// 対象キーを設定
-			let keys = argv.all
-				? Object.keys(config.db.mysql)
-				: argv._.length
-					? argv._
-					: await get_target_containers(config, {has_all:true, is_key_return:true})
-			if(!Array.isArray(keys)) keys = [keys]
+		// let container_names = argv.all
+		// 	? Object.keys(config.db.mysql).map(key=>`${config.base_name}-mysql-${key}`)
+		// 	: argv._.length
+		// 		? argv._.map(key=>`${config.base_name}-mysql-${key}`)
+		// 		: await get_target_containers(config, {has_all:true})
+		// if(!Array.isArray(container_names)) container_names = [container_names]
 
-// d(keys)
-// process.exit()
-
-
-			// let container_names = argv.all
-			// 	? Object.keys(config.db.mysql).map(key=>`${config.base_name}-mysql-${key}`)
-			// 	: argv._.length
-			// 		? argv._.map(key=>`${config.base_name}-mysql-${key}`)
-			// 		: await get_target_containers(config, {has_all:true})
-			// if(!Array.isArray(container_names)) container_names = [container_names]
-
-			// ダンプを保存するディレクトリが無ければ作成する
-			let dump_dir = `${config.root}/.genie/files/opt/mysql/dumps`
-			if(!fs.existsSync(dump_dir)) fs.mkdirSync(dump_dir, 0o755)
+		// ダンプを保存するディレクトリが無ければ作成する
+		let dump_dir = `${config.root}/.genie/files/opt/mysql/dumps`
+		if(!fs.existsSync(dump_dir)) fs.mkdirSync(dump_dir, 0o755)
 
 
-			// キーごとに回す
-			for(let key of keys)
-			{
-				// キー名チェック
-				if(!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。'+key)
-
-				d(key)
-
-				//
-
-			}
-
-			process.exit()
-
-
-		}
-
-		// --restore: リストアする
-		else if(argv.restore) {
-			d('RESTORE')
-			let container_name = await get_target_containers(config, {has_all:true})
-			d(container_name)
-			process.exit()
-		}
-
-		// mysqlコマンドに入る
-		else {
-			let container_name = argv._[1]
-				? `${config.base_name}-mysql-${argv._[1]}`
-				: await get_target_containers(config, {is_single:true})
-			let key = get_key_from_container_name(config, container_name)
+		// キーごとに回す
+		for(let key of keys)
+		{
+			// キー名チェック
 			if(!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。'+key)
-			child.spawnSync('docker', [
-				'exec',
-				'-it',
-				container_name,
-				'mysql',
-				config.db.mysql[key].name,
-				`-u${config.db.mysql[key].user}`,
-				`-p${config.db.mysql[key].pass}`,
-			],
-				{stdio: 'inherit'}
-			)
-			process.exit()
+
+			d(key)
+
+			//
+
 		}
 
-	})()
+	}
+
+	// --restore: リストアする
+	else if(argv.restore) {
+		d('RESTORE')
+		let container_name = await get_target_containers(config, {has_all:true})
+		d(container_name)
+	}
+
+	// mysqlコマンドに入る
+	else {
+		let container_name = argv._[1]
+			? `${config.base_name}-mysql-${argv._[1]}`
+			: await get_target_containers(config, {is_single:true})
+		let key = get_key_from_container_name(config, container_name)
+		if(!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。'+key)
+		child.spawnSync('docker', [
+			'exec',
+			'-it',
+			container_name,
+			'mysql',
+			config.db.mysql[key].name,
+			`-u${config.db.mysql[key].user}`,
+			`-p${config.db.mysql[key].pass}`,
+		],
+			{stdio: 'inherit'}
+		)
+	}
+
 }
 
 /**

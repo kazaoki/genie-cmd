@@ -10,7 +10,7 @@
 const lib = require('./libs.js')
 const child = require('child_process')
 
-module.exports = option=>{
+module.exports = async option=>{
 
 	// オプション設定
 	let argv = option
@@ -19,8 +19,7 @@ module.exports = option=>{
 	;
 	if(argv.help) {
 		console.log()
-		lib.Message(option.help(), 'primary', 1)
-		process.exit()
+		return lib.Message(option.help(), 'primary', 1)
 	}
 
 	// 設定
@@ -62,7 +61,5 @@ module.exports = option=>{
 
 	// multitail実行
 	child.spawnSync('docker', ['exec', '-it', config.base_name, 'multitail', ...args], {stdio: 'inherit'})
-
-	process.exit()
 
 };

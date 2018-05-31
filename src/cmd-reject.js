@@ -13,7 +13,7 @@ const child = require('child_process')
 const inquirer = require('inquirer')
 const color = require('cli-color')
 
-module.exports = option=>{
+module.exports = async option=>{
 
 	// オプション設定
 	let argv = option
@@ -30,8 +30,7 @@ module.exports = option=>{
 	;
 	if(argv.help) {
 		console.log()
-		lib.Message(option.help(), 'primary', 1)
-		process.exit()
+		return lib.Message(option.help(), 'primary', 1)
 	}
 
 	// コンテナ一覧取得
@@ -73,99 +72,93 @@ module.exports = option=>{
 	// 対象数カウント
 	let list_count = list_containers.length + list_volumes.length
 	if(list_count===0) {
-		h('対象のオブジェクトはありませんでした。')
-		process.exit()
+		return h('対象のオブジェクトはありませんでした。')
 	}
 
-	(async()=>{
+	let answers
 
-		let answers
-
-		if(argv.force) {
-			// 強制リストアップ
-			let list = [
-				...list_containers,
-				...list_volumes,
-			]
-			answers = {}
-			answers.rejects= []
-			for(let item of list) {
-				item['checked'] && answers.rejects.push(item['name'])
-			}
-		} else {
-			// リスト選択
-			console.log()
-			answers = await inquirer.prompt([
-				{
-					type: 'checkbox',
-					message: '削除したいものにチェックを入れて Enter してください。',
-					name: 'rejects',
-					pageSize: 100,
-					choices: [
-						...list_containers,
-						...list_volumes,
-					],
-				}
-			])
-			if(!answers.rejects.length) process.exit()
-
-			// 画面クリア
-			process.stdout.write(color.move.up(list_count));
-			for(let i=0; i<list_count; i++){
-				process.stdout.write(color.erase.line);
-				process.stdout.write(color.move.down(1));
-			}
-			process.stdout.write(color.move.up(list_count));
-
+	if(argv.force) {
+		// 強制リストアップ
+		let list = [
+			...list_containers,
+			...list_volumes,
+		]
+		answers = {}
+		answers.rejects= []
+		for(let item of list) {
+			item['checked'] && answers.rejects.push(item['name'])
 		}
-
-		// 削除対象のコンテナ名・ボリューム名をセット
-		let name_volumes = []
-		let name_containters = []
-		for(let label of answers.rejects) {
-			label = color.strip(label);
-			let matches = label.match(/^\[(Container|Volume)\] (.+)$/)
-			if(matches[1]==='Container') name_containters.push(matches[2])
-			else if(matches[1]==='Volume') name_volumes.push(matches[2])
-		}
-
+	} else {
+		// リスト選択
 		console.log()
+		answers = await inquirer.prompt([
+			{
+				type: 'checkbox',
+				message: '削除したいものにチェックを入れて Enter してください。',
+				name: 'rejects',
+				pageSize: 100,
+				choices: [
+					...list_containers,
+					...list_volumes,
+				],
+			}
+		])
+		if(!answers.rejects.length) return;
 
-		// コンテナ削除実行
-		let funcs = []
-		for(let name of name_containters) {
-			funcs.push(new Promise((resolve, reject)=>{
-				child.spawn('docker', ['rm', '-fv', name])
-					.stderr.on('data', data=>{
-						console.log(`  [Container] ${name} - ${color.red('ng')}`)
-						reject(data)
-					})
-					.on('close', code=>{
-						console.log(`  [Container] ${name} - ${color.green('deleted')}`)
-						resolve()
-					})
-			}))
+		// 画面クリア
+		process.stdout.write(color.move.up(list_count));
+		for(let i=0; i<list_count; i++){
+			process.stdout.write(color.erase.line);
+			process.stdout.write(color.move.down(1));
 		}
-		await Promise.all(funcs).catch(err=>{lib.Error(err)})
+		process.stdout.write(color.move.up(list_count));
 
-		// コンテナ削除実行
-		funcs = []
-		for(let name of name_volumes) {
-			funcs.push(new Promise((resolve, reject)=>{
-				child.spawn('docker', ['volume', 'rm', '-f', name])
-					.stderr.on('data', data=>{
-						console.log(`  [Volume] ${name} - ${color.red('ng')}`)
-						reject(data)
-					})
-					.on('close', code=>{
-						console.log(`  [Volume] ${name} - ${color.green('deleted')}`)
-						resolve()
-					})
-			}))
-		}
-		await Promise.all(funcs).catch(err=>{lib.Error(err)})
+	}
 
-		process.exit()
+	// 削除対象のコンテナ名・ボリューム名をセット
+	let name_volumes = []
+	let name_containters = []
+	for(let label of answers.rejects) {
+		label = color.strip(label);
+		let matches = label.match(/^\[(Container|Volume)\] (.+)$/)
+		if(matches[1]==='Container') name_containters.push(matches[2])
+		else if(matches[1]==='Volume') name_volumes.push(matches[2])
+	}
 
-	})()
+	console.log()
+
+	// コンテナ削除実行
+	let funcs = []
+	for(let name of name_containters) {
+		funcs.push(new Promise((resolve, reject)=>{
+			child.spawn('docker', ['rm', '-fv', name])
+				.stderr.on('data', data=>{
+					console.log(`  [Container] ${name} - ${color.red('ng')}`)
+					reject(data)
+				})
+				.on('close', code=>{
+					console.log(`  [Container] ${name} - ${color.green('deleted')}`)
+					resolve()
+				})
+		}))
+	}
+	await Promise.all(funcs).catch(err=>{lib.Error(err)})
+
+	// コンテナ削除実行
+	funcs = []
+	for(let name of name_volumes) {
+		funcs.push(new Promise((resolve, reject)=>{
+			child.spawn('docker', ['volume', 'rm', '-f', name])
+				.stderr.on('data', data=>{
+					console.log(`  [Volume] ${name} - ${color.red('ng')}`)
+					reject(data)
+				})
+				.on('close', code=>{
+					console.log(`  [Volume] ${name} - ${color.green('deleted')}`)
+					resolve()
+				})
+		}))
+	}
+	await Promise.all(funcs).catch(err=>{lib.Error(err)})
+
 }

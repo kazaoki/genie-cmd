@@ -11,7 +11,7 @@ const lib = require('./libs.js')
 const child = require('child_process')
 const color = require('cli-color')
 
-module.exports = option=>{
+module.exports = async option=>{
 
 	// オプション設定
 	let argv = option
@@ -24,8 +24,7 @@ module.exports = option=>{
 	;
 	if(argv.help) {
 		console.log()
-		lib.Message(option.help(), 'primary', 1)
-		process.exit()
+		return lib.Message(option.help(), 'primary', 1)
 	}
 
 	// 設定
@@ -36,7 +35,7 @@ module.exports = option=>{
 		? argv._[1]
 		: (argv.o
 			? argv.o
-			: undefined
+			: argv._[1]
 		)
 	;
 	if(!url) {
@@ -76,8 +75,7 @@ module.exports = option=>{
 	} else {
 		// 設定通りのブラウザで起動
 		if(!(config.http.browser.apps && config.http.browser.apps.length)) config.http.browser.apps = ['']
-		for(app of config.http.browser.apps) {
-			let app = ''
+		for(let app of config.http.browser.apps) {
 			let arg = ''
 			if(lib.isWindows()) {
 					 if(app==='chrome')  arg = ' chrome'
@@ -106,5 +104,4 @@ module.exports = option=>{
 		child.execSync(cmd)
 	}
 
-	process.exit()
 }

@@ -12,7 +12,7 @@
 const lib = require('./libs.js')
 const child = require('child_process')
 
-module.exports = option=>{
+module.exports = async option=>{
 
 	// オプション設定
 	let argv = option
@@ -24,8 +24,7 @@ module.exports = option=>{
 	;
 	if(argv.help) {
 		console.log()
-		lib.Message(option.help(), 'primary', 1)
-		process.exit()
+		return lib.Message(option.help(), 'primary', 1)
 	}
 
 	// 設定
@@ -41,15 +40,13 @@ module.exports = option=>{
 		let result = child.spawnSync('docker', ['exec', host, ...cmds]);
 		if(result.status) {
 			lib.Error(result.stderr.toString() || result.stdout.toString()) // dockerを通してるため stderr ではなく stdout 側にメッセージが流れてくる場合があるため
-			process.exit()
+		} else {
+			console.log(result.stdout.toString())
 		}
-		console.log(result.stdout.toString())
-		process.exit()
 	}
 
 	// 引数が無ければコマンドラインに入る
 	else {
 		child.spawnSync('docker', ['exec', '-it', host, 'bash'], {stdio: 'inherit'})
-		process.exit()
 	}
 };

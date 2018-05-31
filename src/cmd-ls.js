@@ -29,8 +29,7 @@ module.exports = async option=>{
 	;
 	if(argv.help) {
 		console.log()
-		lib.Message(option.help(), 'primary', 1)
-		process.exit()
+		return lib.Message(option.help(), 'primary', 1)
 	}
 
 	// docker-machine が使える環境の場合はそれも一覧する

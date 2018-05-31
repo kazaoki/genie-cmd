@@ -17,7 +17,7 @@ const lib = require('./libs.js')
 const child = require('child_process')
 const inquirer = require('inquirer')
 
-module.exports = option=>{
+module.exports = async option=>{
 
 	// オプション設定
 	let argv = option
@@ -41,8 +41,7 @@ module.exports = option=>{
 	;
 	if(argv.help) {
 		console.log()
-		lib.Message(option.help(), 'primary', 1)
-		process.exit()
+		return lib.Message(option.help(), 'primary', 1)
 	}
 
 	// 設定
@@ -56,58 +55,51 @@ module.exports = option=>{
 		lib.Error('dockerコンテナが起動していません: '+config.base_name)
 	}
 
-	(async()=>{
+	// --cli: PostgreSQLコンテナの中に入る
+	if(argv.cli) {
+		let container_name = await get_target_containers(config, argv, {is_single:true})
+		let key = get_key_from_container_name(config, container_name)
+		child.spawnSync('docker', [
+			'exec',
+			'-it',
+			container_name,
+			'bash',
+		],
+			{stdio: 'inherit'}
+		)
+	}
 
-		// --cli: PostgreSQLコンテナの中に入る
-		if(argv.cli) {
-			let container_name = await get_target_containers(config, argv, {is_single:true})
-			let key = get_key_from_container_name(config, container_name)
-			child.spawnSync('docker', [
-				'exec',
-				'-it',
-				container_name,
-				'bash',
-			],
-				{stdio: 'inherit'}
-			)
-			process.exit()
-		}
+	// --dump: ダンプを取る
+	else if(argv.dump) {
+		d('DUMP')
+		let container_name = await get_target_containers(config, argv, {has_all:true})
+		d(container_name)
+	}
 
-		// --dump: ダンプを取る
-		else if(argv.dump) {
-			d('DUMP')
-			let container_name = await get_target_containers(config, argv, {has_all:true})
-			d(container_name)
-			process.exit()
-		}
+	// --restore: レストアする
+	else if(argv.restore) {
+		d('RESTORE')
+		let container_name = await get_target_containers(config, argv, {has_all:true})
+		d(container_name)
+	}
 
-		// --restore: レストアする
-		else if(argv.restore) {
-			d('RESTORE')
-			let container_name = await get_target_containers(config, argv, {has_all:true})
-			d(container_name)
-			process.exit()
-		}
+	// psqlコマンドに入る
+	else {
+		let container_name = await get_target_containers(config, argv, {is_single:true})
+		let key = get_key_from_container_name(config, container_name)
+		child.spawnSync('docker', [
+			'exec',
+			'-it',
+			container_name,
+			'psql',
+			config.db.postgresql[key].name,
+			'-U',
+			config.db.postgresql[key].user
+		],
+			{stdio: 'inherit'}
+		)
+	}
 
-		// psqlコマンドに入る
-		else {
-			let container_name = await get_target_containers(config, argv, {is_single:true})
-			let key = get_key_from_container_name(config, container_name)
-			child.spawnSync('docker', [
-				'exec',
-				'-it',
-				container_name,
-				'psql',
-				config.db.postgresql[key].name,
-				'-U',
-				config.db.postgresql[key].user
-			],
-				{stdio: 'inherit'}
-			)
-			process.exit()
-		}
-
-	})()
 }
 
 /**
