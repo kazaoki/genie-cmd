@@ -66,8 +66,22 @@ module.exports = option=>{
 			'mochawesome',
 			'--recursive',
 			'tests',
+			'--reporter-options',
+			'reportDir=tests-report/mochawesome-report/,quiet=true',
 		]
 		lib.Message(`テストコマンドを実行します。\n${args.join(' ')}`, 'primary', 1)
+		// CMD.open('-o ')
+
+
+		// "test": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report/,quiet=true & start chrome tests-report/mochawesome-report/mochawesome.html",
+		// n-mac": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report,quiet=true,autoOpen=true"
+
+
+
+
+
+
+
 
 		// レポート表示
 
