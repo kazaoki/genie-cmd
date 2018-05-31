@@ -59,7 +59,7 @@ let argv = option
 // ランモードを環境変数にセット
 process.env.GENIE_RUNMODE = argv.mode
 
-;(async ()=>{
+~(async ()=>{
 
 	/**
 	* 各コマンド機能を実行する
@@ -68,9 +68,9 @@ process.env.GENIE_RUNMODE = argv.mode
 	let cmd = argv._.shift()
 		 if(cmd==='demo')    await CMDS.demo(option)
 	// else if(cmd==='init')    CMDS.init(option)
-	else if(cmd==='config')  CMDS.config(option)
-	else if(cmd==='ls')      CMDS.ls(option)
-	else if(cmd==='up')      CMDS.up(option)
+	else if(cmd==='config')  await CMDS.config(option)
+	else if(cmd==='ls')      await CMDS.ls(option)
+	else if(cmd==='up')      await CMDS.up(option)
 	else if(cmd==='down')    CMDS.down(option)
 	else if(cmd==='cli')     CMDS.cli(option)
 	else if(cmd==='reject')  CMDS.reject(option)

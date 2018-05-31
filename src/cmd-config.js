@@ -11,8 +11,7 @@
 const lib = require('./libs.js')
 const child = require('child_process')
 
-module.exports = option=>{
-
+module.exports = async option=>{
 	// オプション設定
 	let argv = option
 		.usage('Usage: genie|g config [Options]')
@@ -43,6 +42,4 @@ module.exports = option=>{
 			child.execSync(`open ${config_js}`)
 		}
 	}
-
-	process.exit();
 };

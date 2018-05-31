@@ -5,7 +5,6 @@ const fs = require('fs')
 const strwidth = require('string-width')
 const color = require('cli-color')
 const wrap = require('jp-wrap')(color.windowSize.width-8);
-const readline = require('readline').createInterface(process.stdin, process.stdout)
 const child = require('child_process')
 const path = require('path')
 const util = require('util');
@@ -160,6 +159,8 @@ const Messages = module.exports.Messages = (messages)=>{
  * @return {string} 入力値
  */
 const Input = module.exports.Input = (message, tail_space=20)=>{
+	const readline = require('readline').createInterface(process.stdin, process.stdout)
+
 	let indent = color.bgBlack('  ');
 	message = '  ' + message + '  ';
 	let len = strwidth(message) + tail_space;

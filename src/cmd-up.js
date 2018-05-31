@@ -12,7 +12,7 @@ const child = require('child_process')
 const color = require('cli-color')
 const fs = require('fs')
 
-module.exports = option=>{
+module.exports = async option=>{
 
 	// オプション設定
 	let argv = option

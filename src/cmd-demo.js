@@ -9,7 +9,7 @@
 
 const lib = require('./libs.js')
 
-module.exports = async argv=>{
+module.exports = async option=>{
 
 	// メッセージBOX
 	console.log();

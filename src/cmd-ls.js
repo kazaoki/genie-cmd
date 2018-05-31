@@ -13,7 +13,7 @@ const child = require('child_process')
 const color = require('cli-color')
 const cliui = require('cliui')({width: color.windowSize.width-4})
 
-module.exports = option=>{
+module.exports = async option=>{
 
 	// ランモード表示
 	lib.showRunmode()
@@ -99,6 +99,4 @@ module.exports = option=>{
 		lib.Message(cliui.toString(), 'primary', 1)
 
 	}
-
-	process.exit();
 };
