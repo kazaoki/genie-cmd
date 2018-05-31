@@ -35,6 +35,4 @@ module.exports = async argv=>{
 		console.log(err)
 		process.exit(255);
 	}
-
-	process.exit();
 };

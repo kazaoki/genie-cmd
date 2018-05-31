@@ -165,12 +165,12 @@ const Input = module.exports.Input = (message, tail_space=20)=>{
 	let len = strwidth(message) + tail_space;
 	let fg = color.whiteBright.bgBlueBright;
 	let bg = color.bgBlue;
-	console.log(
+	process.stdout.write(
 		'\n' +
 		indent + fg(Repeat(' ', len)) + '\n' +
 		indent + fg(message + Repeat(' ', tail_space))  + '\n' +
 		indent + fg(Repeat(' ', len)) + '\n' +
-		indent + bg(Repeat(' ', len))
+		indent + bg(Repeat(' ', len)) + '\n'
 	);
 	process.stdout.write(color.move.up(3));
 	process.stdout.write(color.move.right(len - tail_space));
@@ -178,6 +178,7 @@ const Input = module.exports.Input = (message, tail_space=20)=>{
 		(result) => {
 			readline.on('line', (input)=>{
 				process.stdout.write(color.move.down(3));
+				readline.close()
 				result(input)
 			})
 		}

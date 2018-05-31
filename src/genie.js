@@ -2,8 +2,8 @@
 
 'use strict'
 
-const lib = require('./libs.js')
 const option = require('optimist')
+const lib = require('./libs.js')
 global.d = lib.d
 global.h = lib.h
 
@@ -55,66 +55,73 @@ let argv = option
 	})
 	.argv
 ;
+
 // ランモードを環境変数にセット
 process.env.GENIE_RUNMODE = argv.mode
 
- /**
- * 各コマンド機能を実行する
- * -----------------------------------------------------------------------------
- */
-let cmd = argv._.shift()
-     if(cmd==='demo')    CMDS.demo(option)
-// else if(cmd==='init')    CMDS.init(option)
-else if(cmd==='config')  CMDS.config(option)
-else if(cmd==='ls')      CMDS.ls(option)
-else if(cmd==='up')      CMDS.up(option)
-else if(cmd==='down')    CMDS.down(option)
-else if(cmd==='cli')     CMDS.cli(option)
-else if(cmd==='reject')  CMDS.reject(option)
-else if(cmd==='clean')   CMDS.clean(option)
-else if(cmd==='build')   CMDS.build(option)
-else if(cmd==='langver') CMDS.langver(option)
-else if(cmd==='mysql')   CMDS.mysql(option)
-else if(cmd==='psql')    CMDS.psql(option)
-else if(cmd==='open')    CMDS.open(option)
-// else if(cmd==='ngrok')   CMDS.ngrok(option)
-else if(cmd==='logs')    CMDS.logs(option)
-// else if(cmd==='dlsync')  CMDS.dlsync(option)
-else if(cmd==='test')    CMDS.test(option)
-// else if(cmd==='version') CMDS.test(option)
+;(async ()=>{
 
-/**
- * help
- * -----------------------------------------------------------------------------
- */
-else {
-	console.log()
-	lib.Message(
-		option.help()+'\n'+
-		'Commands:\n'+
-		'  init      \n'+
-		'  config    設定を確認する\n'+
-		'  ls        Dockerコンテナ状況を確認する\n'+
-		'  up        設定に基づきDockerコンテナを起動する\n'+
-		'  down      関連するコンテナのみ終了する\n'+
-		'  update    \n'+
-		'  cli       コンテナ内でコマンドを実行。またはコンテナに入る\n'+
-		'  reject    genie対象外のコンテナまたはボリュームを一括削除する\n'+
-		'  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n'+
-		'  build     基本のdockerイメージをビルドする\n'+
-		'  langver   各種言語の利用可能なバージョンを確認する\n'+
-		'  mysql     MySQLを操作する\n'+
-		'  psql      PostgreSQLを操作する\n'+
-		'  open      ブラウザで開く\n'+
-		'  ngrok     \n'+
-		'  logs      実行ログを見る\n'+
-		'  dlsync    \n'+
-		'  httpd     \n'+
-		'  test      \n'+
-		'  demo      デモ\n',
-		'  version   バージョン表示\n',
-		'warning',
-		1
-	)
-	process.exit();
-}
+	/**
+	* 各コマンド機能を実行する
+	* -----------------------------------------------------------------------------
+	*/
+	let cmd = argv._.shift()
+		 if(cmd==='demo')    await CMDS.demo(option)
+	// else if(cmd==='init')    CMDS.init(option)
+	else if(cmd==='config')  CMDS.config(option)
+	else if(cmd==='ls')      CMDS.ls(option)
+	else if(cmd==='up')      CMDS.up(option)
+	else if(cmd==='down')    CMDS.down(option)
+	else if(cmd==='cli')     CMDS.cli(option)
+	else if(cmd==='reject')  CMDS.reject(option)
+	else if(cmd==='clean')   CMDS.clean(option)
+	else if(cmd==='build')   CMDS.build(option)
+	else if(cmd==='langver') CMDS.langver(option)
+	else if(cmd==='mysql')   CMDS.mysql(option)
+	else if(cmd==='psql')    CMDS.psql(option)
+	else if(cmd==='open')    CMDS.open(option)
+	// else if(cmd==='ngrok')   CMDS.ngrok(option)
+	else if(cmd==='logs')    CMDS.logs(option)
+	// else if(cmd==='dlsync')  CMDS.dlsync(option)
+	else if(cmd==='test')    CMDS.test(option)
+	// else if(cmd==='version') CMDS.test(option)
+
+	/**
+	 * help
+	 * -----------------------------------------------------------------------------
+	 */
+	else {
+		console.log()
+		lib.Message(
+			option.help()+'\n'+
+			'Commands:\n'+
+			'  init      \n'+
+			'  config    設定を確認する\n'+
+			'  ls        Dockerコンテナ状況を確認する\n'+
+			'  up        設定に基づきDockerコンテナを起動する\n'+
+			'  down      関連するコンテナのみ終了する\n'+
+			'  update    \n'+
+			'  cli       コンテナ内でコマンドを実行。またはコンテナに入る\n'+
+			'  reject    genie対象外のコンテナまたはボリュームを一括削除する\n'+
+			'  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n'+
+			'  build     基本のdockerイメージをビルドする\n'+
+			'  langver   各種言語の利用可能なバージョンを確認する\n'+
+			'  mysql     MySQLを操作する\n'+
+			'  psql      PostgreSQLを操作する\n'+
+			'  open      ブラウザで開く\n'+
+			'  ngrok     \n'+
+			'  logs      実行ログを見る\n'+
+			'  dlsync    \n'+
+			'  httpd     \n'+
+			'  test      \n'+
+			'  demo      デモ\n',
+			'  version   バージョン表示\n',
+			'warning',
+			1
+		)
+	}
+
+	// done.
+	d('処理完了')
+
+})()
