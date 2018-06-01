@@ -7,6 +7,9 @@ const lib = require('./libs.js')
 global.d = lib.d
 global.h = lib.h
 
+// 時間計測開始
+console.time('  Done')
+
 /**
  * 各機能のファイルを読み込み
  * -----------------------------------------------------------------------------
@@ -122,6 +125,8 @@ process.env.GENIE_RUNMODE = argv.mode
 	}
 
 	// done.
-	d('処理完了')
+	process.stdout.write('\n')
+	console.timeEnd('  Done')
+	process.stdout.write('\n')
 
 })()
