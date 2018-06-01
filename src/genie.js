@@ -30,7 +30,7 @@ global.CMDS = {
 	logs:      require('./cmd-logs.js'),
 	// dlsync:    require('./cmd-dlsync.js'),
 	test:      require('./cmd-test.js'),
-	// version:   require('./cmd-version.js'),
+	version:   require('./cmd-version.js'),
 }
 
 /**
@@ -84,7 +84,7 @@ process.env.GENIE_RUNMODE = argv.mode
 	else if(cmd==='logs')    await CMDS.logs(option)
 	// else if(cmd==='dlsync')  await CMDS.dlsync(option)
 	else if(cmd==='test')    await CMDS.test(option)
-	// else if(cmd==='version') await CMDS.test(option)
+	else if(cmd==='version') await CMDS.version(option)
 
 	/**
 	 * help
