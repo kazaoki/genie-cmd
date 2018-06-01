@@ -42,19 +42,10 @@ module.exports = async option=>{
 
 	return new Promise(async (resolve, reject)=>
 	{
-		// 各コンテナ終了
-		if(lib.existContainers(config)) {
-			// TODO: 同じラベル `パス` と `ランレベル` で削除するように修正したい。
-			// h('対象の既存コンテナのみ削除します', color.blackBright);
-			await Promise.all([
-				// lib.dockerDown('/'+config.base_name+'-postgresql', config), // 前方一致のPostgreSQLコンテナ名
-				// lib.dockerDown('/'+config.base_name+'-mysql', config), // 前方一致のMySQLコンテナ名
-				// lib.dockerDown('/'+config.base_name+'$', config), // 完全一致のgenie本体コンテナ名
-				lib.dockerDown(null, config), // ルートパスとランモードが一致するもの（＝ゴミコンテナ）削除
-			]).catch(err=>err)
-		}
-
 		let rundb_funcs = []
+
+		// 既存のコンテンツを先に終了させる（同モード＆同パス起動のコンテナ）
+		await lib.dockerDown(config)
 
 		// PostgreSQL起動関数用意
 		if(config.db.postgresql) {
