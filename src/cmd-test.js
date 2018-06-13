@@ -52,37 +52,20 @@ module.exports = async option=>{
 		lib.Error(`${test_dir} にテストスクリプトを配置してください。`)
 	}
 
-	// test環境アップ
+	// テスト環境アップ
 	await CMDS.up(option)
 
-	// テストスクリプト実行
-	let args = [
-		'npx',
-		'mocha',
-		'--reporter',
-		'mochawesome',
-		'--recursive',
-		'tests',
-		'--reporter-options',
-		'reportDir=tests-report/mochawesome-report/,quiet=true',
-	]
-	lib.Message(`テストコマンドを実行します。\n${args.join(' ')}`, 'primary', 1)
-	// CMD.open('-o ')
+	// テスト前のコマンド実行
+	if(config.test.before)
+		child.execSync(config.test.before, {stdio: 'inherit'})
 
+	// テストコマンド実行
+	let result = child.execSync(config.test.run, {stdio: 'inherit'})
 
-	// "test": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report/,quiet=true & start chrome tests-report/mochawesome-report/mochawesome.html",
-	// n-mac": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report,quiet=true,autoOpen=true"
+	// テスト後のコマンド実行
+	if(config.test.after)
+		child.execSync(config.test.after, {stdio: 'inherit'})
 
-
-
-
-
-
-
-
-	// レポート表示
-
-	// test環境ダウン
+	// テスト環境ダウン
 	await CMDS.down(option)
-
 }

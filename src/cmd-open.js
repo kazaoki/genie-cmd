@@ -3,6 +3,8 @@
  * open: 設定されたURL情報を指定のブラウザで開く
  * -----------------------------------------------------------------------------
  * ex. g open
+ * ex. g open -o
+ * ex. g open -o https://kazaoki.jp
  */
 
 'use strict'
@@ -15,7 +17,7 @@ module.exports = async option=>{
 
 	// オプション設定
 	let argv = option
-		.usage('Usage: genie|g open [Options] [URL]')
+		.usage('Usage: genie|g open [Options] [URL|none:]')
 		.options('one', {
 			alias: 'o',
 			describe: '設定にかかわらず既定のブラウザ1つで開く',
@@ -61,7 +63,7 @@ module.exports = async option=>{
 	}
 
 	// コマンド用意
-	let opener = lib.isWindows
+	let opener = lib.isWindows()
 		? 'start'
 		: (lib.isMac
 			? 'open'

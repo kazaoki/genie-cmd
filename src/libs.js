@@ -667,6 +667,19 @@ const dockerUp = module.exports.dockerUp = config=>
 		if(result.status) {
 			reject(result.stderr.toString())
 		} else {
+			// 実際のポート番号を対応する内部ポート番号ごとに環境変数にセットする -> GENIE_PORTxx
+			let list = child.spawnSync('docker', [
+				'inspect',
+				'--format="{{.NetworkSettings.Ports}}"',
+				config.base_name,
+			])
+			for(let lump of list.stdout.toString().match(/\d+\/\w+\:\[\{[\d\.]+ \d+\}\]/g)) {
+				let matches = lump.match(/(\d+)\/\w+\:\[\{[\d\.]+ (\d+)\}\]/)
+				process.env['GENIE_PORT'+matches[1]] = matches[2]
+			}
+			// 実際のホストIPも環境変数にセットする -> GENIE_HOST_IP
+			process.env['GENIE_HOST_IP'] = config.host_ip
+
 			resolve();
 		}
 

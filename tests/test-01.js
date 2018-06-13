@@ -7,11 +7,13 @@ const assert = require('assert')
 describe('ローカルフォーム', function() {
 
 	/**
-	 * mocha のタイムアウトを設定
+	 * mocha のタイムアウト設定・変数宣言
 	 * ---------------------------------------------------------------------------------------------
 	 */
 	this.timeout(60000)
 	let pt, browser, page
+	let http_url = `http://${process.env.GENIE_HOST_IP}:${process.env.GENIE_PORT80}`
+	let https_url = `https://${process.env.GENIE_HOST_IP}:${process.env.GENIE_PORT443}`
 
 	/**
 	 * 初期設定
@@ -46,20 +48,40 @@ describe('ローカルフォーム', function() {
 	 */
 	describe('てすとやんけ', async () => {
 
+	// 	before(async ()=>{
+	// 		await page.goto('https://kazaoki.jp/inquiry/', {waitUntil: 'networkidle2'})
+	// 	})
+
+	// 	it('INPUT', async ()=>{
+	// 		await page.screenshot({path: `tests-report/captures/${__capfilename}`})
+	// 		await page.type('input[name=company_name]', 'サンプル企業１')
+	// 		await page.type('input[name=company_kana]', 'サンプルキギョウイチ')
+	// 		await page.screenshot({path: `tests-report/captures/${__capfilename}`})
+	// 		await page.click('input[type=submit]')
+	// 		await page.screenshot({path: `tests-report/captures/${__capfilename}`})
+	// 		assert(true)
+	// 	})
+
 		before(async ()=>{
-			await page.goto('https://kazaoki.jp/inquiry/', {waitUntil: 'networkidle2'})
+			await page.goto(http_url, {waitUntil: 'networkidle2'})
 		})
 
+		it('VAR='+http_url)
 		it('INPUT', async ()=>{
-			await page.screenshot({path: `tests-report/captures/${__capfilename}`})
-			await page.type('input[name=company_name]', 'サンプル企業１')
-			await page.type('input[name=company_kana]', 'サンプルキギョウイチ')
-			await page.screenshot({path: `tests-report/captures/${__capfilename}`})
-			await page.click('input[type=submit]')
-			await page.screenshot({path: `tests-report/captures/${__capfilename}`})
+			await page.screenshot({path: `tests-report/captures/t_${__capfilename}`})
+			// await page.type('input[name=company_name]', 'サンプル企業１')
+			// await page.type('input[name=company_kana]', 'サンプルキギョウイチ')
+			// await page.screenshot({path: `tests-report/captures/${__capfilename}`})
+			// await page.click('input[type=submit]')
+			// await page.screenshot({path: `tests-report/captures/${__capfilename}`})
+			// assert(false)
 			assert(true)
 		})
-
+		it('TODO 1')
+		it('TODO 2')
+		it('TODO 3')
+		it('TODO 4')
+		it('TODO 5')
 	})
 
 })

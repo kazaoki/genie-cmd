@@ -157,10 +157,10 @@ module.exports = async option=>{
 
 		} while(done.length!==line.length)
 
-		// ブラウザ起動
+		// TODO: ブラウザ起動
 		;
 
-		h('起動完了!!')
+		// h('起動完了!!')
 		resolve()
 	})
 };

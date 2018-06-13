@@ -160,57 +160,57 @@ config.db =
 {
 	// MySQL設定
 	mysql: {
-		main: {
-			repository : 'mysql:5.5',
-			host       : 'main.mysql-server',
-			name       : 'sample_db',
-			user       : 'sample_user',
-			pass       : '123456789',
-			charset    : 'utf8mb4',
-			collation  : 'utf8mb4_unicode_ci',
-			dump_genel : 3,
-			// volume_lock: true,
-			external_port: 3306,
-		},
-		sub: {
-			repository : 'mysql:5.7',
-			host       : 'sub.mysql-server',
-			name       : 'sample_db',
-			user       : 'sample_user',
-			pass       : '123456789',
-			charset    : 'utf8mb4',
-			collation  : 'utf8mb4_unicode_ci',
-			dump_genel : 3,
-			volume_lock: true,
-			external_port: 3307,
-		},
+		// main: {
+		// 	repository : 'mysql:5.5',
+		// 	host       : 'main.mysql-server',
+		// 	name       : 'sample_db',
+		// 	user       : 'sample_user',
+		// 	pass       : '123456789',
+		// 	charset    : 'utf8mb4',
+		// 	collation  : 'utf8mb4_unicode_ci',
+		// 	dump_genel : 3,
+		// 	// volume_lock: true,
+		// 	external_port: 3306,
+		// },
+		// sub: {
+		// 	repository : 'mysql:5.7',
+		// 	host       : 'sub.mysql-server',
+		// 	name       : 'sample_db',
+		// 	user       : 'sample_user',
+		// 	pass       : '123456789',
+		// 	charset    : 'utf8mb4',
+		// 	collation  : 'utf8mb4_unicode_ci',
+		// 	dump_genel : 3,
+		// 	volume_lock: true,
+		// 	external_port: 3307,
+		// },
 	},
 
 	// PostgreSQL設定
 	// ※locale には ja_JP.UTF-8 | ja_JP.EUC-JP が指定可能で、encoding はこれにより自動的に設定されます。
 	postgresql: {
-		main: {
-			repository : 'postgres:9.4',
-			host       : 'main.postgresql-server',
-			name       : 'sample_db',
-			user       : 'sample_user',
-			pass       : '123456789',
-			locale     : 'ja_JP.UTF-8',
-			dump_genel : 3,
-			// volume_lock: true,
-			external_port: 5432,
-		},
-		sub: {
-			repository : 'postgres:10',
-			host       : 'sub.postgresql-server',
-			name       : 'sample_db',
-			user       : 'sample_user',
-			pass       : '123456789',
-			locale     : 'ja_JP.UTF-8',
-			dump_genel : 3,
-			// volume_lock: true,
-			external_port: 5433,
-		},
+		// main: {
+		// 	repository : 'postgres:9.4',
+		// 	host       : 'main.postgresql-server',
+		// 	name       : 'sample_db',
+		// 	user       : 'sample_user',
+		// 	pass       : '123456789',
+		// 	locale     : 'ja_JP.UTF-8',
+		// 	dump_genel : 3,
+		// 	// volume_lock: true,
+		// 	external_port: 5432,
+		// },
+		// sub: {
+		// 	repository : 'postgres:10',
+		// 	host       : 'sub.postgresql-server',
+		// 	name       : 'sample_db',
+		// 	user       : 'sample_user',
+		// 	pass       : '123456789',
+		// 	locale     : 'ja_JP.UTF-8',
+		// 	dump_genel : 3,
+		// 	// volume_lock: true,
+		// 	external_port: 5433,
+		// },
 	},
 }
 
@@ -259,8 +259,26 @@ config.trans =
 		login_user: 'genie',
 		login_pass: '123456789',
 		login_path: '/mnt/host',
-		external_port: 22,
+		external_port: 'auto',
 	},
+}
+
+/**
+ * テストスクリプト設定
+ * -----------------------------------------------------------------------------
+ * `genie test` でテスト専用コンテナが起動してから実行されます。
+ * 完了後、そのコンテナは自動削除されます。
+ */
+config.test =
+{
+	// テスト前に実行するコマンド
+	// before: '',
+
+	// テストを実行するコマンド
+	run: 'npx mocha --reporter mochawesome --recursive tests --reporter-options reportDir=tests-report/mochawesome-report/,quiet=true',
+
+	// テスト後に実行するコマンド
+	after: 'open tests-report/mochawesome-report/mochawesome.html',
 }
 
 /**

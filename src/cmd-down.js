@@ -45,7 +45,7 @@ module.exports = async option=>{
 			lib.dockerDown(config, argv.v),
 		]).catch(err=>err)
 		.then(()=>{
-			h('停止/削除完了!!')
+			// h('停止/削除完了!!')
 			resolve()
 		})
 	})
