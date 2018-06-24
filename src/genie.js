@@ -31,7 +31,7 @@ global.CMDS = {
 	open:      require('./cmd-open.js'),
 	// ngrok:     require('./cmd-ngrok.js'),
 	logs:      require('./cmd-logs.js'),
-	// dlsync:    require('./cmd-dlsync.js'),
+	dlsync:    require('./cmd-dlsync.js'),
 	test:      require('./cmd-test.js'),
 	version:   require('./cmd-version.js'),
 }
@@ -85,7 +85,7 @@ process.env.GENIE_RUNMODE = argv.mode
 	else if(cmd==='open')    await CMDS.open(option)
 	// else if(cmd==='ngrok')   await CMDS.ngrok(option)
 	else if(cmd==='logs')    await CMDS.logs(option)
-	// else if(cmd==='dlsync')  await CMDS.dlsync(option)
+	else if(cmd==='dlsync')  await CMDS.dlsync(option)
 	else if(cmd==='test')    await CMDS.test(option)
 	else if(cmd==='version') await CMDS.version(option)
 

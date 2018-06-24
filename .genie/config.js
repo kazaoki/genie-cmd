@@ -249,8 +249,14 @@ config.trans =
 		local_dir: 'public_html', // ホームパスからの相対です
 		// remote_charset: 'utf8', // utf8, sjis 等
 		// local_charset: 'sjis',
-		lftp_option: '--verbose --delete -X .genie -X .git*', // mirror時のオプション（http://lftp.yar.ru/lftp-man.html）
-		default_argv: '', // `genie dlsync`の引数が無い時の引数を指定できます。
+		lftp_option: [
+			'--verbose',
+			'--delete',
+			'--parallel=1', // 2や3とかにすれば速いけど、FTPサーバによっては接続拒否されてしまうかもしれないので注意。
+			'-X', '.genie',
+			// '-X', 'media/*',
+			// '-X', 'assets/font-awesome/*',
+		].join(' '),
 	},
 
 	// sshd設定

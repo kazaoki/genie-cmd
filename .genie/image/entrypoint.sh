@@ -76,16 +76,16 @@ fi
 # --------------------------------------------------------------------
 if [[ $GENIE_PROC == 'dlsync' ]]; then
   rm -f /tmp/mirror.cmd
-  if [[ $GENIE_DLSYNC_REMOTE_CHARSET ]]; then
-    echo "set ftp:charset $GENIE_DLSYNC_REMOTE_CHARSET" >> /tmp/mirror.cmd
+  if [[ $GENIE_TRANS_DLSYNC_REMOTE_CHARSET ]]; then
+    echo "set ftp:charset $GENIE_TRANS_DLSYNC_REMOTE_CHARSET" >> /tmp/mirror.cmd
   fi
-  if [[ $GENIE_DLSYNC_LOCAL_CHARSET ]]; then
-    echo "set file:charset $GENIE_DLSYNC_LOCAL_CHARSET" >> /tmp/mirror.cmd
+  if [[ $GENIE_TRANS_DLSYNC_LOCAL_CHARSET ]]; then
+    echo "set file:charset $GENIE_TRANS_DLSYNC_LOCAL_CHARSET" >> /tmp/mirror.cmd
   fi
   echo "set ftp:list-options -a" >> /tmp/mirror.cmd
   echo "set ssl:verify-certificate no" >> /tmp/mirror.cmd
-  echo "open -u $GENIE_DLSYNC_REMOTE_USER,$GENIE_DLSYNC_REMOTE_PASS $GENIE_DLSYNC_REMOTE_HOST" >> /tmp/mirror.cmd
-  echo "mirror $GENIE_DLSYNC_LFTP_OPTION $GENIE_DLSYNC_REMOTE_DIR /sync" >> /tmp/mirror.cmd
+  echo "open -u $GENIE_TRANS_DLSYNC_REMOTE_USER,$GENIE_TRANS_DLSYNC_REMOTE_PASS $GENIE_TRANS_DLSYNC_REMOTE_HOST" >> /tmp/mirror.cmd
+  echo "mirror $GENIE_TRANS_DLSYNC_LFTP_OPTION $GENIE_TRANS_DLSYNC_REMOTE_DIR /sync" >> /tmp/mirror.cmd
   echo "close" >> /tmp/mirror.cmd
   echo "quit" >> /tmp/mirror.cmd
   echo "--------------------------------------------------------------"

@@ -634,25 +634,7 @@ const dockerUp = module.exports.dockerUp = config=>
 		}
 
 		// 設定値を環境変数値に
-		let envs = {}
-		let conv = (data, parent_key)=>{
-			if(data && typeof(data)==='object' && !Array.isArray(data)) {
-				// 再帰
-				let keys = Object.keys(data)
-				for(let i =0; i<keys.length; i++){
-					conv(data[keys[i]], `${parent_key}_${keys[i].toUpperCase()}`)
-				}
-			} else {
-				// 変換してセット
-				if(typeof(data)==='object' && Array.isArray(data)) {
-					envs[parent_key] = JSON.stringify(data)
-				} else {
-					envs[parent_key] = data
-				}
-			}
-		}
-
-		conv(config, 'GENIE')
+		let envs = data2envs(config, 'GENIE')
 		envs.GENIE_RUNMODE=config.runmode;
 		let keys = Object.keys(envs)
 		for(let i=0; i<keys.length; i++) {
@@ -673,9 +655,11 @@ const dockerUp = module.exports.dockerUp = config=>
 				'--format="{{.NetworkSettings.Ports}}"',
 				config.base_name,
 			])
-			for(let lump of list.stdout.toString().match(/\d+\/\w+\:\[\{[\d\.]+ \d+\}\]/g)) {
-				let matches = lump.match(/(\d+)\/\w+\:\[\{[\d\.]+ (\d+)\}\]/)
-				process.env['GENIE_PORT'+matches[1]] = matches[2]
+			if(list.stdout.toString().trim().length > 7) { // "map[]" が帰ってきたらポート指定されてないってこと
+				for(let lump of list.stdout.toString().match(/\d+\/\w+\:\[\{[\d\.]+ \d+\}\]/g)) {
+					let matches = lump.match(/(\d+)\/\w+\:\[\{[\d\.]+ (\d+)\}\]/)
+					process.env['GENIE_PORT'+matches[1]] = matches[2]
+				}
 			}
 			// 実際のホストIPも環境変数にセットする -> GENIE_HOST_IP
 			process.env['GENIE_HOST_IP'] = config.host_ip
@@ -762,4 +746,32 @@ const sleep = module.exports.sleep = (msec)=>{
 	return new Promise(resole=>{
 		setTimeout(resole, msec)
 	})
+}
+
+/**
+ * data to env
+ * -----------------------------------------------------------------------------
+ * @param {data}
+ * @param {parent_key}
+ */
+const data2envs = module.exports.data2envs = (data, parent_key)=>{
+	let envs = {}
+	let conv = (data, parent_key)=>{
+		if(data && typeof(data)==='object' && !Array.isArray(data)) {
+			// 再帰
+			let keys = Object.keys(data)
+			for(let i =0; i<keys.length; i++){
+				conv(data[keys[i]], `${parent_key}_${keys[i].toUpperCase()}`)
+			}
+		} else {
+			// 変換してセット
+			if(typeof(data)==='object' && Array.isArray(data)) {
+				envs[parent_key] = JSON.stringify(data)
+			} else {
+				envs[parent_key] = data
+			}
+		}
+	}
+	conv(data, parent_key)
+	return envs
 }
