@@ -23,6 +23,7 @@
     "cliui": "^4.1.0",
     "inquirer": "^5.2.0",
     "jp-wrap": "^0.2.2",
+    "log-rotate": "^0.2.8",
     "mocha": "^5.2.0",
     "mochawesome": "^3.0.2",
     "optimist": "^0.6.1",

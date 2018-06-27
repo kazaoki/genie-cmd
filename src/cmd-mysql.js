@@ -8,6 +8,8 @@
  *     g mysql --cli container1
  *     g mysql --dump
  *     g mysql --dump container1 container2
+ *     g mysql --dump --all
+ *     g mysql --dump --no-rotate
  *     g mysql --restore
  *     g mysql --restore container1 container2
  */
@@ -18,6 +20,7 @@ const lib = require('./libs.js')
 const child = require('child_process')
 const inquirer = require('inquirer')
 const fs = require('fs')
+const rotate = require('log-rotate')
 
 module.exports = async option=>{
 
@@ -45,7 +48,12 @@ module.exports = async option=>{
 		// })
 		.options('all', {
 			alias: 'a',
-			describe: '管轄全てのMySQLを対象とする（--dump, --restoreのみ）',
+			describe: '管轄全てのMySQLを対象とする。（--dump, --restore時のみ）',
+			boolean: true,
+		})
+		.options('no-rotate', {
+			alias: 'n',
+			describe: 'ダンプファイルのローテーションを行わない。（--dump時のみ）',
 			boolean: true,
 		})
 		.argv;
@@ -70,7 +78,7 @@ module.exports = async option=>{
 	if(argv.cli) {
 		let container_name = argv._[1]
 			? `${config.base_name}-mysql-${argv._[1]}`
-			: await get_target_containers(config, {is_single:true})
+			: await get_target_containers(config, {is_single:true}, 'コマンドラインに入るMySQLコンテナを選択してください。')
 		let key = get_key_from_container_name(config, container_name)
 		child.spawnSync('docker', [
 			'exec',
@@ -92,20 +100,12 @@ module.exports = async option=>{
 			? Object.keys(config.db.mysql)
 			: argv._.length
 				? argv._
-				: await get_target_containers(config, {has_all:true, is_key_return:true})
+				: await get_target_containers(config, {has_all:true, is_key_return:true}, 'ダンプを取るMySQLコンテナを選択してください。')
 		if(!Array.isArray(keys)) keys = [keys]
-
-		// let container_names = argv.all
-		// 	? Object.keys(config.db.mysql).map(key=>`${config.base_name}-mysql-${key}`)
-		// 	: argv._.length
-		// 		? argv._.map(key=>`${config.base_name}-mysql-${key}`)
-		// 		: await get_target_containers(config, {has_all:true})
-		// if(!Array.isArray(container_names)) container_names = [container_names]
 
 		// ダンプを保存するディレクトリが無ければ作成する
 		let dump_dir = `${config.root}/.genie/files/opt/mysql/dumps`
 		if(!fs.existsSync(dump_dir)) fs.mkdirSync(dump_dir, 0o755)
-
 
 		// キーごとに回す
 		for(let key of keys)
@@ -113,18 +113,38 @@ module.exports = async option=>{
 			// キー名チェック
 			if(!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。'+key)
 
-			d(key)
+			// ダンプファイルローテーション
+			if(!argv.n) {
+				let dump_file = `${dump_dir}/${key}.sql`
+				if(fs.existsSync(dump_file)) {
+					await new Promise((resolve, reject)=>{
+						rotate(dump_file, { count: config.db.mysql[key].dump_genel+1 }, err=>{
+							err
+								? reject(err)
+								: resolve()
+						});
+					})
+				}
+			}
 
-			//
-
+			// ダンプ実行
+			let mysql = config.db.mysql[key]
+			let args = [
+				'exec',
+				`${config.base_name}-mysql-${key}`,
+				'sh',
+				'-c',
+				`"mysqldump --single-transaction -u${mysql.user} -p${mysql.pass} ${mysql.name} > /opt/mysql/dumps/${key}.sql"`,
+			]
+			let result = child.execSync('docker '+args.join(' '))
+			if(result.status) lib.Error(result.stderr.toString())
 		}
-
 	}
 
 	// --restore: リストアする
 	else if(argv.restore) {
 		d('RESTORE')
-		let container_name = await get_target_containers(config, {has_all:true})
+		let container_name = await get_target_containers(config, {has_all:true}, 'リストアするMySQLコンテナを選択してください。')
 		d(container_name)
 	}
 
@@ -132,9 +152,9 @@ module.exports = async option=>{
 	else {
 		let container_name = argv._[1]
 			? `${config.base_name}-mysql-${argv._[1]}`
-			: await get_target_containers(config, {is_single:true})
+			: await get_target_containers(config, {is_single:true}, 'mysqlコマンドラインに入るMySQLコンテナを選択してください。')
 		let key = get_key_from_container_name(config, container_name)
-		if(!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。'+key)
+		if(!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。'+argv._[1])
 		child.spawnSync('docker', [
 			'exec',
 			'-it',
@@ -153,7 +173,7 @@ module.exports = async option=>{
 /**
  * コンテナを選択させる
  */
-function get_target_containers(config, option={})
+function get_target_containers(config, option={}, message)
 {
 	// １つしかなければそれ
 	if(Object.keys(config.db.mysql).length===1) {
@@ -177,7 +197,7 @@ function get_target_containers(config, option={})
 		let result = await inquirer.prompt([
 			{
 				type: 'list',
-				message: '対象のMySQLコンテナを選択してください。',
+				message: message,
 				name: 'container',
 				pageSize: 100,
 				choices: list
