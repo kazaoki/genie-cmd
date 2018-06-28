@@ -101,37 +101,45 @@ module.exports = async option=>{
 		if(!fs.existsSync(dump_dir)) fs.mkdirSync(dump_dir, 0o755)
 
 		// キーごとに回す
-		for(let key of keys)
-		{
-			// キー名チェック
-			if(!config.db.postgresql[key]) lib.Error('指定のキーのPostgreSQL設定が定義されていません。'+key)
+		let funcs = [];
+		for(let key of keys){
+			let container_name = `${config.base_name}-postgresql-${key}`
+			funcs.push({
+				label: container_name,
+				proc: 'dumping',
+				ok: 'dumped!',
+				ng: 'failed!',
+				func: new Promise(async (ok, ng)=>
+				{
+					// キー名チェック
+					if(!config.db.postgresql[key]) ng('指定のキーのPostgreSQL設定が定義されていません。'+key)
 
-			// ダンプファイルローテーション
-			if(!argv.n) {
-				let dump_file = `${dump_dir}/${key}.sql`
-				if(fs.existsSync(dump_file)) {
-					await new Promise((resolve, reject)=>{
-						rotate(dump_file, { count: config.db.postgresql[key].dump_genel+1 }, err=>{
-							err
-								? reject(err)
-								: resolve()
-						});
+					// ダンプファイルローテーション
+					if(!argv.n) {
+						let dump_file = `${dump_dir}/${key}.sql`
+						if(fs.existsSync(dump_file)) {
+							await new Promise((resolve, reject)=>{
+								rotate(dump_file, { count: config.db.postgresql[key].dump_genel+1 }, err=>{
+									err
+										? reject(err)
+										: resolve()
+								});
+							})
+						}
+					}
+
+					// ダンプ実行
+					let psql = config.db.postgresql[key]
+					child.exec(`docker exec ${container_name} sh -c "pg_dump ${psql.name} -U ${psql.user} > /opt/postgresql/dumps/${key}.sql"`,  (error, stdout, stderr)=>{
+						error && ng(error)
+						ok()
 					})
-				}
-			}
-
-			// ダンプ実行
-			let psql = config.db.postgresql[key]
-			let args = [
-				'exec',
-				`${config.base_name}-postgresql-${key}`,
-				'sh',
-				'-c',
-				`"export LC_ALL=C && pg_dump ${psql.name} -U ${psql.user} > /opt/postgresql/dumps/${key}.sql"`
-			]
-			let result = child.execSync('docker '+args.join(' '))
-			if(result.status) lib.Error(result.stderr.toString())
+				})
+			})
 		}
+
+		// 並列プログレス表示
+		await lib.para_progress(funcs)
 	}
 
 	// --restore: リストアする

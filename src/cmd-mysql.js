@@ -52,6 +52,10 @@ module.exports = async option=>{
 			describe: 'ダンプファイルのローテーションを行わない。（--dump時のみ）',
 			boolean: true,
 		})
+		.options('output-dir', {
+			alias: 'o',
+			describe: 'ダンプファイルの出力先を指定。（--dump時のみ）',
+		})
 		.argv;
 	;
 	if(argv.help) {
@@ -104,37 +108,45 @@ module.exports = async option=>{
 		if(!fs.existsSync(dump_dir)) fs.mkdirSync(dump_dir, 0o755)
 
 		// キーごとに回す
-		for(let key of keys)
-		{
-			// キー名チェック
-			if(!config.db.mysql[key]) lib.Error('指定のキーのMySQL設定が定義されていません。'+key)
+		let funcs = [];
+		for(let key of keys){
+			let container_name = `${config.base_name}-mysql-${key}`
+			funcs.push({
+				label: container_name,
+				proc: 'dumping',
+				ok: 'dumped!',
+				ng: 'failed!',
+				func: new Promise(async (ok, ng)=>
+				{
+					// キー名チェック
+					if(!config.db.mysql[key]) ng('指定のキーのMySQL設定が定義されていません。'+key)
 
-			// ダンプファイルローテーション
-			if(!argv.n) {
-				let dump_file = `${dump_dir}/${key}.sql`
-				if(fs.existsSync(dump_file)) {
-					await new Promise((resolve, reject)=>{
-						rotate(dump_file, { count: config.db.mysql[key].dump_genel+1 }, err=>{
-							err
-								? reject(err)
-								: resolve()
-						});
+					// ダンプファイルローテーション
+					if(!argv.n) {
+						let dump_file = `${dump_dir}/${key}.sql`
+						if(fs.existsSync(dump_file)) {
+							await new Promise((resolve, reject)=>{
+								rotate(dump_file, { count: config.db.mysql[key].dump_genel+1 }, err=>{
+									err
+										? reject(err)
+										: resolve()
+								})
+							})
+						}
+					}
+
+					// ダンプ実行
+					let mysql = config.db.mysql[key]
+					child.exec(`docker exec ${container_name} sh -c "mysqldump --single-transaction -u${mysql.user} -p${mysql.pass} ${mysql.name} > /opt/mysql/dumps/${key}.sql"`, (error, stdout, stderr)=>{
+						error && ng(error)
+						ok()
 					})
-				}
-			}
-
-			// ダンプ実行
-			let mysql = config.db.mysql[key]
-			let args = [
-				'exec',
-				`${config.base_name}-mysql-${key}`,
-				'sh',
-				'-c',
-				`"mysqldump --single-transaction -u${mysql.user} -p${mysql.pass} ${mysql.name} > /opt/mysql/dumps/${key}.sql"`,
-			]
-			let result = child.execSync('docker '+args.join(' '))
-			if(result.status) lib.Error(result.stderr.toString())
+				})
+			})
 		}
+
+		// 並列プログレス表示
+		await lib.para_progress(funcs)
 	}
 
 	// --restore: リストアする
