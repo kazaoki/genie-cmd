@@ -441,7 +441,13 @@ const dockerUpMySQL = module.exports.dockerUpMySQL = (key, config)=>
 			})
 			.on('close', code=>{
 				delete process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`]
+
+				// コンテナ直下に起動用コマンドを記録する（restore用）
+				child.exec(`docker exec ${container_name} sh -c "echo 'docker ${args.join(' ')}' > /docker-run.cmd"`)
+
+				// コマンド終了（でも裏で起動処理は続いている）
 				resolve()
+
 			})
 
 	})
@@ -742,11 +748,7 @@ const getContainerIp = module.exports.getContainerIp = (container_name, config)=
  * -----------------------------------------------------------------------------
  * @param {number} msec
  */
-const sleep = module.exports.sleep = (msec)=>{
-	return new Promise(resole=>{
-		setTimeout(resole, msec)
-	})
-}
+const sleep = module.exports.sleep = msec=>new Promise(ok=>setTimeout(ok, msec))
 
 /**
  * data to env
@@ -774,4 +776,75 @@ const data2envs = module.exports.data2envs = (data, parent_key)=>{
 	}
 	conv(data, parent_key)
 	return envs
+}
+
+/**
+ * para_progress
+ * -----------------------------------------------------------------------------
+ * @param {data}
+ *
+ *  並行処理用のプログレス
+ *
+ * [ex1]
+ *	await lib.para_progress([
+ *		{
+ *			label: 'proc1',
+ *			func: new Promise(ok=>setTimeout(ok, 1000)),
+ *		},
+ *		{
+ *			label: color.blackBright('proc2'),
+ *			func: new Promise(ok=>setTimeout(ok, 2000)),
+ *		},
+ *	])
+ *
+ * [ex2]
+ *	await lib.para_progress([
+ *		{
+ *			label: 'proc1',
+ *			func:
+ *				new Promise((ok,ng)=>{
+ *					setTimeout(ok, 1000)
+ *				}),
+ *			proc: color.yellow('running'),
+ *			ok: color.green('ready!'),
+ *			ng: color.red('error!')
+ *		},
+ *	])
+ */
+const para_progress = module.exports.para_progress = list=>{
+	return new Promise(async (resolve, reject)=>{
+		console.log()
+		let done_count = 0
+
+		// 処理開始
+		for(let i in list) {
+			list[i].status = null;
+			list[i].func
+				.then(()=>{list[i].status = true})
+				.catch(e=>{list[i].status = false; list[i].error=e})
+				.then(()=>{done_count++})
+		}
+
+		// プログレス表示
+		let count = 0;
+		do {
+			// 更新ウェイト
+			await sleep(100)
+
+			// 状況出力
+			if(count++) process.stdout.write(color.move.up(list.length));
+			for(let item of list) {
+				process.stdout.write(color.erase.line);
+				let status = item.status===null
+					? color.yellow(item.proc ? item.proc : 'running')
+					: item.status
+						? color.green(item.ok ? item.ok : 'ready!')
+						: color.red(item.ng ? item.ng : 'error! '+item.error)
+				console.log(`  ${item.label} ... ${status}`)
+			}
+		} while(done_count !== list.length)
+
+		resolve()
+	})
+
 }

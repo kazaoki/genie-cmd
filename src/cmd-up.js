@@ -104,7 +104,11 @@ module.exports = async option=>{
 				for(let key of Object.keys(config.db.mysql)) {
 					let container_name = `${config.base_name}-mysql-${key}`
 					let result = child.spawnSync('docker', ['logs', container_name])
-					if(done.indexOf(container_name)!==-1 || result.stdout.toString().match(/MySQL Community Server \(GPL\)/)) {
+					let log = result.stdout.toString()
+					if(done.indexOf(container_name)!==-1
+						|| (log.match(/Initializing database/) && log.match(/MySQL init process done\. Ready for start up\./)) // ボリューム作成時
+						|| (!log.match(/Initializing database/) && log.match(/mysqld\: ready for connections\./)) // ボリューム既存時
+					) {
 						line.push(`  ${container_name} ... ${color.green('ready!')}`)
 						if(done.indexOf(container_name)===-1) done.push(container_name);
 					} else if(process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`]) {
