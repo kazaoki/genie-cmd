@@ -42,10 +42,6 @@ module.exports = async option=>{
 			describe: 'MySQLのリストアを行う',
 			boolean: true,
 		})
-		// .options('name', {
-		// 	alias: 'n',
-		// 	describe: '対象のMySQLコンテナ名を直接指定する',
-		// })
 		.options('all', {
 			alias: 'a',
 			describe: '管轄全てのMySQLを対象とする。（--dump, --restore時のみ）',

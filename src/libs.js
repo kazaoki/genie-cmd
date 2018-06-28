@@ -469,6 +469,7 @@ const dockerUpPostgreSQL = module.exports.dockerUpPostgreSQL = (key, config)=>
 		let args = [];
 		args.push('run', '-d', '-it')
 		args.push('-e', 'TERM=xterm-256color')
+		args.push('-e', 'LC_ALL=C')
 		args.push('--name', container_name)
 		args.push('--label', `genie_runmode="${config.runmode}"`)
 		args.push('--label', `genie_root="${config.root}"`)
@@ -504,6 +505,11 @@ const dockerUpPostgreSQL = module.exports.dockerUpPostgreSQL = (key, config)=>
 			})
 			.on('close', code=>{
 				delete process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`]
+
+				// コンテナ直下に起動用コマンドを記録する（restore用）
+				child.exec(`docker exec ${container_name} sh -c "echo 'docker ${args.join(' ')}' > /docker-run.cmd"`)
+
+				// コマンド終了（でも裏で起動処理は続いている）
 				resolve()
 			})
 

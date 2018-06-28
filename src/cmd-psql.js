@@ -69,7 +69,9 @@ module.exports = async option=>{
 
 	// --cli: PostgreSQLコンテナの中に入る
 	if(argv.cli) {
-		let container_name = await get_target_containers(config, {is_single:true}, 'コマンドラインに入るPostgreSQLコンテナを選択してください。')
+		let container_name = argv._[1]
+			? `${config.base_name}-postgresql-${argv._[1]}`
+			: await get_target_containers(config, {is_single:true}, 'コマンドラインに入るPostgreSQLコンテナを選択してください。')
 		let key = get_key_from_container_name(config, container_name)
 		child.spawnSync('docker', [
 			'exec',
@@ -134,15 +136,81 @@ module.exports = async option=>{
 
 	// --restore: リストアする
 	else if(argv.restore) {
-		d('RESTORE')
-		let container_name = await get_target_containers(config, {has_all:true}, 'リストアするPostgreSQLコンテナを選択してください。')
-		d(container_name)
+
+		// 対象のコンテナを特定
+		argv._.shift()
+
+		// 対象キーを設定
+		let keys = argv.all
+			? Object.keys(config.db.postgresql)
+			: argv._.length
+				? argv._
+				: await get_target_containers(config, {has_all:true, is_key_return:true}, 'リストアするPostgreSQLコンテナを選択してください。')
+		if(!Array.isArray(keys)) keys = [keys]
+
+		// リストア実行
+		let funcs = [];
+		for(let key of keys) {
+			let container_name = `${config.base_name}-postgresql-${key}`
+			funcs.push({
+				label: container_name,
+				proc: 'restoring',
+				ok: 'restored!',
+				ng: 'failed!',
+				func: new Promise((ok, ng)=>{
+
+					// リストア用コマンドファイルをロード
+					child.exec(`docker exec ${container_name} sh -c "cat /docker-run.cmd"`, (error, stdout, stderr)=>{
+						let reloader = stdout.toString().trim();
+						error && ng(error)
+
+						// 既存のコンテナを終了する
+						let volume_container_name = get_volume_container_name(container_name)
+						child.exec(`docker rm -f -v ${container_name}`, (error, stdout, stderr)=>{
+							error && ng(error)
+
+							// ボリュームも消す（上記の-v指定で消えはずなのに消えないので・・）
+							child.exec(`docker volume rm -f ${volume_container_name}`, (error, stdout, stderr)=>{
+
+								// 新たにコンテナを立ち上げる
+								child.exec(reloader, (error, stdout, stderr)=>{
+									error && ng(error)
+
+									// コンテナ直下に起動用コマンドを記録する（restore用）
+									child.exec(`docker exec ${container_name} sh -c "echo '${reloader}' > /docker-run.cmd"`, (error, stdout, stderr)=>{
+										error && ng(error)
+
+										// 特定の文字がログに出てくるまで待機
+										let waiter = ()=>{
+											let ps = child.execSync(`docker exec ${container_name} sh -c "ps aux|grep entrypoint.sh|grep -v grep|wc -l"`)
+											if(ps.toString().trim()==0) {
+												ok()
+											} else {
+												setTimeout(waiter, 100)
+											}
+										}
+										setTimeout(waiter, 100)
+									})
+								})
+							})
+						})
+					})
+				})
+			})
+		}
+
+		// 並列プログレス表示
+		await lib.para_progress(funcs)
+
 	}
 
 	// psqlコマンドに入る
 	else {
-		let container_name = await get_target_containers(config, {is_single:true}, 'psqlコマンドラインに入るPostgreSQLコンテナを選択してください。')
+		let container_name = argv._[1]
+			? `${config.base_name}-postgresql-${argv._[1]}`
+			: await get_target_containers(config, {is_single:true}, 'psqlコマンドラインに入るPostgreSQLコンテナを選択してください。')
 		let key = get_key_from_container_name(config, container_name)
+		if(!config.db.postgresql[key]) lib.Error('指定のキーのPostgreSQL設定が定義されていません。'+argv._[1])
 		child.spawnSync('docker', [
 			'exec',
 			'-it',
@@ -155,7 +223,6 @@ module.exports = async option=>{
 			{stdio: 'inherit'}
 		)
 	}
-
 }
 
 /**
@@ -221,4 +288,17 @@ function get_key_from_container_name(config, container_name) {
 		}
 	}
 	return key
+}
+
+/**
+ * コンテナからボリューム名を取得
+ */
+function get_volume_container_name(container_name) {
+	let volumes = child.execSync('docker volume ls -q')
+	for(let volume of volumes.toString().split(/\n/)) {
+		if(!volume) continue
+		else if(volume===container_name) return container_name
+		else if(volume===`locked_${container_name}`) return `locked_${container_name}`
+	}
+	return false
 }
