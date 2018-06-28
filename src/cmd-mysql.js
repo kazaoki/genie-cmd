@@ -10,6 +10,8 @@
  *     g mysql --dump container1 container2
  *     g mysql --dump --all
  *     g mysql --dump --no-rotate
+ *     g mysql -dan
+ *     g mysql -d main -o C:\dumps
  *     g mysql --restore
  *     g mysql --restore container1 container2
  */
@@ -54,7 +56,7 @@ module.exports = async option=>{
 		})
 		.options('output-dir', {
 			alias: 'o',
-			describe: 'ダンプファイルの出力先を指定。（--dump時のみ）',
+			describe: 'ダンプファイルの出力先を指定。（--dump時のみ、ホスト側のフルパス指定）',
 		})
 		.argv;
 	;
@@ -103,8 +105,10 @@ module.exports = async option=>{
 				: await get_target_containers(config, {has_all:true, is_key_return:true}, 'ダンプを取るMySQLコンテナを選択してください。')
 		if(!Array.isArray(keys)) keys = [keys]
 
+
 		// ダンプを保存するディレクトリが無ければ作成する
 		let dump_dir = `${config.root}/.genie/files/opt/mysql/dumps`
+		if(argv.o) dump_dir = argv.o.replace(/\/$/, '')
 		if(!fs.existsSync(dump_dir)) fs.mkdirSync(dump_dir, 0o755)
 
 		// キーごとに回す
@@ -120,13 +124,14 @@ module.exports = async option=>{
 				{
 					// キー名チェック
 					if(!config.db.mysql[key]) ng('指定のキーのMySQL設定が定義されていません。'+key)
+					let mysql = config.db.mysql[key]
 
 					// ダンプファイルローテーション
 					if(!argv.n) {
 						let dump_file = `${dump_dir}/${key}.sql`
 						if(fs.existsSync(dump_file)) {
 							await new Promise((resolve, reject)=>{
-								rotate(dump_file, { count: config.db.mysql[key].dump_genel+1 }, err=>{
+								rotate(dump_file, { count: mysql.dump_genel+1 }, err=>{
 									err
 										? reject(err)
 										: resolve()
@@ -135,9 +140,31 @@ module.exports = async option=>{
 						}
 					}
 
+					// ダンプ用コンテナを起動する
+					let run_docker =
+						'docker run -d'+
+						` --name ${container_name}-dumper`+
+						' -e MYSQL_ROOT_PASSWORD=1'+
+						` --link ${container_name}`+
+						` -v ${dump_dir}:/dumps/`+
+						(config.core.docker.network ? ` --net=${config.core.docker.network}` : '')+
+						(config.core.docker.options ? ` ${config.core.docker.options}` : '')+
+						` ${mysql.repository}`+
+						' mysqld'+
+						(mysql.charset ? ` --character-set-server=${mysql.charset}` : '')+
+						(mysql.collation ? ` --collation-server=${mysql.collation}` : '')
+					;
+					child.execSync(run_docker)
+
 					// ダンプ実行
-					let mysql = config.db.mysql[key]
-					child.exec(`docker exec ${container_name} sh -c "mysqldump --single-transaction -u${mysql.user} -p${mysql.pass} ${mysql.name} > /opt/mysql/dumps/${key}.sql"`, (error, stdout, stderr)=>{
+					let exec_dump =
+						'docker exec'+
+						` ${container_name}-dumper`+
+						' sh -c'+
+						` "mysqldump --single-transaction -h ${container_name} -u${mysql.user} -p${mysql.pass} ${mysql.name} > /dumps/${key}.sql"`
+					;
+					child.exec(exec_dump, (error, stdout, stderr)=>{
+						child.exec(`docker rm -fv ${container_name}-dumper`)
 						error && ng(error)
 						ok()
 					})
