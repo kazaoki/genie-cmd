@@ -49,6 +49,10 @@ module.exports = async option=>{
 			describe: 'ダンプファイルのローテーションを行わない。（--dump時のみ）',
 			boolean: true,
 		})
+		.options('output-dir', {
+			alias: 'o',
+			describe: 'ダンプファイルの出力先を指定。（--dump時のみ、ホスト側のフルパス指定）',
+		})
 		.argv;
 	;
 	if(argv.help) {
@@ -98,6 +102,7 @@ module.exports = async option=>{
 
 		// ダンプを保存するディレクトリが無ければ作成する
 		let dump_dir = `${config.root}/.genie/files/opt/postgresql/dumps`
+		if(argv.o) dump_dir = argv.o.replace(/\/$/, '')
 		if(!fs.existsSync(dump_dir)) fs.mkdirSync(dump_dir, 0o755)
 
 		// キーごとに回す
@@ -113,6 +118,7 @@ module.exports = async option=>{
 				{
 					// キー名チェック
 					if(!config.db.postgresql[key]) ng('指定のキーのPostgreSQL設定が定義されていません。'+key)
+					let postgresql = config.db.postgresql[key]
 
 					// ダンプファイルローテーション
 					if(!argv.n) {
@@ -128,9 +134,35 @@ module.exports = async option=>{
 						}
 					}
 
+					// ダンプ用コンテナを起動する
+					let run_docker =
+						'docker run -d'+
+						` --name ${container_name}-dumper`+
+						` --link ${container_name}`+
+						` -v ${dump_dir}:/dumps/`+
+						(config.core.docker.network ? ` --net=${config.core.docker.network}` : '')+
+						(config.core.docker.options ? ` ${config.core.docker.options}` : '')+
+						` ${postgresql.repository}`+
+						' postgres'
+					;
+					child.execSync(run_docker)
+
+					// ダンプ実行前に.pgpassを保存（パスワード入力いらないように
+					let exec_pgpass =
+						'docker exec'+
+						` ${container_name}-dumper`+
+						` sh -c "echo '${container_name}:5432:${postgresql.name}:${postgresql.user}:${postgresql.pass}' > /root/.pgpass && chmod 0600 /root/.pgpass"`
+					;
+					child.execSync(exec_pgpass)
+
 					// ダンプ実行
-					let psql = config.db.postgresql[key]
-					child.exec(`docker exec ${container_name} sh -c "pg_dump ${psql.name} -U ${psql.user} > /opt/postgresql/dumps/${key}.sql"`,  (error, stdout, stderr)=>{
+					let exec_dump =
+						'docker exec'+
+						` ${container_name}-dumper`+
+						` sh -c "pg_dump ${postgresql.name} -U ${postgresql.user} -h ${container_name} > /dumps/${key}.sql"`
+					;
+					child.exec(exec_dump, (error, stdout, stderr)=>{
+						child.exec(`docker rm -fv ${container_name}-dumper`)
 						error && ng(error)
 						ok()
 					})
