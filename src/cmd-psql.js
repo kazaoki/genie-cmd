@@ -127,7 +127,7 @@ module.exports = async option=>{
 
 					// ダンプファイルローテーション
 					if(!argv.n) {
-						let dump_file = `${dump_dir}/${key}.sql`+(argv.g ? '.gz' : '')
+						let dump_file = `${dump_dir}/${key}.sql${argv.g?'.gz':''}`
 						if(fs.existsSync(dump_file)) {
 							await new Promise((resolve, reject)=>{
 								rotate(dump_file, { count: config.db.postgresql[key].dump_genel+1 }, err=>{

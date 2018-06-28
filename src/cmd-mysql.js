@@ -58,6 +58,11 @@ module.exports = async option=>{
 			alias: 'o',
 			describe: 'ダンプファイルの出力先を指定。（--dump時のみ、ホスト側のフルパス指定）',
 		})
+		.options('gzip', {
+			alias: 'g',
+			describe: 'ダンプファイルは圧縮。（--dump時に影響）',
+			boolean: true,
+		})
 		.argv;
 	;
 	if(argv.help) {
@@ -128,7 +133,7 @@ module.exports = async option=>{
 
 					// ダンプファイルローテーション
 					if(!argv.n) {
-						let dump_file = `${dump_dir}/${key}.sql`
+						let dump_file = `${dump_dir}/${key}.sql${argv.g?'.gz':''}`
 						if(fs.existsSync(dump_file)) {
 							await new Promise((resolve, reject)=>{
 								rotate(dump_file, { count: mysql.dump_genel+1 }, err=>{
@@ -161,7 +166,7 @@ module.exports = async option=>{
 						'docker exec'+
 						` ${container_name}-dumper`+
 						' sh -c'+
-						` "mysqldump --single-transaction -h ${container_name} -u${mysql.user} -p${mysql.pass} ${mysql.name} > /dumps/${key}.sql"`
+						` "mysqldump --single-transaction -h ${container_name} -u${mysql.user} -p${mysql.pass} ${mysql.name} > /dumps/${key}.sql${argv.g?'.gz':''}"`
 					;
 					child.exec(exec_dump, (error, stdout, stderr)=>{
 						child.exec(`docker rm -fv ${container_name}-dumper`)
