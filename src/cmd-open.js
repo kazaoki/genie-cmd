@@ -96,7 +96,7 @@ module.exports = async option=>{
 				arg = ` ${app}`
 			}
 		} else {
-				 if(app==='chrome')  arg = ' -a chrome'
+				 if(app==='chrome')  arg = ' -a "Google Chrome"'
 			else if(app==='firefox') arg = ' -a firefox'
 			else if(app==='safari')  arg = ' -a safari'
 			else if(app==='opera')   arg = ' -a opera' // 未確認
