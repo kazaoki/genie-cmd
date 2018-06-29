@@ -76,6 +76,11 @@ module.exports = async option=>{
 	// --sendlog指定
 	if(argv.l) child.exec(`${opener} ${getSendlogUrl(config)}`)
 
+	// --code指定
+	if(argv.c) child.exec(`code ${config.root}`)
+
+	if(argv.s || argv.r || argv.l || argv.c || argv._.length) return
+
 	// 引数未指定（config.jsに設定されているブラウザで開く）
 	let url = getWorkingUrl(config)
 	let cmds = [];
