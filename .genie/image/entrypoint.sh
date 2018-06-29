@@ -5,46 +5,46 @@
 # --------------------------------------------------------------------
 echo ". /etc/bashrc" >> /root/.bashrc
 
-# --------------------------------------------------------------------
-# init mode
-# --------------------------------------------------------------------
-if [[ $GENIE_PROC == 'init' ]]; then
-  cd /work
-  mkdir .genie
-  cd .genie
-  url=https://github.com/kazaoki/genie/tarball/$GENIE_INIT_BRANCH
-  echo "Downloading $url"
-  echo ""
-  curl -s -f -L $url | tar xvz */dist/.genie
-  if [ $? -ne 0 ]; then
-    exit 1
-  fi
-  dir=`ls`
-  mv ${dir}/dist/.genie/* ./
-  rm -fr ${dir}
-  exit 0
-fi
+# # --------------------------------------------------------------------
+# # init mode
+# # --------------------------------------------------------------------
+# if [[ $GENIE_PROC == 'init' ]]; then
+#   cd /work
+#   mkdir .genie
+#   cd .genie
+#   url=https://github.com/kazaoki/genie/tarball/$GENIE_INIT_BRANCH
+#   echo "Downloading $url"
+#   echo ""
+#   curl -s -f -L $url | tar xvz */dist/.genie
+#   if [ $? -ne 0 ]; then
+#     exit 1
+#   fi
+#   dir=`ls`
+#   mv ${dir}/dist/.genie/* ./
+#   rm -fr ${dir}
+#   exit 0
+# fi
 
-# --------------------------------------------------------------------
-# update mode
-# --------------------------------------------------------------------
-if [[ $GENIE_PROC == 'update' ]]; then
-  cd /work
-  mkdir .genie_update
-  cd .genie_update
-  url=https://github.com/kazaoki/genie/tarball/$GENIE_UPDATE_BRANCH
-  echo "Downloading $url"
-  echo ""
-  curl -s -f -L $url | tar xvz */dist/.genie
-  if [ $? -ne 0 ]; then
-    exit 1
-  fi
-  dir=`ls`
-  \cp -fr ${dir}/dist/.genie/* ../.genie
-  cd ..
-  rm -fr .genie_update
-  exit 0
-fi
+# # --------------------------------------------------------------------
+# # update mode
+# # --------------------------------------------------------------------
+# if [[ $GENIE_PROC == 'update' ]]; then
+#   cd /work
+#   mkdir .genie_update
+#   cd .genie_update
+#   url=https://github.com/kazaoki/genie/tarball/$GENIE_UPDATE_BRANCH
+#   echo "Downloading $url"
+#   echo ""
+#   curl -s -f -L $url | tar xvz */dist/.genie
+#   if [ $? -ne 0 ]; then
+#     exit 1
+#   fi
+#   dir=`ls`
+#   \cp -fr ${dir}/dist/.genie/* ../.genie
+#   cd ..
+#   rm -fr .genie_update
+#   exit 0
+# fi
 
 # --------------------------------------------------------------------
 # httpd mode
@@ -55,20 +55,28 @@ if [[ $GENIE_PROC == 'httpd' ]]; then
   exit 0
 fi
 
-# --------------------------------------------------------------------
-# spec|zap mode
-# --------------------------------------------------------------------
-if [[ $GENIE_PROC == 'spec' ]] || [[ $GENIE_PROC == 'zap' ]]; then
+# # --------------------------------------------------------------------
+# # spec|zap mode
+# # --------------------------------------------------------------------
+# if [[ $GENIE_PROC == 'spec' ]] || [[ $GENIE_PROC == 'zap' ]]; then
 
-  # -- make nosend file
-  [[ $GENIE_PROC == 'spec' && $GENIE_SPEC_NO_SENDMAIL ]] && touch /tmp/nosend
-  [[ $GENIE_PROC == 'zap'  && $GENIE_ZAP_NO_SENDMAIL  ]] && touch /tmp/nosend
+#   # -- make nosend file
+#   [[ $GENIE_PROC == 'spec' && $GENIE_SPEC_NO_SENDMAIL ]] && touch /tmp/nosend
+#   [[ $GENIE_PROC == 'zap'  && $GENIE_ZAP_NO_SENDMAIL  ]] && touch /tmp/nosend
 
+#   # -- dir copy
+#   \cp -rpdfL /_/* /
+
+#   # -- mount prefix
+#   prefix_mount=/_
+# fi
+
+# --------------------------------------------------------------------
+# mount mode is copy
+# --------------------------------------------------------------------
+if [[ $GENIE_CORE_DOCKER_MOUNT_MODE == 'copy' ]]; then
   # -- dir copy
   \cp -rpdfL /_/* /
-
-  # -- mount prefix
-  prefix_mount=/_
 fi
 
 # --------------------------------------------------------------------
@@ -114,7 +122,7 @@ fi
 # perl setup
 # --------------------------------------------------------------------
 if [[ $GENIE_PERL_VERSION != '' ]]; then
-  mkdir -p $prefix_mount/genie/opt/perl
+  mkdir -p /genie/opt/perl
   # -- tar restore
   mkdir -p /perl/versions
   tarfile="/genie/opt/perl/versions.tar"
@@ -134,7 +142,7 @@ if [[ $GENIE_PERL_VERSION != '' ]]; then
     source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv global $GENIE_PERL_VERSION
     source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv rehash
     cd /perl/versions
-    tar cf $prefix_mount/genie/opt/perl/versions.tar ./
+    tar cf /genie/opt/perl/versions.tar ./
   else
     # -- perl relink
     ln -s ${install_path} ${link_to}
@@ -152,7 +160,7 @@ fi
 # Install perl modules from cpanfile
 # --------------------------------------------------------------------
 if [[ $GENIE_PERL_CPANFILE_ENABLED && -e /genie/opt/perl/cpanfile ]]; then
-  mkdir -p $prefix_mount/genie/opt/perl
+  mkdir -p /genie/opt/perl
   # -- tar restore
   mkdir -p /perl/cpanfile-modules
   tarfile="/genie/opt/perl/cpanfile-modules.tar"
@@ -163,7 +171,7 @@ if [[ $GENIE_PERL_CPANFILE_ENABLED && -e /genie/opt/perl/cpanfile ]]; then
   cd /genie/opt/perl/
   carton install --path=/perl/cpanfile-modules/
   cd /perl/cpanfile-modules
-  tar cf $prefix_mount$tarfile ./
+  tar cf $tarfile ./
   echo 'cpanfile setup done.' >> /var/log/entrypoint.log
 fi
 
@@ -171,7 +179,7 @@ fi
 # php setup
 # --------------------------------------------------------------------
 if [[ $GENIE_PHP_VERSION != '' ]]; then
-  mkdir -p $prefix_mount/genie/opt/php
+  mkdir -p /genie/opt/php
   # -- tar restore
   mkdir -p /php/versions
   tarfile="/genie/opt/php/versions.tar"
@@ -201,7 +209,7 @@ if [[ $GENIE_PHP_VERSION != '' ]]; then
     echo 'date.timezone = "Asia/Tokyo"' >> /php/versions/$GENIE_PHP_VERSION/etc/php.ini
     sed -i "s/^display_errors\ \=\ Off/display_errors\ \=\ On/" /php/versions/$GENIE_PHP_VERSION/etc/php.ini
     cd /php/versions
-    tar cf $prefix_mount/genie/opt/php/versions.tar ./
+    tar cf /genie/opt/php/versions.tar ./
   else
     # -- php relink
     ln -s ${install_path} ${link_to}
@@ -222,7 +230,7 @@ sed -i "s/^display_errors\ \=\ Off/display_errors\ \=\ On/" /etc/php.ini
 # ruby setup
 # --------------------------------------------------------------------
 if [[ $GENIE_RUBY_VERSION != '' ]]; then
-  mkdir -p $prefix_mount/genie/opt/ruby
+  mkdir -p /genie/opt/ruby
   # -- tar restore
   mkdir -p /ruby/versions
   tarfile="/genie/opt/ruby/versions.tar"
@@ -239,7 +247,7 @@ if [[ $GENIE_RUBY_VERSION != '' ]]; then
     source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv global $GENIE_RUBY_VERSION
     source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv rehash
     cd /ruby/versions
-    tar cf $prefix_mount/genie/opt/ruby/versions.tar ./
+    tar cf /genie/opt/ruby/versions.tar ./
   else
     # -- ruby relink
     ln -s ${install_path} ${link_to}
@@ -253,7 +261,7 @@ fi
 # Node.js setup
 # --------------------------------------------------------------------
 if [[ $GENIE_NODE_VERSION != '' ]]; then
-  mkdir -p $prefix_mount/genie/opt/node
+  mkdir -p /genie/opt/node
   # -- tar restore
   mkdir -p /node/versions
   tarfile="/genie/opt/node/versions.tar"
@@ -270,7 +278,7 @@ if [[ $GENIE_NODE_VERSION != '' ]]; then
     source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv global $GENIE_NODE_VERSION
     source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv rehash
     cd /node/versions
-    tar cf $prefix_mount/genie/opt/node/versions.tar ./
+    tar cf /genie/opt/node/versions.tar ./
   else
     # -- node relink
     ln -s ${install_path} ${link_to}

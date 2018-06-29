@@ -232,7 +232,6 @@ const loadConfig = module.exports.loadConfig = argv=>{
 		Error(`設定ファイル（.genie/${argv.config}）が見つかりませんでした。`)
 	}
 
-
 	// ファイルロード
 	delete require.cache[require.resolve(config_js)]
 	let config = require(config_js).config;
@@ -243,6 +242,31 @@ const loadConfig = module.exports.loadConfig = argv=>{
 	// ルートセット
 	config.root = getRootDir()
 
+	// test時の基本調整
+	if(config.runmode==='test') {
+		config.core.docker.name += '-TEST'
+		config.core.docker.mount_mode = 'copy'
+		config.core.docker.down_with_volumes = true
+		config.core.memo = undefined
+		config.lang.php.error_report = false
+		config.log.fluentd = undefined
+		config.http.browser.at_upped = undefined
+		config.http.apache.external_http_port = 'auto'
+		config.http.apache.external_https_port = 'auto'
+		config.mail.postfix.enabled = false
+		config.mail.sendlog.external_port = undefined
+		if(config.db.mysql) {
+			for(let key of Object.keys(config.db.mysql)) {
+				config.db.mysql[key].external_port = undefined
+			}
+		}
+		if(config.db.postgresql) {
+			for(let key of Object.keys(config.db.postgresql)) {
+				config.db.postgresql[key].external_port = undefined
+			}
+		}
+	}
+
 	// 追加の設定（config-[ランモード].js）があればロード
 	let paths = path.parse(config_js);
 	let add_config_js
@@ -250,7 +274,7 @@ const loadConfig = module.exports.loadConfig = argv=>{
 		add_config_js = `${paths.dir}/${paths.name}-${config.runmode}${paths.ext}`;
 	} else {
 		add_config_js = `${root_dir}/.genie/${paths.dir}/${paths.name}-${config.runmode}${paths.ext}`;
-}
+	}
 
 	try {
 		fs.accessSync(add_config_js)
@@ -634,13 +658,23 @@ const dockerUp = module.exports.dockerUp = config=>
 		}
 
 		// 追加マウント
-		args.push('-v', `${config.root}/:/mnt/host/`)
+		// args.push('-v', `${config.root}/:/mnt/host/`) // 不要と思うので。しばらくして問題ないようならそのまま削除す。
 		if(config.core.docker.mounts && Array.isArray(config.core.docker.mounts) && config.core.docker.mounts.length) {
 			for(let i=0; i<config.core.docker.mounts.length; i++){
 				if(config.core.docker.mounts[i].match(/^\//)) {
 					args.push('-v', `${config.core.docker.mounts[i]}`)
 				} else {
 					args.push('-v', `${config.root}/${config.core.docker.mounts[i]}`)
+				}
+			}
+		}
+
+		// マウントモードがcopyの時はマウント先を全て/_/に変更する。（起動後、コンテナ側で正しいパスにコピーされる）
+		if(config.core.docker.mount_mode==='copy') {
+			for(let i=0; i<args.length; i++) {
+				if(args[i]==='-v') {
+					args[i+1] = args[i+1].replace(/(.+\:)([^\:]+)(\:?([^\:]+))?$/g, '$1\/_$2\:ro')
+					i++
 				}
 			}
 		}

@@ -6,7 +6,7 @@
  *     g test t
  *     g test --open
  *
- * このコマンドは環境変数`GENIE_RUNMODE`や`--mode`引数を指定しなければ、自動的に実行モードが 'test' になる。
+ * このコマンドは`--mode`引数を指定しなければ、自動的に実行モードが 'test' になる。
  */
 
 'use strict'
