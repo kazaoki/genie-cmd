@@ -26,7 +26,7 @@ module.exports = async option=>{
 	let config = lib.loadConfig(argv);
 
 	// dockerが起動しているか
-	if(!lib.existContainers(config, `/${config.base_name}$`)) lib.Error('dockerコンテナが起動していません: '+docker.run.base_name)
+	if(!lib.existContainers(config, `/${config.base_name}$`)) lib.Error('dockerコンテナが起動していません: '+config.base_name)
 
 	// コマンド用意
 	let args = [];
