@@ -854,3 +854,16 @@ const para_progress = module.exports.para_progress = list=>{
 	})
 
 }
+
+/**
+ * get_external_port
+ * -----------------------------------------------------------------------------
+ * @param {} config
+ * @param int internal_port
+ */
+const get_external_port = module.exports.get_external_port = (config, internal_port)=>{
+	let result = child.spawnSync('docker', ['port', config.base_name, internal_port])
+	if(result.status) Error(result.stderr.toString())
+	let matches = result.stdout.toString().trim().match(/(\d+)$/);
+	return matches[1] ? matches[1] : false
+}
