@@ -30,6 +30,7 @@ module.exports = async option=>{
 		.options('open', {
 			alias: 'o',
 			describe: 'dockerホスト側のChromeブラウザを開きオートテストを実行する',
+			boolean: true
 		})
 		.argv;
 	;
@@ -44,7 +45,8 @@ module.exports = async option=>{
 	let config = lib.loadConfig(argv);
 
 	// テストスクリプトがあるかチェック
-	let test_dir = `${lib.getRootDir()}/tests/`;
+	let test_dir = `${config.root}/tests/`;
+	if(argv._[1]) test_dir = argv._[1]
 	try {
 		if(!fs.readdirSync(test_dir).length)
 			throw new Error()
@@ -54,6 +56,12 @@ module.exports = async option=>{
 
 	// テスト環境アップ
 	await CMDS.up(option)
+
+	// カレントディレクトリを移動
+	process.chdir(config.root);
+
+	// ブラウザを実際に開くかどうかの引数を環境変数にセットする
+	if(argv.o) process.env.GENIE_TEST_BROWSER_OPEN = 'on'
 
 	// テスト前のコマンド実行
 	if(config.test.before)

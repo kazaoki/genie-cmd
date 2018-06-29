@@ -21,12 +21,12 @@ describe('ローカルフォーム', function() {
 	 */
 	before(async () => {
 		pt = await puptester.init(
-			'https://kazaoki.jp',
+			http_url,
 			{
 				width: 320,
 				height: 150,
 				launch_options: {
-					// headless: false,
+					headless: (process.env.GENIE_TEST_BROWSER_OPEN ? false : true),
 				}
 			}
 		);

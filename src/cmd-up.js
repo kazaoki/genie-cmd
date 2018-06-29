@@ -162,7 +162,7 @@ module.exports = async option=>{
 		} while(done.length!==line.length)
 
 		// TODO: ブラウザ起動
-		await CMDS.open(option)
+		if(config.http.browser.at_upped) await CMDS.open(option)
 
 		// h('起動完了!!')
 		resolve()

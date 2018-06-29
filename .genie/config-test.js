@@ -11,6 +11,7 @@ config.core.docker.down_with_volumes = true
 config.core.memo = undefined
 config.lang.php.error_report = false
 config.log.fluentd = undefined
+config.http.browser.at_upped = undefined
 config.http.apache.external_http_port = 'auto'
 config.http.apache.external_https_port = 'auto'
 config.mail.postfix.enabled = false
