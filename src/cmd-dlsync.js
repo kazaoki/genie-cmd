@@ -26,6 +26,10 @@ module.exports = async option=>{
 	// 設定読み込み
 	let config = lib.loadConfig(argv)
 
+	if(!(config.trans.dlsync.remote_host && config.trans.dlsync.remote_user)) {
+		lib.Error('dlsyncの設定情報がありません。')
+	}
+
 	// 保存先ディレクトリ作成
 	let local_dir = `${config.root}/${config.trans.dlsync.local_dir}`;
 	try{fs.accessSync(local_dir)}catch(e){fs.mkdirSync(local_dir)}
