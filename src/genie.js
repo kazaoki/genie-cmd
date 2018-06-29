@@ -59,8 +59,8 @@ let argv = option
 	.argv
 ;
 
-// ランモードを環境変数にセット
-process.env.GENIE_RUNMODE = argv.mode
+// ランモードを環境変数にセット（すでにGENIE_RUNMODEが用意されてる環境ならそっちを優先する。※test時を除く）
+if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 
 ~(async ()=>{
 
