@@ -86,6 +86,7 @@ if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 	// else if(cmd==='ngrok')   await CMDS.ngrok(option)
 	else if(cmd==='logs')    await CMDS.logs(option)
 	else if(cmd==='dlsync')  await CMDS.dlsync(option)
+	else if(cmd==='httpd')   await CMDS.httpd(option)
 	else if(cmd==='test')    await CMDS.test(option)
 	else if(cmd==='version') await CMDS.version(option)
 
@@ -114,7 +115,7 @@ if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 			'  open      ブラウザで開く\n'+
 			'  ngrok     \n'+
 			'  logs      実行ログを見る\n'+
-			'  dlsync    \n'+
+			'  dlsync    FTPを利用したダウンロード方向のみのミラーリングを実行する\n'+
 			'  httpd     \n'+
 			'  test      \n'+
 			'  demo      デモ\n',
