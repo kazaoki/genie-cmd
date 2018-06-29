@@ -26,7 +26,7 @@ module.exports = async option=>{
 		'  ruby\n'+
 		'  node\n'
 	;
-	if(argv.help) {
+	if(argv.help || !argv._[1]) {
 		console.log()
 		return lib.Message(help_message, 'primary', 1);
 	}
