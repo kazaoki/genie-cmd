@@ -32,70 +32,105 @@ module.exports = async option=>{
 		return lib.Message(option.help(), 'primary', 1)
 	}
 
-	// docker-machine が使える環境の場合はそれも一覧する
-	if(lib.hasDockerMachineEnv()) {
-		console.log('\n  DockeMachines')
-		let result = child.spawnSync('docker-machine', ['ls'])
-		if(result.status) lib.Error(result.stderr.toString())
-		lib.Message(result.stdout.toString(), 'primary', 1)
-	}
+	return new Promise((resolve, reject)=>{
 
-	// イメージ一覧
-	{
-		console.log('\n  Images')
-		let result = child.spawnSync('docker', ['images'])
-		if(result.status) lib.Error(result.stderr.toString())
-		lib.Message(result.stdout.toString(), 'primary', 1)
-	}
+		// 各種情報取得を並行して取得させる
+		let funcs = []
+		let outputs = {}
 
-	// データボリューム一覧
-	{
-		console.log('\n  Volumes')
-		let result = child.spawnSync('docker', ['volume', 'ls', '--format', 'table {{.Name}}\t{{.Driver}}\t{{.Scope}}'])
-		if(result.status) lib.Error(result.stderr.toString())
-		lib.Message(result.stdout.toString(), 'primary', 1)
-	}
+		// docker-machine が使える環境の場合はそれも一覧する
+		funcs.push(new Promise((ok,ng)=>{
+			child.execFile('docker-machine', ['ls'], (error, stdout, stderr)=>{
+				error && ng()
+				outputs['DockeMachines'] = stdout
+				ok()
+			})
+		}))
 
-	// コンテナ一覧
-	{
-		console.log('\n  Containers')
-		let format = ['--format', '{{.Names}}\t{{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}']
-		let header = ['NAMES', 'ID', 'IMAGE', 'STATUS', 'PORTS']
-		if(argv.long) {
-			format = ['--format', '{{.Names}}\t{{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Ports}}\t{{.Labels}}']
-			header = ['NAMES', 'ID', 'IMAGE', 'COMMAND', 'CREATED', 'STATUS', 'PORTS', 'LABELS']
-		}
-		let result = child.spawnSync('docker', ['ps', '-a', ...format])
-		if(result.status) lib.Error(result.stderr.toString())
-		let lines = result.stdout.toString().trim().split('\n')
-		lines.unshift(header.join('\t'))
-		for(let i in lines) {
-			let column = lines[i].split(/\t/)
-			let set = []
-			for(let j in column) {
-				let width;
-				if(!argv.long) {
-					// if(j==0) width = 40 // NAMES
-					// if(j==1) width = 15 // ID
-					// // if(j==2) width = 30 // IMAGE
-					if(j==4) width = 30 // PORTS
-				} else {
-					// if(j==0) width = 40 // NAMES
-					// if(j==1) width = 15 // ID
-					// // if(j==2) width = 30 // IMAGE
-					if(j==6) width = 30 // PORTS
-					if(j==7) width = 50 // LABELS
-				}
-				set.push({
-					text: column[j].replace(/, ?/g, '\n'),
-					width: width,
-					padding: [0, 1, 0, 1],
-				})
+		// イメージ一覧
+		funcs.push(new Promise((ok,ng)=>{
+			child.execFile('docker', ['images'], (error, stdout, stderr)=>{
+				error && ng()
+				outputs['Images'] = stdout
+				ok()
+			})
+
+		}))
+
+		// データボリューム一覧
+		funcs.push(new Promise((ok,ng)=>{
+			child.execFile('docker', ['volume', 'ls', '--format', 'table {{.Name}}\t{{.Driver}}\t{{.Scope}}'], (error, stdout, stderr)=>{
+				error && ng()
+				outputs['Volumes'] = stdout
+				ok()
+			})
+		}))
+
+		// コンテナ一覧
+		funcs.push(new Promise((ok,ng)=>{
+			let format = ['--format', '{{.Names}}\t{{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Ports}}']
+			let header = ['NAMES', 'ID', 'IMAGE', 'STATUS', 'PORTS']
+			if(argv.long) {
+				format = ['--format', '{{.Names}}\t{{.ID}}\t{{.Image}}\t{{.Command}}\t{{.CreatedAt}}\t{{.Status}}\t{{.Ports}}\t{{.Labels}}']
+				header = ['NAMES', 'ID', 'IMAGE', 'COMMAND', 'CREATED', 'STATUS', 'PORTS', 'LABELS']
 			}
-			cliui.div(...set)
-		}
+			child.execFile('docker', ['ps', '-a', ...format],  (error, stdout, stderr)=>{
+				error && ng()
 
-		lib.Message(cliui.toString(), 'primary', 1)
+				let lines = stdout.trim().split('\n')
+				lines.unshift(header.join('\t'))
+				for(let i in lines) {
+					let column = lines[i].split(/\t/)
+					let set = []
+					for(let j in column) {
+						let width;
+						if(!argv.long) {
+							// if(j==0) width = 40 // NAMES
+							// if(j==1) width = 15 // ID
+							// // if(j==2) width = 30 // IMAGE
+							if(j==4) width = 30 // PORTS
+						} else {
+							// if(j==0) width = 40 // NAMES
+							// if(j==1) width = 15 // ID
+							// // if(j==2) width = 30 // IMAGE
+							if(j==6) width = 30 // PORTS
+							if(j==7) width = 50 // LABELS
+						}
+						set.push({
+							text: column[j].replace(/, ?/g, '\n'),
+							width: width,
+							padding: [0, 1, 0, 1],
+						})
+					}
+					cliui.div(...set)
+				}
+				outputs['Containers'] = cliui.toString()
+				ok()
+			})
+		}))
 
-	}
+		// 出力
+		Promise.all(funcs)
+			.then(()=>{
+				// DockerMachines
+				console.log('\n  DockeMachines')
+				lib.Message(outputs['DockeMachines'], 'primary', 1)
+
+				// Images
+				console.log('\n  Images')
+				lib.Message(outputs['Images'], 'primary', 1)
+
+				// Volumes
+				console.log('\n  Volumes')
+				lib.Message(outputs['Volumes'], 'primary', 1)
+
+				// Containers
+				console.log('\n  Containers')
+				lib.Message(outputs['Containers'], 'primary', 1)
+
+				resolve()
+
+			})
+			.catch(e=>lib.Error(e))
+	})
 };
