@@ -1,7 +1,7 @@
 {
   "name": "genie-cmd",
-  "description": "node版genie",
-  "version": "0.0.26",
+  "description": "genie by node",
+  "version": "0.0.27",
   "license": "MIT",
   "private": false,
   "bin": {
