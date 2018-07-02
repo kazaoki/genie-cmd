@@ -12,7 +12,7 @@ RUN apk --update add tzdata && \
 # --------------------------------------------------------------------------------------------------
 RUN apk --update add \
     bash git tar curl lftp nodejs ca-certificates shadow nginx openssh-server logrotate multitail sudo \
-    php7 php7-sqlite3 php7-mysqlnd php7-gd php7-imagick php7-mailparse php7-pdo php7-phar php7-pgsql php7-mysqli php7-mcrypt php7-json php7-ftp \
+    php7 php7-sqlite3 php7-mysqlnd php7-gd php7-imagick php7-mailparse php7-pdo php7-phar php7-pgsql php7-mysqli php7-mcrypt php7-json php7-ftp php7-session php7-mbstring php7-ctype \
     apache2 apache2-ssl php7-apache2 \
     perl perl-libwww perl-dbi perl-dbd-pg perl-dbd-mysql perl-dbd-sqlite perl-carp perl-cgi perl-cgi-fast perl-net-ssleay perl-gd \
     ruby ruby-irb && \
@@ -22,53 +22,6 @@ RUN apk --update add \
 # --------------------------------------------------------------------------------------------------
 ADD bashrc /etc/bashrc
 RUN bash
-
-# # ------------
-# RUN rpm -Uvh http://dev.mysql.com/get/mysql-community-release-el7-5.noarch.rpm \
-#     && rpm -Uvh https://rpm.nodesource.com/pub_6.x/el/7/x86_64/nodesource-release-el7-1.noarch.rpm \
-#     && yum update -y \
-#     && yum install http://rpms.famillecollet.com/enterprise/remi-release-7.rpm -y \
-#     && yum install -y --enablerepo=remi --enablerepo=remi-php56 php php-opcache php-develphp-mcrypt php-mysqlnd php-phpunit-PHPUnit php-pecl-xdebug php-pecl-xhprof php-pdo php-mysql php-pgsql php-gd php-xml php-soap php-Smarty php-pear-Mail-mimeDecode php-mcrypt \
-#     && yum install epel-release -y \
-#     && yum install -y \
-#         gcc make perl perl-core openssl openssl-libs openssl-devel htop \
-#         git tig bzip2 tar patch wget which cronie \
-#         readline readline-devel \
-#         libevent-devel zlib zlib-devel unzip \
-#         curl curl-devel psmisc \
-#         bison bison-devel re2c libxml2-devel autoconf automake \
-#         libjpeg-devel libpng-devel readline-devel libtidy-devel \
-#         libxslt-devel libmcrypt libmcrypt-devel \
-#         re2c libxml2-devel bison bison-devel \
-#         perl-libwww-perl perl-Crypt-SSLeay \
-#         perl-String-CRC32 gnutls \
-#         perl-DBD-MySQL perl-DBD-Pg \
-#         perl-GD \
-#         ImageMagick ImageMagick-perl \
-#         postfix \
-#         libffi-devel \
-#         mariadb mariadb-devel \
-#         postgresql postgresql-devel \
-#         httpd httpd-devel mod_php mod_ssl \
-#         net-tools sudo multitail zip tar bzip2 patch git \
-#         nginx \
-#         ruby ruby-devel rubygem-bundler \
-#         ibus-kkc vlgothic-* \
-#         xorg-x11-server-Xvfb firefox \
-#         rpm-build libtool gcc-c++ mod_fcgid \
-#         nodejs \
-#         openssh-server \
-#         lsof \
-#         logrotate \
-#         compat-libtidy \
-#         bzip2-devel libicu-devel \
-#     && yum clean all
-
-# # Set locale
-# # ----------
-# RUN echo 'LANG="ja_JP.utf8"' > /etc/locale.conf \
-#     && source /etc/locale.conf \
-#     && localedef -f UTF-8 -i ja_JP ja_JP.UTF-8
 
 # Install anyenv
 # --------------------------------------------------------------------------------------------------
@@ -119,15 +72,15 @@ RUN sed -i 's/\#AddHandler\ cgi\-script\ \.cgi/AddHandler\ cgi\-script\ \.cgi/g'
     && echo '</Directory>' >> /etc/apache2/httpd.conf \
 	&& mkdir /run/apache2/
 
-# Install ngrok
-# --------------------------------------------------------------------------------------------------
-RUN mkdir /tmp/ngrok/ \
-    && cd /tmp/ngrok/ \
-    && curl -L -O https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip \
-    && unzip ngrok-stable-linux-amd64.zip \
-    && mv ngrok /usr/local/bin \
-    && rm -fr /tmp/ngrok/ \
-    && cd
+# # Install ngrok
+# # --------------------------------------------------------------------------------------------------
+# RUN mkdir /tmp/ngrok/ \
+#     && cd /tmp/ngrok/ \
+#     && curl -L -O https://bin.equinox.io/c/4VmDzA7iaHb/ngrok-stable-linux-amd64.zip \
+#     && unzip ngrok-stable-linux-amd64.zip \
+#     && mv ngrok /usr/local/bin \
+#     && rm -fr /tmp/ngrok/ \
+#     && cd
 
 # # Install suPHP
 # # --------------------------------------------------------------------------------------------------
@@ -138,32 +91,23 @@ RUN mkdir /tmp/ngrok/ \
 #     && rpm -ivh /root/rpmbuild/RPMS/x86_64/suphp-0.7.2-1.x86_64.rpm \
 #     && echo 'IncludeOptional /etc/apache2/conf/extra/httpd-suphp.conf' >> /etc/apache2/httpd.conf
 
-# Setup sendmail logging
-# --------------------------------------------------------------------------------------------------
-ADD sendlog/sendsave.pl /sendlog/sendsave.pl
-ADD sendlog/index.php /sendlog/index.php
-RUN chmod 0777 /sendlog \
-    && chmod 0755 /sendlog/sendsave.pl \
-    && mkdir /sendlog/emls \
-    && chmod 0777 /sendlog/emls
-
-# Install Fluentd
-# --------------------------------------------------------------------------------------------------
-RUN apk add --no-cache --virtual .build-deps build-base ruby-dev  gnupg \
-    && update-ca-certificates \
-    && echo 'gem: --no-document' >> /etc/gemrc \
-    && gem install oj -v 2.18.3 \
-    && gem install json -v 2.1.0 \
-    && gem install fluentd -v 0.12.43 \
-	&& fluent-gem install fluent-plugin-elasticsearch \
-    && apk del .build-deps \
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /tmp/* /var/tmp/* /usr/lib/ruby/gems/*/cache/*.gem
+# # Install Fluentd
+# # --------------------------------------------------------------------------------------------------
+# RUN apk add --no-cache --virtual .build-deps build-base ruby-dev gnupg \
+#     && update-ca-certificates \
+#     && echo 'gem: --no-document' >> /etc/gemrc \
+#     && gem install oj -v 2.18.3 \
+#     && gem install json -v 2.1.0 \
+#     && gem install fluentd -v 0.12.43 \
+# 	&& fluent-gem install fluent-plugin-elasticsearch \
+#     && apk del .build-deps \
+#     && rm -rf /var/cache/apk/* \
+#     && rm -rf /tmp/* /var/tmp/* /usr/lib/ruby/gems/*/cache/*.gem
 
 # Node.js config
 # --------------------------------------------------------------------------------------------------
 RUN echo '{ "allow_root": true }' > /root/.bowerrc \
-    && npm install bower -g
+    && npm install bower maildev -g
 
 # Install box
 # --------------------------------------------------------------------------------------------------

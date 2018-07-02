@@ -5,7 +5,7 @@
  * ex. g open           ... 設定されたブラウザでサイトを開く
  * ex. g open --site    ... 既定のブラウザで開発サイトを開く
  * ex. g open --report  ... 既定のブラウザでテストレポートを開く
- * ex. g open --sendlog ... 既定のブラウザでsendlogページを開く
+ * ex. g open --maildev ... 既定のブラウザでmaildevページを開く
  * ex. g open --code    ... 管理フォルダをVisualStudioCodeで開く
  * ex. g open https://google.com
  */
@@ -31,9 +31,9 @@ module.exports = async option=>{
 			describe: '既定のブラウザでテストレポートを開く',
 			boolean: true
 		})
-		.options('sendlog', {
-			alias: 'l',
-			describe: '既定のブラウザでsendlogページを開く',
+		.options('maildev', {
+			alias: 'm',
+			describe: '既定のブラウザでMailDevページを開く',
 			boolean: true
 		})
 		.options('code', {
@@ -73,8 +73,8 @@ module.exports = async option=>{
 	// --report指定
 	if(argv.r) child.exec(`${opener} ${config.root}/tests-report/mochawesome-report/mochawesome.html`)
 
-	// --sendlog指定
-	if(argv.l) child.exec(`${opener} ${getSendlogUrl(config)}`)
+	// --maildev指定
+	if(argv.l) child.exec(`${opener} ${getMailDevUrl(config)}`)
 
 	// --code指定
 	if(argv.c) child.exec(`code ${config.root}`)
@@ -140,16 +140,16 @@ function getWorkingUrl(config) {
 }
 
 /**
- * SendlogのURLを返す
+ * MailDevのURLを返す
  */
-function getSendlogUrl(config) {
+function getMailDevUrl(config) {
 
 	// コンテナが起動してるかチェック
 	if(!lib.existContainers(config, '/'+config.base_name+'$'))
 		lib.Error('dockerコンテナが起動していません: '+config.base_name)
 	;
 
-	// SendlogのURLを用意
+	// MailDevのURLを用意
 	let port = lib.get_external_port(config, 9981)
 	let url = `http://${config.host_ip}:${port}`
 

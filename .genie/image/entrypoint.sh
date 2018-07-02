@@ -324,7 +324,7 @@ fi
 # --------------------------------------------------------------------
 # Postfix
 # --------------------------------------------------------------------
-if [[ $GENIE_POSTFIX_ENABLED ]]; then
+if [[ $GENIE_MAIL_POSTFIX_ENABLED ]]; then
   sed -i 's/inet_protocols = all/inet_protocols = ipv4/g' /etc/postfix/main.cf
   if [[ $GENIE_POSTFIX_FORCE_ENVELOPE != '' ]]; then
     echo "canonical_classes = envelope_sender, envelope_recipient" >> /etc/postfix/main.cf
@@ -336,13 +336,10 @@ if [[ $GENIE_POSTFIX_ENABLED ]]; then
 fi
 
 # --------------------------------------------------------------------
-# Sendlog
+# MailDev
 # --------------------------------------------------------------------
-if [[ $GENIE_SENDLOG_ENABLED ]]; then
-  ln -sf /sendlog/sendsave.pl /usr/sbin/sendmail
-  echo 'system' > /sendlog/.php-version
-  cd /sendlog
-  php -S 0.0.0.0:$(echo $GENIE_SENDLOG_BIND_PORTS | cut -f2 -d:) >/dev/null 2>&1 &
+if [[ $GENIE_MAIL_MAILDEV_ENABLED ]]; then
+  maildev -s 25 -w 9981 $GENIE_MAIL_MAILDEV_OPTION_STRING &
 fi
 
 # --------------------------------------------------------------------

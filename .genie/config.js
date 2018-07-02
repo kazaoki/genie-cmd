@@ -28,7 +28,6 @@ config.core =
 		mounts: [ // ホスト側(左側)を/以外で始めるとホームパスからの指定になります。
 			// 'app:/app',
 			// 'home-data:/home/xxx/',
-			// 'emls:/sendlog/emls',
 		],
 		mount_mode: 'share',
 		// network: 'my_docker_nw',
@@ -220,17 +219,17 @@ config.db =
  */
 config.mail =
 {
+	// MailDev設定
+	maildev: {
+		enabled: true,
+		external_port: 9981,
+		// option_string: ''
+	},
+
 	// Postfix設定
 	postfix: {
 		// enabled: true,
 		// force_envelope: 'test@xx.xx',
-	},
-
-	// Sendlog設定
-	sendlog: {
-		enabled: true,
-		// hide_desc: 1, // 一覧ページ上部の説明文を表示する(1)か否か
-		external_port: 9981,
 	},
 }
 

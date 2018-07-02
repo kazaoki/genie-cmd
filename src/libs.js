@@ -254,7 +254,7 @@ const loadConfig = module.exports.loadConfig = argv=>{
 		config.http.apache.external_http_port = 'auto'
 		config.http.apache.external_https_port = 'auto'
 		config.mail.postfix.enabled = false
-		config.mail.sendlog.external_port = undefined
+		config.mail.maildev.external_port = undefined
 		if(config.db.mysql) {
 			for(let key of Object.keys(config.db.mysql)) {
 				config.db.mysql[key].external_port = undefined
@@ -634,13 +634,13 @@ const dockerUp = module.exports.dockerUp = config=>
 			}
 		}
 
-		// Sendlog関係
-		if(config.mail.sendlog && config.mail.sendlog.enabled) {
-			if(config.mail.sendlog.external_port) {
+		// MailDev関係
+		if(config.mail.maildev && config.mail.maildev.enabled) {
+			if(config.mail.maildev.external_port) {
 				args.push('-p',
-					config.mail.sendlog.external_port==='auto'
+					config.mail.maildev.external_port==='auto'
 						? '9981'
-						: `${config.mail.sendlog.external_port}:9981`
+						: `${config.mail.maildev.external_port}:9981`
 				)
 			}
 		}
