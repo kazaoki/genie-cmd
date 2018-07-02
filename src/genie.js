@@ -16,7 +16,7 @@ console.time('  Done')
  */
 global.CMDS = {
 	demo:      option=>{return require('./cmd-demo.js')(option)},
-	// init:      option=>{return require('./cmd-init.js')(option)},
+	init:      option=>{return require('./cmd-init.js')(option)},
 	config:    option=>{return require('./cmd-config.js')(option)},
 	ls:        option=>{return require('./cmd-ls.js')(option)},
 	up:        option=>{return require('./cmd-up.js')(option)},
@@ -70,7 +70,7 @@ if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 	*/
 	let cmd = argv._.shift()
 		 if(cmd==='demo')    await CMDS.demo(option)
-	// else if(cmd==='init')    await CMDS.init(option)
+	else if(cmd==='init')    await CMDS.init(option)
 	else if(cmd==='config')  await CMDS.config(option)
 	else if(cmd==='ls')      await CMDS.ls(option)
 	else if(cmd==='up')      await CMDS.up(option)
@@ -99,7 +99,7 @@ if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 		lib.Message(
 			option.help()+'\n'+
 			'Commands:\n'+
-			'  init      \n'+
+			'  init      現在のディレクトリに .genie/ を作成します。\n'+
 			'  config    設定を確認する\n'+
 			'  ls        Dockerコンテナ状況を確認する\n'+
 			'  up        設定に基づきDockerコンテナを起動する\n'+

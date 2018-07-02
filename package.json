@@ -1,7 +1,7 @@
 {
   "name": "genie-cmd",
   "description": "genie by node",
-  "version": "0.0.28",
+  "version": "0.0.37",
   "license": "MIT",
   "private": false,
   "bin": {
@@ -15,18 +15,19 @@
     "test-in-mac": "npx mocha --recursive tests --reporter mochawesome --reporter-options reportDir=tests-report/mochawesome-report,quiet=true,autoOpen=true"
   },
   "devDependencies": {
-    "parcel-bundler": "^1.7.1",
-    "puptester": "^0.0.2"
+    "parcel-bundler": "^1.7.1"
   },
   "dependencies": {
     "cli-color": "^1.2.0",
     "cliui": "^4.1.0",
+    "fs-extra": "^6.0.1",
     "inquirer": "^5.2.0",
     "jp-wrap": "^0.2.2",
     "log-rotate": "^0.2.8",
     "mocha": "^5.2.0",
     "mochawesome": "^3.0.2",
     "optimist": "^0.6.1",
-    "string-width": "^2.1.1"
+    "string-width": "^2.1.1",
+    "puptester": "^0.0.2"
   }
 }

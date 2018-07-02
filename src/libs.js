@@ -31,7 +31,7 @@ const h = module.exports.h = (title, clc=color.white)=>console.log('\n  '+clc(ti
  */
 const getRootDir = module.exports.getRootDir = ()=>{
 	let root_dir = ''
-	let check_dir = __dirname
+	let check_dir = process.cwd()
 	let cont = true
 	do {
 		try {
@@ -224,8 +224,8 @@ const showRunmode = module.exports.showRunmode = message=>{
 const loadConfig = module.exports.loadConfig = argv=>{
 
 	// ルートパス取得
-	let root_dir = getRootDir();
-	let config_js = `${root_dir}/.genie/${argv.config}`;
+	let root_dir = getRootDir()
+	let config_js = path.join(root_dir, '.genie', argv.config)
 	try {
 		fs.accessSync(config_js)
 	} catch (err){
@@ -233,14 +233,14 @@ const loadConfig = module.exports.loadConfig = argv=>{
 	}
 
 	// ファイルロード
-	delete require.cache[require.resolve(config_js)]
+	try {delete require.cache[require.resolve(config_js)]}catch(e){}
 	let config = require(config_js).config;
 
 	// 実行モードをセット
 	config.runmode = argv.mode
 
 	// ルートセット
-	config.root = getRootDir()
+	config.root = root_dir
 
 	// test時の基本調整
 	if(config.runmode==='test') {

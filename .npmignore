@@ -5,8 +5,6 @@ src/
 public_html/
 .cache/
 .vscode/
-.genie/
 .editorconfig
 .gitignore
-yarn.lock
 tests/
