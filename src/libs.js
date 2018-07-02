@@ -678,6 +678,8 @@ const dockerUp = module.exports.dockerUp = config=>
 				}
 			}
 		}
+		// ただし/genie/だけは通常のshareモードでマウントするようにする
+		args.push('-v', config.root+'/.genie:/genie')
 
 		// 設定値を環境変数値に
 		let envs = data2envs(config, 'GENIE')

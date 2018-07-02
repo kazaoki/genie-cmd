@@ -9,4 +9,4 @@ public_html/
 .editorconfig
 .gitignore
 yarn.lock
-
+tests/
