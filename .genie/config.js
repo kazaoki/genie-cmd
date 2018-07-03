@@ -283,12 +283,7 @@ config.test =
 	run: 'npx mocha --reporter mochawesome --recursive tests --reporter-options reportDir=tests-report/mochawesome-report/,quiet=true',
 
 	// テスト後に実行するコマンド
-	after: process.platform==='win32' // chrome|firefox|ie|safari|opera 未指定は既定のブラウザで開く
-		? 'start chrome tests-report/mochawesome-report/mochawesome.html' // for Windows
-		: 'open -a chrome tests-report/mochawesome-report/mochawesome.html' // for macOS
-	,
-	// うまく開かない・・
-
+	after: 'g open --report',
 }
 
 /**
