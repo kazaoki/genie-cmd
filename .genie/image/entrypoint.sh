@@ -5,47 +5,6 @@
 # --------------------------------------------------------------------
 echo ". /etc/bashrc" >> /root/.bashrc
 
-# # --------------------------------------------------------------------
-# # init mode
-# # --------------------------------------------------------------------
-# if [[ $GENIE_PROC == 'init' ]]; then
-#   cd /work
-#   mkdir .genie
-#   cd .genie
-#   url=https://github.com/kazaoki/genie/tarball/$GENIE_INIT_BRANCH
-#   echo "Downloading $url"
-#   echo ""
-#   curl -s -f -L $url | tar xvz */dist/.genie
-#   if [ $? -ne 0 ]; then
-#     exit 1
-#   fi
-#   dir=`ls`
-#   mv ${dir}/dist/.genie/* ./
-#   rm -fr ${dir}
-#   exit 0
-# fi
-
-# # --------------------------------------------------------------------
-# # update mode
-# # --------------------------------------------------------------------
-# if [[ $GENIE_PROC == 'update' ]]; then
-#   cd /work
-#   mkdir .genie_update
-#   cd .genie_update
-#   url=https://github.com/kazaoki/genie/tarball/$GENIE_UPDATE_BRANCH
-#   echo "Downloading $url"
-#   echo ""
-#   curl -s -f -L $url | tar xvz */dist/.genie
-#   if [ $? -ne 0 ]; then
-#     exit 1
-#   fi
-#   dir=`ls`
-#   \cp -fr ${dir}/dist/.genie/* ../.genie
-#   cd ..
-#   rm -fr .genie_update
-#   exit 0
-# fi
-
 # --------------------------------------------------------------------
 # httpd mode
 # --------------------------------------------------------------------
@@ -111,9 +70,9 @@ echo 'entrypoint.sh setup start.' >> /var/log/entrypoint.log
 # --------------------------------------------------------------------
 # sshd setup
 # --------------------------------------------------------------------
-if [[ $GENIE_SSHD_ENABLED ]]; then
-  genie_pass=`echo $GENIE_SSHD_LOGIN_PASS | openssl passwd -1 -stdin`
-  useradd $GENIE_SSHD_LOGIN_USER -d $GENIE_SSHD_LOGIN_PATH -M -l -R / -p $genie_pass
+if [[ $GENIE_TRANS_SSHD_ENABLED ]]; then
+  genie_pass=`echo $GENIE_TRANS_SSHD_LOGIN_PASS | openssl passwd -1 -stdin`
+  useradd $GENIE_TRANS_SSHD_LOGIN_USER -d $GENIE_TRANS_SSHD_LOGIN_PATH -M -l -R / -p $genie_pass
   ssh-keygen -A
   /usr/sbin/sshd -D -f /etc/ssh/sshd_config &
 fi
@@ -121,7 +80,7 @@ fi
 # --------------------------------------------------------------------
 # perl setup
 # --------------------------------------------------------------------
-if [[ $GENIE_PERL_VERSION != '' ]]; then
+if [[ $GENIE_LANG_PERL_VERSION != '' ]]; then
   mkdir -p /genie/opt/perl
   # -- tar restore
   mkdir -p /perl/versions
@@ -130,23 +89,23 @@ if [[ $GENIE_PERL_VERSION != '' ]]; then
     tar xf $tarfile -C /perl/versions
   fi
   # -- install
-  install_path="/perl/versions/$GENIE_PERL_VERSION"
-  link_to="/root/.anyenv/envs/plenv/versions/$GENIE_PERL_VERSION"
+  install_path="/perl/versions/$GENIE_LANG_PERL_VERSION"
+  link_to="/root/.anyenv/envs/plenv/versions/$GENIE_LANG_PERL_VERSION"
   if [[ ! -e $install_path ]]; then
     # -- perl install
-    /root/.anyenv/envs/plenv/plugins/perl-build/bin/perl-build $GENIE_PERL_VERSION ${install_path}
+    /root/.anyenv/envs/plenv/plugins/perl-build/bin/perl-build $GENIE_LANG_PERL_VERSION ${install_path}
     if [[ ! -e $install_path ]]; then
       exit 1
     fi
     ln -s ${install_path} ${link_to}
-    source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv global $GENIE_PERL_VERSION
+    source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv global $GENIE_LANG_PERL_VERSION
     source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv rehash
     cd /perl/versions
     tar cf /genie/opt/perl/versions.tar ./
   else
     # -- perl relink
     ln -s ${install_path} ${link_to}
-    source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv global $GENIE_PERL_VERSION
+    source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv global $GENIE_LANG_PERL_VERSION
     source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv rehash
   fi
   if [[ ! -L /usr/bin/perl ]]; then
@@ -159,7 +118,7 @@ fi
 # --------------------------------------------------------------------
 # Install perl modules from cpanfile
 # --------------------------------------------------------------------
-if [[ $GENIE_PERL_CPANFILE_ENABLED && -e /genie/opt/perl/cpanfile ]]; then
+if [[ $GENIE_LANG_PERL_CPANFILE_ENABLED && -e /genie/opt/perl/cpanfile ]]; then
   mkdir -p /genie/opt/perl
   # -- tar restore
   mkdir -p /perl/cpanfile-modules
@@ -178,7 +137,7 @@ fi
 # --------------------------------------------------------------------
 # php setup
 # --------------------------------------------------------------------
-if [[ $GENIE_PHP_VERSION != '' ]]; then
+if [[ $GENIE_LANG_PHP_VERSION != '' ]]; then
   mkdir -p /genie/opt/php
   # -- tar restore
   mkdir -p /php/versions
@@ -187,38 +146,38 @@ if [[ $GENIE_PHP_VERSION != '' ]]; then
     tar xf $tarfile -C /php/versions
   fi
   # -- php5/7 module
-  if expr $GENIE_PHP_VERSION : "^7" > /dev/null; then
+  if expr $GENIE_LANG_PHP_VERSION : "^7" > /dev/null; then
     libphp="libphp7.so"
   else
     libphp="libphp5.so"
   fi
   # -- install
-  install_path="/php/versions/$GENIE_PHP_VERSION/"
-  link_to="/root/.anyenv/envs/phpenv/versions/$GENIE_PHP_VERSION"
+  install_path="/php/versions/$GENIE_LANG_PHP_VERSION/"
+  link_to="/root/.anyenv/envs/phpenv/versions/$GENIE_LANG_PHP_VERSION"
   if [[ ! -e ${install_path} ]]; then
     # -- php install
-    if [[ $GENIE_PHP_CONFIGURE != '' ]]; then
-      sed -i -e "1i configure_option \"$GENIE_PHP_CONFIGURE\"" /root/.anyenv/envs/phpenv/plugins/php-build/share/php-build/definitions/$GENIE_PHP_VERSION
+    if [[ $GENIE_LANG_PHP_CONFIGURE != '' ]]; then
+      sed -i -e "1i configure_option \"$GENIE_LANG_PHP_CONFIGURE\"" /root/.anyenv/envs/phpenv/plugins/php-build/share/php-build/definitions/$GENIE_LANG_PHP_VERSION
     fi
-    /root/.anyenv/envs/phpenv/plugins/php-build/bin/php-build $GENIE_PHP_VERSION ${install_path}
+    /root/.anyenv/envs/phpenv/plugins/php-build/bin/php-build $GENIE_LANG_PHP_VERSION ${install_path}
     ln -s ${install_path} ${link_to}
     \cp -f /etc/httpd/modules/${libphp} ${link_to}/
-    source ~/.bashrc && /root/.anyenv/envs/phpenv/bin/phpenv global $GENIE_PHP_VERSION
+    source ~/.bashrc && /root/.anyenv/envs/phpenv/bin/phpenv global $GENIE_LANG_PHP_VERSION
     source ~/.bashrc && /root/.anyenv/envs/phpenv/bin/phpenv rehash
-    echo '[Date]' >> /php/versions/$GENIE_PHP_VERSION/etc/php.ini
-    echo 'date.timezone = "Asia/Tokyo"' >> /php/versions/$GENIE_PHP_VERSION/etc/php.ini
-    sed -i "s/^display_errors\ \=\ Off/display_errors\ \=\ On/" /php/versions/$GENIE_PHP_VERSION/etc/php.ini
+    echo '[Date]' >> /php/versions/$GENIE_LANG_PHP_VERSION/etc/php.ini
+    echo 'date.timezone = "Asia/Tokyo"' >> /php/versions/$GENIE_LANG_PHP_VERSION/etc/php.ini
+    sed -i "s/^display_errors\ \=\ Off/display_errors\ \=\ On/" /php/versions/$GENIE_LANG_PHP_VERSION/etc/php.ini
     cd /php/versions
     tar cf /genie/opt/php/versions.tar ./
   else
     # -- php relink
     ln -s ${install_path} ${link_to}
     \cp -f ${link_to}/${libphp} /etc/httpd/modules/
-    source ~/.bashrc && /root/.anyenv/envs/phpenv/bin/phpenv global $GENIE_PHP_VERSION
+    source ~/.bashrc && /root/.anyenv/envs/phpenv/bin/phpenv global $GENIE_LANG_PHP_VERSION
     source ~/.bashrc && /root/.anyenv/envs/phpenv/bin/phpenv rehash
   fi
   # -- php7 config
-  if expr $GENIE_PHP_VERSION : "^7" > /dev/null; then
+  if expr $GENIE_LANG_PHP_VERSION : "^7" > /dev/null; then
     sed -i "s/LoadModule\ php5_module\ modules\/libphp5.so/LoadModule\ php7_module\ modules\/libphp7.so/" /etc/httpd/conf.modules.d/10-php.conf
   fi
   echo 'PHP setup done.' >> /var/log/entrypoint.log
@@ -229,7 +188,7 @@ sed -i "s/^display_errors\ \=\ Off/display_errors\ \=\ On/" /etc/php.ini
 # --------------------------------------------------------------------
 # ruby setup
 # --------------------------------------------------------------------
-if [[ $GENIE_RUBY_VERSION != '' ]]; then
+if [[ $GENIE_LANG_RUBY_VERSION != '' ]]; then
   mkdir -p /genie/opt/ruby
   # -- tar restore
   mkdir -p /ruby/versions
@@ -238,20 +197,20 @@ if [[ $GENIE_RUBY_VERSION != '' ]]; then
     tar xf $tarfile -C /ruby/versions
   fi
   # -- install
-  install_path="/ruby/versions/$GENIE_RUBY_VERSION/"
-  link_to="/root/.anyenv/envs/rbenv/versions/$GENIE_RUBY_VERSION"
+  install_path="/ruby/versions/$GENIE_LANG_RUBY_VERSION/"
+  link_to="/root/.anyenv/envs/rbenv/versions/$GENIE_LANG_RUBY_VERSION"
   if [[ ! -e ${install_path} ]]; then
     # -- ruby install
-    /root/.anyenv/envs/rbenv/plugins/ruby-build/bin/ruby-build $GENIE_RUBY_VERSION ${install_path}
+    /root/.anyenv/envs/rbenv/plugins/ruby-build/bin/ruby-build $GENIE_LANG_RUBY_VERSION ${install_path}
     ln -s ${install_path} ${link_to}
-    source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv global $GENIE_RUBY_VERSION
+    source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv global $GENIE_LANG_RUBY_VERSION
     source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv rehash
     cd /ruby/versions
     tar cf /genie/opt/ruby/versions.tar ./
   else
     # -- ruby relink
     ln -s ${install_path} ${link_to}
-    source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv global $GENIE_RUBY_VERSION
+    source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv global $GENIE_LANG_RUBY_VERSION
     source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv rehash
   fi
   echo 'Ruby setup done.' >> /var/log/entrypoint.log
@@ -260,7 +219,7 @@ fi
 # --------------------------------------------------------------------
 # Node.js setup
 # --------------------------------------------------------------------
-if [[ $GENIE_NODE_VERSION != '' ]]; then
+if [[ $GENIE_LANG_NODE_VERSION != '' ]]; then
   mkdir -p /genie/opt/node
   # -- tar restore
   mkdir -p /node/versions
@@ -269,20 +228,20 @@ if [[ $GENIE_NODE_VERSION != '' ]]; then
     tar xf $tarfile -C /node/versions
   fi
   # -- install
-  install_path="/node/versions/$GENIE_NODE_VERSION/"
-  link_to="/root/.anyenv/envs/ndenv/versions/$GENIE_NODE_VERSION"
+  install_path="/node/versions/$GENIE_LANG_NODE_VERSION/"
+  link_to="/root/.anyenv/envs/ndenv/versions/$GENIE_LANG_NODE_VERSION"
   if [[ ! -e ${install_path} ]]; then
     # -- node install
-    /root/.anyenv/envs/ndenv/plugins/node-build/bin/node-build $GENIE_NODE_VERSION ${install_path}
+    /root/.anyenv/envs/ndenv/plugins/node-build/bin/node-build $GENIE_LANG_NODE_VERSION ${install_path}
     ln -s ${install_path} ${link_to}
-    source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv global $GENIE_NODE_VERSION
+    source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv global $GENIE_LANG_NODE_VERSION
     source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv rehash
     cd /node/versions
     tar cf /genie/opt/node/versions.tar ./
   else
     # -- node relink
     ln -s ${install_path} ${link_to}
-    source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv global $GENIE_NODE_VERSION
+    source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv global $GENIE_LANG_NODE_VERSION
     source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv rehash
   fi
   echo 'Node.js setup done.' >> /var/log/entrypoint.log
@@ -291,7 +250,7 @@ fi
 # --------------------------------------------------------------------
 # Apache
 # --------------------------------------------------------------------
-if [[ $GENIE_HTTP_APACHE_PUBLIC_DIR ]]; then
+if [[ $GENIE_HTTP_APACHE_ENABLED ]]; then
 #   passenv_string=`set | grep -i '^GENIE_' | perl -pe 'while(<>){ chomp; $_=~ /([^\=]+)/; print "$1 "; }'`
 #   sed -i "/<__PASSENV__>/,/<\/__PASSENV__>/c\
 # \ \ # <__PASSENV__>\n\
@@ -313,9 +272,9 @@ fi
 # --------------------------------------------------------------------
 # Nginx
 # --------------------------------------------------------------------
-if [[ $GENIE_NGINX_ENABLED ]]; then
-  if [[ $GENIE_NGINX_HTTP_PORT ]]; then
-    sed -i "s/80 default_server/$GENIE_NGINX_HTTP_PORT default_server/" /etc/nginx/nginx.conf
+if [[ $GENIE_HTTP_NGINX_ENABLED ]]; then
+  if [[ $GENIE_HTTP_NGINX_HTTP_PORT ]]; then
+    sed -i "s/80 default_server/$GENIE_HTTP_NGINX_HTTP_PORT default_server/" /etc/nginx/nginx.conf
   fi
   /usr/sbin/nginx
   echo 'Nginx setup done.' >> /var/log/entrypoint.log
@@ -345,8 +304,8 @@ fi
 # --------------------------------------------------------------------
 # Fluentd
 # --------------------------------------------------------------------
-if [[ $GENIE_FLUENTD_ENABLED ]]; then
-  td-agent --config=$GENIE_FLUENTD_CONFIG_FILE &
+if [[ $GENIE_LOG_FLUENTD_ENABLED ]]; then
+  td-agent --config=$GENIE_LOG_FLUENTD_CONFIG_FILE &
 fi
 
 # --------------------------------------------------------------------
@@ -354,17 +313,17 @@ fi
 # --------------------------------------------------------------------
 rsync -rltD --exclude /opt /genie/* /
 if [[ -d /genie/etc/httpd ]]; then
-  if [[ $GENIE_APACHE_ENABLED ]]; then
+  if [[ $GENIE_HTTP_APACHE_ENABLED ]]; then
     /usr/sbin/httpd -k restart
   fi
 fi
 if [[ -d /genie/etc/postfix ]]; then
-  if [[ $GENIE_POSTFIX_ENABLED ]]; then
+  if [[ $GENIE_MAIL_POSTFIX_ENABLED ]]; then
     /usr/sbin/postfix reload
   fi
 fi
 if [[ -d /genie/etc/nginx ]]; then
-  if [[ $GENIE_NGINX_ENABLED ]]; then
+  if [[ $GENIE_HTTP_NGINX_ENABLED ]]; then
     /usr/sbin/nginx -s reload
   fi
 fi
