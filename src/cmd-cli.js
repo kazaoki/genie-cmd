@@ -48,7 +48,7 @@ module.exports = async option=>{
 
 	// 引数が無ければコマンドラインに入る
 	else {
-		let login_path;
+		let login_path = '/';
 		let current_dir = process.cwd();
 		// ホスト側カレントディレクトリが .genie/～ 内ならゲスト内の同じ /genie/～ パスにログイン
 		if(current_dir.indexOf(path.join(config.root, '.genie'))===0) {
