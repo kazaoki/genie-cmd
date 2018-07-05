@@ -72,7 +72,7 @@ echo 'entrypoint.sh setup start.' >> /var/log/entrypoint.log
 # --------------------------------------------------------------------
 if [[ $GENIE_TRANS_SSHD_ENABLED ]]; then
   genie_pass=`echo $GENIE_TRANS_SSHD_LOGIN_PASS | openssl passwd -1 -stdin`
-  useradd $GENIE_TRANS_SSHD_LOGIN_USER -d $GENIE_TRANS_SSHD_LOGIN_PATH -M -l -R / -p $genie_pass
+  useradd $GENIE_TRANS_SSHD_LOGIN_USER -d $GENIE_TRANS_SSHD_LOGIN_PATH -M -l -R / -G docker -p $genie_pass
   ssh-keygen -A
   /usr/sbin/sshd -D -f /etc/ssh/sshd_config &
 fi
