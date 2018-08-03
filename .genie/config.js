@@ -15,14 +15,14 @@ config.core =
 {
 	// 使用する Docker イメージ情報
 	docker: {
-		image: 'kazaoki/genie:node',
+		image: 'kazaoki/genie:centos',
 		// image: 'kazaoki/genie:node',
 		// machine: 'sandbox',
 		// name: 'genie-xxx',
 		name: 'genie-test',
 		// options: '--cpuset-cpus=0-1',
 		hosts: [
-			'genie-xxx.com:127.0.0.1',
+			// 'genie-test.com:127.0.0.1',
 		],
 		// ip_force: '192.168.99.100',
 		mounts: [ // ホスト側(左側)を/以外で始めるとホームパスからの指定になります。
@@ -61,9 +61,10 @@ config.lang =
 
 	// PHP設定
 	php: {
-		// version: '5.3.3', // `genie langver --php` でリストアップされるバージョン文字列を指定
-		// configure: '--with-apxs2=/usr/bin/apxs', // `うまくいかないときは '--with-apxs2=/usr/bin/apxs --disable-fpm' など
-		error_report: process.env['GENIE_RUNMODE']!=='product',
+		phpenv_image: 'kazaoki/phpenv:5.2.17', // バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
+		// phpenv_image: 'kazaoki/phpenv:7.2.8', // バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
+		error_report: process.env['GENIE_RUNMODE']==='develop',
+		timezone: 'Asia/Tokyo'
 	},
 
 	// Ruby設定
@@ -159,18 +160,18 @@ config.db =
 {
 	// MySQL設定
 	mysql: {
-		main: {
-			repository : 'mysql:5.5',
-			host       : 'main.mysql-server',
-			name       : 'sample_db',
-			user       : 'sample_user',
-			pass       : '123456789',
-			charset    : 'utf8mb4',
-			collation  : 'utf8mb4_unicode_ci',
-			dump_genel : 3,
-			// volume_lock: true,
-			external_port: 3306,
-		},
+		// main: {
+		// 	repository : 'mysql:5.5',
+		// 	host       : 'main.mysql-server',
+		// 	name       : 'sample_db',
+		// 	user       : 'sample_user',
+		// 	pass       : '123456789',
+		// 	charset    : 'utf8mb4',
+		// 	collation  : 'utf8mb4_unicode_ci',
+		// 	dump_genel : 3,
+		// 	// volume_lock: true,
+		// 	external_port: 3306,
+		// },
 		// sub: {
 		// 	repository : 'mysql:5.7',
 		// 	host       : 'sub.mysql-server',

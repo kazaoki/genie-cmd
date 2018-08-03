@@ -353,7 +353,7 @@ const dockerDown = module.exports.dockerDown = (config, wz_volumes)=>{
 		for(let container of containers){
 			delfuncs.push(
 				new Promise((ok,ng)=>{
-					child.spawn('docker', ['rm', '-f', container.id])
+					child.spawn('docker', ['rm', '-f', '-v', container.id])
 						.stderr.on('data', data=>{
 							console.log(
 								color.blackBright(`  [Container] ${container.name} (${container.id}) ... `)+
@@ -585,6 +585,12 @@ const dockerUp = module.exports.dockerUp = config=>
 			}
 		}
 
+		// phpenvコンテナ関係
+		if(config.lang.php.phpenv_image){
+			let container_name = config.lang.php.phpenv_container_name
+			args.push('--volumes-from', container_name)
+		}
+
 		// SSHD関係
 		if(config.trans.sshd && config.trans.sshd.enabled){
 			if(config.trans.sshd.external_port) {
@@ -714,6 +720,44 @@ const dockerUp = module.exports.dockerUp = config=>
 
 			resolve();
 		}
+
+	})
+}
+
+/**
+ * dockerUpPhpEnv
+ * -----------------------------------------------------------------------------
+ * @param {object} config 設定データ
+ */
+const dockerUpPhpEnv = module.exports.dockerUpPhpEnv = (config)=>
+{
+	return new Promise((resolve, reject)=>{
+
+		// 引数用意
+		let version = config.lang.php.phpenv_image.match(/\:([\.\d]+)$/)[1]
+		let container_name = `${config.base_name}-phpenv-${version}`
+		config.lang.php.phpenv_version = version
+		config.lang.php.phpenv_container_name = container_name;
+		let args = [];
+		args.push('run')
+		args.push('--name', container_name)
+		args.push('--label', `genie_runmode="${config.runmode}"`)
+		args.push('--label', `genie_root="${config.root}"`)
+		args.push('--label', `genie_anyenv="phpenv"`)
+		args.push(config.lang.php.phpenv_image)
+
+		// dockerコマンド実行
+		child.spawn('docker', args)
+			.stderr.on('data', data=>{
+				if(data.toString().match(/Unable to find image '.+' locally/)) {
+					process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`] = true
+				}
+			})
+			.on('close', code=>{
+				delete process.env[`DOCKER_IMAGE_DOWN_LOADING_${container_name.toUpperCase()}`]
+				// コマンド終了（でも裏で起動処理は続いている）
+				resolve()
+			})
 
 	})
 }
