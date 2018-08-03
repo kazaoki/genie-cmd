@@ -139,22 +139,22 @@ fi
 # --------------------------------------------------------------------
 phpini=/etc/php.ini
 if [[ $GENIE_LANG_PHP_PHPENV_IMAGE != '' ]]; then
-	echo 'export PATH="$PATH:$PHPENV_ROOT/versions/${GENIE_LANG_PHP_PHPENV_VERSION}/bin"' >> ~/.bashrc
-	. ~/.bashrc
-	phpenv global $GENIE_LANG_PHP_PHPENV_VERSION
-	phpenv rehash
-	\cp -f $PHPENV_ROOT/versions/$GENIE_LANG_PHP_PHPENV_VERSION/httpd_modules/*.so /etc/httpd/modules/
-	phpini=$PHPENV_ROOT/versions/$GENIE_LANG_PHP_PHPENV_VERSION/etc/php.ini
+  echo 'export PATH="$PATH:$PHPENV_ROOT/versions/${GENIE_LANG_PHP_PHPENV_VERSION}/bin"' >> ~/.bashrc
+  . ~/.bashrc
+  phpenv global $GENIE_LANG_PHP_PHPENV_VERSION
+  phpenv rehash
+  \cp -f $PHPENV_ROOT/versions/$GENIE_LANG_PHP_PHPENV_VERSION/httpd_modules/*.so /etc/httpd/modules/
+  phpini=$PHPENV_ROOT/versions/$GENIE_LANG_PHP_PHPENV_VERSION/etc/php.ini
   # -- php7 config
   if expr $GENIE_LANG_PHP_PHPENV_VERSION : "^7" > /dev/null; then
     sed -i "s/LoadModule\ php5_module\ modules\/libphp5.so/LoadModule\ php7_module\ modules\/libphp7.so/" /etc/httpd/conf.modules.d/10-php.conf
   fi
 fi
 if [[ $GENIE_LANG_PHP_ERROR_REPORT == 1 ]]; then
-	sed -i "s/^display_errors\ \=\ Off/display_errors\ \=\ On/" $phpini
+  sed -i "s/^display_errors\ \=\ Off/display_errors\ \=\ On/" $phpini
 fi
 if [[ $GENIE_LANG_PHP_TIMEZONE != '' ]]; then
-	echo "[Date]\ndate.timezone = \"$GENIE_LANG_PHP_TIMEZONE\"" >> $phpini
+  echo "[Date]\ndate.timezone = \"$GENIE_LANG_PHP_TIMEZONE\"" >> $phpini
 fi
 echo 'PHP setup done.' >> /var/log/entrypoint.log
 

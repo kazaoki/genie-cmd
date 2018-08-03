@@ -160,18 +160,18 @@ config.db =
 {
 	// MySQL設定
 	mysql: {
-		// main: {
-		// 	repository : 'mysql:5.5',
-		// 	host       : 'main.mysql-server',
-		// 	name       : 'sample_db',
-		// 	user       : 'sample_user',
-		// 	pass       : '123456789',
-		// 	charset    : 'utf8mb4',
-		// 	collation  : 'utf8mb4_unicode_ci',
-		// 	dump_genel : 3,
-		// 	// volume_lock: true,
-		// 	external_port: 3306,
-		// },
+		main: {
+			repository : 'mysql:5.5',
+			host       : 'main.mysql-server',
+			name       : 'sample_db',
+			user       : 'sample_user',
+			pass       : '123456789',
+			charset    : 'utf8mb4',
+			collation  : 'utf8mb4_unicode_ci',
+			dump_genel : 3,
+			// volume_lock: true,
+			external_port: 3306,
+		},
 		// sub: {
 		// 	repository : 'mysql:5.7',
 		// 	host       : 'sub.mysql-server',
