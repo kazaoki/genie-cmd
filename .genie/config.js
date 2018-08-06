@@ -61,7 +61,8 @@ config.lang =
 
 	// PHP設定
 	php: {
-		phpenv_image: 'kazaoki/phpenv:5.2.17', // バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
+		// phpenv_image: 'kazaoki/phpenv:5.2.17', // バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
+		phpenv_image: 'kazaoki/phpenv:5.3.3', // バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
 		// phpenv_image: 'kazaoki/phpenv:7.2.8', // バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
 		error_report: process.env['GENIE_RUNMODE']==='develop',
 		timezone: 'Asia/Tokyo'
