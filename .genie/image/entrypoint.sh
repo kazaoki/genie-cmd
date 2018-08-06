@@ -154,7 +154,8 @@ if [[ $GENIE_LANG_PHP_ERROR_REPORT == 1 ]]; then
   sed -i "s/^display_errors\ \=\ Off/display_errors\ \=\ On/" $phpini
 fi
 if [[ $GENIE_LANG_PHP_TIMEZONE != '' ]]; then
-  echo "[Date]\ndate.timezone = \"$GENIE_LANG_PHP_TIMEZONE\"" >> $phpini
+  echo "[Date]" >> $phpini
+  echo "date.timezone = \"$GENIE_LANG_PHP_TIMEZONE\"" >> $phpini
 fi
 echo 'PHP setup done.' >> /var/log/entrypoint.log
 
