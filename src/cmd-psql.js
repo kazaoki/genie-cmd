@@ -277,7 +277,9 @@ function get_target_containers(config, option={}, message)
 {
 	// １つしかなければそれ
 	if(Object.keys(config.db.postgresql).length===1) {
-		return `${config.base_name}-postgresql-${Object.keys(config.db.postgresql)[0]}`
+		return option.is_key_return
+			? Object.keys(config.db.postgresql)[0]
+			: `${config.base_name}-postgresql-${Object.keys(config.db.postgresql)[0]}`
 	}
 
 	// ２つ以上あれば選択肢

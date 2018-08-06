@@ -280,7 +280,9 @@ function get_target_containers(config, option={}, message)
 {
 	// １つしかなければそれ
 	if(Object.keys(config.db.mysql).length===1) {
-		return `${config.base_name}-mysql-${Object.keys(config.db.mysql)[0]}`
+		return option.is_key_return
+			? Object.keys(config.db.mysql)[0]
+			: `${config.base_name}-mysql-${Object.keys(config.db.mysql)[0]}`
 	}
 
 	// ２つ以上あれば選択肢
