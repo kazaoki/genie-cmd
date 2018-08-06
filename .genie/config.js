@@ -90,11 +90,11 @@ config.log =
 	// それぞれ色も指定可能です → red, green, yellow, blue, magenta, cyan, white(default)
 	tail: [
 		[
-			'/var/log/apache2/access.log',
-			['/var/log/apache2/error.log', 'red'],
-			'/var/log/apache2/ssl_access.log',
-			'/var/log/apache2/ssl_request.log',
-			['/var/log/apache2/ssl_error.log', 'red'],
+			['/var/log/httpd/access_log', 'white'],
+			['/var/log/httpd/error_log', 'red'],
+			['/var/log/httpd/ssl_access_log', 'white'],
+			['/var/log/httpd/ssl_request_log', 'white'],
+			['/var/log/httpd/ssl_error_log', 'red'],
 		],
 		// [
 		// 	'/var/log/nginx/access.log',
