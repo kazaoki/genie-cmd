@@ -211,10 +211,10 @@ module.exports = async option=>{
 
 						// 既存のコンテナを終了する
 						let volume_container_name = get_volume_container_name(container_name)
-						child.exec(`docker rm -f -v ${container_name}`, (error, stdout, stderr)=>{
+						child.exec(`docker rm -f ${container_name}`, (error, stdout, stderr)=>{
 							error && ng(error)
 
-							// ボリュームも消す（上記の-v指定で消えはずなのに消えないので・・）
+							// ボリュームも消す
 							child.exec(`docker volume rm -f ${volume_container_name}`, (error, stdout, stderr)=>{
 
 								// 新たにコンテナを立ち上げる
@@ -225,16 +225,22 @@ module.exports = async option=>{
 									child.exec(`docker exec ${container_name} sh -c "echo '${reloader}' > /docker-run.cmd"`, (error, stdout, stderr)=>{
 										error && ng(error)
 
-										// 特定の文字がログに出てくるまで待機
+										// 起動処理が終わるまで待機
 										let waiter = ()=>{
-											let ps = child.execSync(`docker exec ${container_name} sh -c "ps aux|grep entrypoint.sh|grep -v grep|wc -l"`)
-											if(ps.toString().trim()==0) {
+											let result = child.spawnSync('docker', [
+												'exec',
+												container_name,
+												'sh',
+												'-c',
+												'ps aux|grep entrypoint.sh|grep -v grep|wc -l',
+											])
+											if(result.stdout.toString().trim()==='0') {
 												ok()
 											} else {
-												setTimeout(waiter, 100)
+												setTimeout(waiter, 1000)
 											}
 										}
-										setTimeout(waiter, 100)
+										setTimeout(waiter, 1000)
 									})
 								})
 							})
