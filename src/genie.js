@@ -25,7 +25,6 @@ global.CMDS = {
 	reject:    option=>{return require('./cmd-reject.js')(option)},
 	clean:     option=>{return require('./cmd-clean.js')(option)},
 	build:     option=>{return require('./cmd-build.js')(option)},
-	langver:   option=>{return require('./cmd-langver.js')(option)},
 	mysql:     option=>{return require('./cmd-mysql.js')(option)},
 	psql:      option=>{return require('./cmd-psql.js')(option)},
 	open:      option=>{return require('./cmd-open.js')(option)},
@@ -79,7 +78,6 @@ if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 	else if(cmd==='reject')  await CMDS.reject(option)
 	else if(cmd==='clean')   await CMDS.clean(option)
 	else if(cmd==='build')   await CMDS.build(option)
-	else if(cmd==='langver') await CMDS.langver(option)
 	else if(cmd==='mysql')   await CMDS.mysql(option)
 	else if(cmd==='psql')    await CMDS.psql(option)
 	else if(cmd==='open')    await CMDS.open(option)
@@ -108,15 +106,14 @@ if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 			'  reject    genie対象外のコンテナまたはボリュームを一括削除する\n'+
 			'  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n'+
 			'  build     基本のdockerイメージをビルドする\n'+
-			'  langver   各種言語の利用可能なバージョンを確認する\n'+
 			'  mysql     MySQLを操作する\n'+
 			'  psql      PostgreSQLを操作する\n'+
 			'  open      ブラウザで開く\n'+
 			'  ngrok     \n'+
 			'  logs      実行ログを見る\n'+
-			'  dlsync    FTPを利用したダウンロード方向のみのミラーリングを実行する\n'+
+			'  dlsync    LFTPを利用したダウンロード方向のみのミラーリングを実行する\n'+
 			'  httpd     \n'+
-			'  test      \n'+
+			'  test      テストを実行する'+
 			'  demo      デモ\n',
 			'  version   バージョン表示\n',
 			'warning',
