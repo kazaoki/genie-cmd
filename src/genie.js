@@ -3,6 +3,7 @@
 'use strict'
 
 const option = require('optimist')
+const child = require('child_process')
 const lib = require('./libs.js')
 global.d = lib.d
 global.h = lib.h
@@ -89,36 +90,60 @@ if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 	else if(cmd==='version') await CMDS.version(option)
 
 	/**
-	 * help
+	 * 引数が標準でない場合
 	 * -----------------------------------------------------------------------------
 	 */
 	else {
-		console.log()
-		lib.Message(
-			option.help()+'\n'+
-			'Commands:\n'+
-			'  init      現在のディレクトリに .genie/ を作成します。\n'+
-			'  config    設定を確認する\n'+
-			'  ls        Dockerコンテナ状況を確認する\n'+
-			'  up        設定に基づきDockerコンテナを起動する\n'+
-			'  down      関連するコンテナのみ終了する\n'+
-			'  cli       コンテナ内でコマンドを実行。またはコンテナに入る\n'+
-			'  reject    genie対象外のコンテナまたはボリュームを一括削除する\n'+
-			'  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n'+
-			'  build     基本のdockerイメージをビルドする\n'+
-			'  mysql     MySQLを操作する\n'+
-			'  psql      PostgreSQLを操作する\n'+
-			'  open      ブラウザで開く\n'+
-			'  ngrok     \n'+
-			'  logs      実行ログを見る\n'+
-			'  dlsync    LFTPを利用したダウンロード方向のみのミラーリングを実行する\n'+
-			'  httpd     \n'+
-			'  test      テストを実行する'+
-			'  demo      デモ\n',
-			'  version   バージョン表示\n',
-			'warning',
-			1
-		)
+		// 設定ファイルロード
+		let config = lib.loadConfig(argv);
+		let custom = '';
+		if(Object.keys(config.command).length) {
+			for(let key of Object.keys(config.command)) {
+				let space = 8 - key.length
+				if(space<1) space = 1
+				custom += `  ${key} ${lib.Repeat(' ', space)} ${config.command[key]}\n`;
+			}
+		}
+
+		// 引数がカスタムコマンドに登録されていたら起動中のコンテナの中で実行する
+		if(config.command[cmd]) {
+			// dockerが起動しているか
+			if(!lib.existContainers(config, `/${config.base_name}$`)) lib.Error('dockerコンテナが起動していません: '+config.base_name)
+
+			// コマンド実行
+			child.spawnSync('docker', ['exec', '-it', config.base_name, ...config.command[cmd].split(' ')], {stdio: 'inherit'})
+		}
+
+		// それでも引数がなければヘルプを表示する
+		else {
+			console.log()
+			lib.Message(
+				option.help()+'\n'+
+				'Commands:\n'+
+				'  init      現在のディレクトリに .genie/ を作成します。\n'+
+				'  config    設定を確認する\n'+
+				'  ls        Dockerコンテナ状況を確認する\n'+
+				'  up        設定に基づきDockerコンテナを起動する\n'+
+				'  down      関連するコンテナのみ終了する\n'+
+				'  cli       コンテナ内でコマンドを実行。またはコンテナに入る\n'+
+				'  reject    genie対象外のコンテナまたはボリュームを一括削除する\n'+
+				'  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n'+
+				'  build     基本のdockerイメージをビルドする\n'+
+				'  mysql     MySQLを操作する\n'+
+				'  psql      PostgreSQLを操作する\n'+
+				'  open      ブラウザで開く\n'+
+				'  ngrok     \n'+
+				'  logs      実行ログを見る\n'+
+				'  dlsync    LFTPを利用したダウンロード方向のみのミラーリングを実行する\n'+
+				'  httpd     \n'+
+				'  test      テストを実行する\n'+
+				'  demo      デモ\n'+
+				'  version   バージョン表示\n'+
+				(custom ? custom : ''),
+				'warning',
+				1
+			)
+		}
 	}
 
 	// done.

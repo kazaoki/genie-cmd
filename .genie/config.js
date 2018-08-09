@@ -256,6 +256,6 @@ config.test =
  */
 config.command =
 {
-	// ll
 	ll: 'ls -la /',
+	top: 'top',
 }
