@@ -15,7 +15,7 @@ config.core =
 {
 	// 使用する Docker イメージ情報
 	docker: {
-		image: 'kazaoki/genie:centos',
+		image: 'kazaoki/genie:node',
 		// image: 'kazaoki/genie:node',
 		// machine: 'sandbox',
 		// name: 'genie-xxx',
@@ -36,11 +36,11 @@ config.core =
 
 	// up時/down時のメッセージ表示
 	memo: {
-		up: [
-			{info: '起動します。'},
-			{warning: '開発版です'},
-		],
-		down: [{success: '終了します。'}],
+		// up: [
+		// 	{info: '起動します。'},
+		// 	{warning: '開発版です'},
+		// ],
+		// down: [{success: '終了します。'}],
 	},
 
 	// 音声スピーチの有効/無効
@@ -61,9 +61,8 @@ config.lang =
 
 	// PHP設定
 	php: {
-		// phpenv_image: 'kazaoki/phpenv:5.2.17', // バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
-		phpenv_image: 'kazaoki/phpenv:5.3.3', // バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
-		// phpenv_image: 'kazaoki/phpenv:7.2.8', // バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
+		// ↓バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
+		// phpenv_image: 'kazaoki/phpenv:5.3.3',
 		error_report: process.env['GENIE_RUNMODE']==='develop',
 		timezone: 'Asia/Tokyo'
 	},
@@ -116,10 +115,11 @@ config.http =
 {
 	// ブラウザで開く設定
 	browser: {
-		apps: process.platform==='win32' // chrome|firefox|ie|safari|opera 未指定は既定のブラウザで開く
-			? ['chrome', 'ie'] // for Windows
-			: ['chrome', 'safari'] // for macOS
-		,
+		apps: ['chrome'], // chrome|firefox|ie|safari|opera 未指定は既定のブラウザで開く。複数指定可。
+		// apps: process.platform==='win32'
+		// 	? ['chrome', 'ie'] // for Windows
+		// 	: ['chrome', 'safari'] // for macOS
+		// ,
 		schema: 'http',
 		path: '/',
 		at_upped: true, // UP時にブラウザオープンするか
@@ -161,29 +161,17 @@ config.db =
 {
 	// MySQL設定
 	mysql: {
-		main: {
-			repository : 'mysql:5.5',
-			host       : 'main.mysql-server',
-			name       : 'sample_db',
-			user       : 'sample_user',
-			pass       : '123456789',
-			charset    : 'utf8mb4',
-			collation  : 'utf8mb4_unicode_ci',
-			dump_genel : 3,
-			// volume_lock: true,
-			external_port: 3306,
-		},
-		// sub: {
-		// 	repository : 'mysql:5.7',
-		// 	host       : 'sub.mysql-server',
+		// main: {
+		// 	repository : 'mysql:5.5',
+		// 	host       : 'main.mysql-server',
 		// 	name       : 'sample_db',
 		// 	user       : 'sample_user',
 		// 	pass       : '123456789',
 		// 	charset    : 'utf8mb4',
 		// 	collation  : 'utf8mb4_unicode_ci',
 		// 	dump_genel : 3,
-		// 	volume_lock: true,
-		// 	external_port: 3307,
+		// 	// volume_lock: true,
+		// 	external_port: 3306,
 		// },
 	},
 
@@ -201,17 +189,6 @@ config.db =
 		// 	// volume_lock: true,
 		// 	external_port: 5432,
 		// },
-		// sub: {
-		// 	repository : 'postgres:10',
-		// 	host       : 'sub.postgresql-server',
-		// 	name       : 'sample_db',
-		// 	user       : 'sample_user',
-		// 	pass       : '123456789',
-		// 	locale     : 'ja_JP.UTF-8',
-		// 	dump_genel : 3,
-		// 	volume_lock: true,
-		// 	external_port: 5433,
-		// },
 	},
 }
 
@@ -221,17 +198,17 @@ config.db =
  */
 config.mail =
 {
+	// Postfix設定
+	postfix: {
+		enabled: true,
+		// force_envelope: 'test@xx.xx',
+	},
+
 	// MailDev設定
 	maildev: {
 		enabled: true,
 		external_port: 9981,
 		// option_string: ''
-	},
-
-	// Postfix設定
-	postfix: {
-		// enabled: true,
-		// force_envelope: 'test@xx.xx',
 	},
 }
 
