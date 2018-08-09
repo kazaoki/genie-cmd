@@ -89,6 +89,11 @@ RUN echo 'LANG="ja_JP.utf8"' > /etc/locale.conf \
     && source /etc/locale.conf \
     && localedef -f UTF-8 -i ja_JP ja_JP.UTF-8
 
+# Install carton
+# --------------
+RUN yum install perl-App-cpanminus -y \
+    && cpanm Carton
+
 # Install anyenv
 # --------------------------------------------------------------------------------------------------
 ENV PATH /root/.anyenv/bin:$PATH

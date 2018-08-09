@@ -115,25 +115,6 @@ fi
 #   echo 'Perl setup done.' >> /var/log/entrypoint.log
 # fi
 
-# # --------------------------------------------------------------------
-# # Install perl modules from cpanfile
-# # --------------------------------------------------------------------
-# if [[ $GENIE_LANG_PERL_CPANFILE_ENABLED && -e /genie/opt/perl/cpanfile ]]; then
-#   mkdir -p /genie/opt/perl
-#   # -- tar restore
-#   mkdir -p /perl/cpanfile-modules
-#   tarfile="/genie/opt/perl/cpanfile-modules.tar"
-#   if [ -e $tarfile ]; then
-#     tar xf $tarfile -C /perl/cpanfile-modules
-#   fi
-#   # -- install
-#   cd /genie/opt/perl/
-#   carton install --path=/perl/cpanfile-modules/
-#   cd /perl/cpanfile-modules
-#   tar cf $tarfile ./
-#   echo 'cpanfile setup done.' >> /var/log/entrypoint.log
-# fi
-
 # --------------------------------------------------------------------
 # php setup
 # --------------------------------------------------------------------
@@ -311,7 +292,7 @@ echo 'entrypoint.sh setup done.' >> /var/log/entrypoint.log
 # --------------------------------------------------------------------
 # run init.sh
 # --------------------------------------------------------------------
-/genie/opt/init.sh
+/opt/init.sh
 echo 'init.sh setup done.' >> /var/log/entrypoint.log
 
 # --------------------------------------------------------------------
