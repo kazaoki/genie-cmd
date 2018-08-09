@@ -200,7 +200,7 @@ config.mail =
 {
 	// Postfix設定
 	postfix: {
-		enabled: true,
+		enabled: true, // maildevを有効にする場合もtrueにしてください。
 		// force_envelope: 'test@xx.xx',
 	},
 

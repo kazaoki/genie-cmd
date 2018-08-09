@@ -259,7 +259,7 @@ fi
 # --------------------------------------------------------------------
 if [[ $GENIE_MAIL_POSTFIX_ENABLED ]]; then
   sed -i 's/inet_protocols = all/inet_protocols = ipv4/g' /etc/postfix/main.cf
-  if [[ $GENIE_POSTFIX_FORCE_ENVELOPE != '' ]]; then
+  if [[ $GENIE_MAIL_POSTFIX_FORCE_ENVELOPE != '' ]]; then
     echo "canonical_classes = envelope_sender, envelope_recipient" >> /etc/postfix/main.cf
     echo "canonical_maps = regexp:/etc/postfix/canonical.regexp" >> /etc/postfix/main.cf
     echo "/^.+$/ $GENIE_POSTFIX_FORCE_ENVELOPE" >> /etc/postfix/canonical.regexp
@@ -272,7 +272,8 @@ fi
 # MailDev
 # --------------------------------------------------------------------
 if [[ $GENIE_MAIL_MAILDEV_ENABLED ]]; then
-  maildev -s 25 -w 9981 $GENIE_MAIL_MAILDEV_OPTION_STRING &
+  echo 'relayhost = [localhost]:1025' >> /etc/postfix/main.cf
+  maildev -s 1025 -w 9981 $GENIE_MAIL_MAILDEV_OPTION_STRING &
 fi
 
 # --------------------------------------------------------------------
