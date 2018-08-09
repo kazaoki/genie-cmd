@@ -104,7 +104,6 @@ if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 			'  ls        Dockerコンテナ状況を確認する\n'+
 			'  up        設定に基づきDockerコンテナを起動する\n'+
 			'  down      関連するコンテナのみ終了する\n'+
-			'  update    \n'+
 			'  cli       コンテナ内でコマンドを実行。またはコンテナに入る\n'+
 			'  reject    genie対象外のコンテナまたはボリュームを一括削除する\n'+
 			'  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n'+

@@ -165,10 +165,7 @@ module.exports = async option=>{
 				else if(output.match(/Postfix setup done\./        )){ line.push(`  ${config.base_name} ... ${color.yellow('Postfix setup')}`) }
 				else if(output.match(/Nginx setup done\./          )){ line.push(`  ${config.base_name} ... ${color.yellow('Nginx setup')}`) }
 				else if(output.match(/Apache setup done\./         )){ line.push(`  ${config.base_name} ... ${color.yellow('Apache setup')}`) }
-				else if(output.match(/Node.js setup done\./        )){ line.push(`  ${config.base_name} ... ${color.yellow('Node.js setup')}`) }
-				else if(output.match(/Ruby setup done\./           )){ line.push(`  ${config.base_name} ... ${color.yellow('Ruby setup')}`) }
 				else if(output.match(/PHP setup done\./            )){ line.push(`  ${config.base_name} ... ${color.yellow('PHP setup')}`) }
-				else if(output.match(/Perl setup done\./           )){ line.push(`  ${config.base_name} ... ${color.yellow('Perl setup')}`) }
 				else if(output.match(/entrypoint\.sh setup start\./)){ line.push(`  ${config.base_name} ... ${color.yellow('loading')}`) }
 				else {
 					line.push(`  ${config.base_name} ... ${color.yellow('waiting')}`)

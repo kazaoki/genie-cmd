@@ -6,6 +6,12 @@ RUN cp /etc/localtime /etc/localtime.org \
     && ln -sf  /usr/share/zoneinfo/Asia/Tokyo /etc/localtime \
     && localedef -f UTF-8 -i ja_JP ja_JP.UTF-8
 
+# Set locale
+# ----------
+RUN echo 'LANG="ja_JP.utf8"' > /etc/locale.conf \
+    && source /etc/locale.conf \
+    && localedef -f UTF-8 -i ja_JP ja_JP.UTF-8
+
 # Add packages
 # --------------------------------------------------------------------------------------------------
 RUN yum install -y epel-release \
@@ -82,17 +88,6 @@ RUN yum install -y epel-release \
        libtool \
        php-mbstring \
     && yum clean all
-
-# Set locale
-# ----------
-RUN echo 'LANG="ja_JP.utf8"' > /etc/locale.conf \
-    && source /etc/locale.conf \
-    && localedef -f UTF-8 -i ja_JP ja_JP.UTF-8
-
-# Install carton
-# --------------
-RUN yum install perl-App-cpanminus -y \
-    && cpanm Carton
 
 # Install anyenv
 # --------------------------------------------------------------------------------------------------

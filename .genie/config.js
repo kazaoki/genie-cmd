@@ -53,28 +53,12 @@ config.core =
  */
 config.lang =
 {
-	// Perl設定
-	perl: {
-		// version: '5.12.0', // `genie langver --perl` でリストアップされるバージョン文字列を指定
-		// cpanfile_enabled: true,
-	},
-
 	// PHP設定
 	php: {
 		// ↓バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
 		// phpenv_image: 'kazaoki/phpenv:5.3.3',
 		error_report: process.env['GENIE_RUNMODE']==='develop',
 		timezone: 'Asia/Tokyo'
-	},
-
-	// Ruby設定
-	ruby: {
-		// version: '2.3.0', // `genie langver --ruby` でリストアップされるバージョン文字列を指定
-	},
-
-	// Node.js設定
-	node: {
-		// version: '6.5.0', // `genie langver --node` でリストアップされるバージョン文字列を指定
 	},
 }
 

@@ -14,22 +14,6 @@ if [[ $GENIE_PROC == 'httpd' ]]; then
   exit 0
 fi
 
-# # --------------------------------------------------------------------
-# # spec|zap mode
-# # --------------------------------------------------------------------
-# if [[ $GENIE_PROC == 'spec' ]] || [[ $GENIE_PROC == 'zap' ]]; then
-
-#   # -- make nosend file
-#   [[ $GENIE_PROC == 'spec' && $GENIE_SPEC_NO_SENDMAIL ]] && touch /tmp/nosend
-#   [[ $GENIE_PROC == 'zap'  && $GENIE_ZAP_NO_SENDMAIL  ]] && touch /tmp/nosend
-
-#   # -- dir copy
-#   \cp -rpdfL /_/* /
-
-#   # -- mount prefix
-#   prefix_mount=/_
-# fi
-
 # --------------------------------------------------------------------
 # mount mode is copy
 # --------------------------------------------------------------------
@@ -77,46 +61,8 @@ if [[ $GENIE_TRANS_SSHD_ENABLED ]]; then
   /usr/sbin/sshd -D -f /etc/ssh/sshd_config &
 fi
 
-# # --------------------------------------------------------------------
-# # perl setup
-# # --------------------------------------------------------------------
-# if [[ $GENIE_LANG_PERL_VERSION != '' ]]; then
-#   mkdir -p /genie/opt/perl
-#   # -- tar restore
-#   mkdir -p /perl/versions
-#   tarfile="/genie/opt/perl/versions.tar"
-#   if [ -e $tarfile ]; then
-#     tar xf $tarfile -C /perl/versions
-#   fi
-#   # -- install
-#   install_path="/perl/versions/$GENIE_LANG_PERL_VERSION"
-#   link_to="/root/.anyenv/envs/plenv/versions/$GENIE_LANG_PERL_VERSION"
-#   if [[ ! -e $install_path ]]; then
-#     # -- perl install
-#     /root/.anyenv/envs/plenv/plugins/perl-build/bin/perl-build $GENIE_LANG_PERL_VERSION ${install_path}
-#     if [[ ! -e $install_path ]]; then
-#       exit 1
-#     fi
-#     ln -s ${install_path} ${link_to}
-#     source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv global $GENIE_LANG_PERL_VERSION
-#     source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv rehash
-#     cd /perl/versions
-#     tar cf /genie/opt/perl/versions.tar ./
-#   else
-#     # -- perl relink
-#     ln -s ${install_path} ${link_to}
-#     source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv global $GENIE_LANG_PERL_VERSION
-#     source ~/.bashrc && /root/.anyenv/envs/plenv/bin/plenv rehash
-#   fi
-#   if [[ ! -L /usr/bin/perl ]]; then
-#     unlink /usr/bin/perl
-#     ln -s $install_path/bin/perl /usr/bin/perl
-#   fi
-#   echo 'Perl setup done.' >> /var/log/entrypoint.log
-# fi
-
 # --------------------------------------------------------------------
-# php setup
+# php version container setup
 # --------------------------------------------------------------------
 phpini=/etc/php.ini
 if [[ $GENIE_LANG_PHP_PHPENV_IMAGE != '' ]]; then
@@ -139,68 +85,6 @@ if [[ $GENIE_LANG_PHP_TIMEZONE != '' ]]; then
   echo "date.timezone = \"$GENIE_LANG_PHP_TIMEZONE\"" >> $phpini
 fi
 echo 'PHP setup done.' >> /var/log/entrypoint.log
-
-# # --------------------------------------------------------------------
-# # ruby setup
-# # --------------------------------------------------------------------
-# if [[ $GENIE_LANG_RUBY_VERSION != '' ]]; then
-#   mkdir -p /genie/opt/ruby
-#   # -- tar restore
-#   mkdir -p /ruby/versions
-#   tarfile="/genie/opt/ruby/versions.tar"
-#   if [ -e $tarfile ]; then
-#     tar xf $tarfile -C /ruby/versions
-#   fi
-#   # -- install
-#   install_path="/ruby/versions/$GENIE_LANG_RUBY_VERSION/"
-#   link_to="/root/.anyenv/envs/rbenv/versions/$GENIE_LANG_RUBY_VERSION"
-#   if [[ ! -e ${install_path} ]]; then
-#     # -- ruby install
-#     /root/.anyenv/envs/rbenv/plugins/ruby-build/bin/ruby-build $GENIE_LANG_RUBY_VERSION ${install_path}
-#     ln -s ${install_path} ${link_to}
-#     source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv global $GENIE_LANG_RUBY_VERSION
-#     source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv rehash
-#     cd /ruby/versions
-#     tar cf /genie/opt/ruby/versions.tar ./
-#   else
-#     # -- ruby relink
-#     ln -s ${install_path} ${link_to}
-#     source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv global $GENIE_LANG_RUBY_VERSION
-#     source ~/.bashrc && /root/.anyenv/envs/rbenv/bin/rbenv rehash
-#   fi
-#   echo 'Ruby setup done.' >> /var/log/entrypoint.log
-# fi
-
-# # --------------------------------------------------------------------
-# # Node.js setup
-# # --------------------------------------------------------------------
-# if [[ $GENIE_LANG_NODE_VERSION != '' ]]; then
-#   mkdir -p /genie/opt/node
-#   # -- tar restore
-#   mkdir -p /node/versions
-#   tarfile="/genie/opt/node/versions.tar"
-#   if [ -e $tarfile ]; then
-#     tar xf $tarfile -C /node/versions
-#   fi
-#   # -- install
-#   install_path="/node/versions/$GENIE_LANG_NODE_VERSION/"
-#   link_to="/root/.anyenv/envs/ndenv/versions/$GENIE_LANG_NODE_VERSION"
-#   if [[ ! -e ${install_path} ]]; then
-#     # -- node install
-#     /root/.anyenv/envs/ndenv/plugins/node-build/bin/node-build $GENIE_LANG_NODE_VERSION ${install_path}
-#     ln -s ${install_path} ${link_to}
-#     source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv global $GENIE_LANG_NODE_VERSION
-#     source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv rehash
-#     cd /node/versions
-#     tar cf /genie/opt/node/versions.tar ./
-#   else
-#     # -- node relink
-#     ln -s ${install_path} ${link_to}
-#     source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv global $GENIE_LANG_NODE_VERSION
-#     source ~/.bashrc && /root/.anyenv/envs/ndenv/bin/ndenv rehash
-#   fi
-#   echo 'Node.js setup done.' >> /var/log/entrypoint.log
-# fi
 
 # --------------------------------------------------------------------
 # Apache
