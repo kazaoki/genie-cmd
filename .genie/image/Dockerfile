@@ -80,6 +80,7 @@ RUN yum install -y epel-release \
        lsof \
        rpm-build \
        libtool \
+       php-mbstring \
     && yum clean all
 
 # Set locale
