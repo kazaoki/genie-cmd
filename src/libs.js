@@ -562,9 +562,6 @@ const dockerUp = module.exports.dockerUp = config=>
 		if(config.core.docker.options) args.push(`${config.core.docker.options}`)
 		args.push('--restart=always')
 
-		// Perl関係
-		if(config.lang.perl.cpanfile_enabled) args.push('-e', 'PERL5LIB=/perl/cpanfile-modules/lib/perl5')
-
 		// PostgreSQL関係
 		if(config.db.postgresql){
 			let keys = Object.keys(config.db.postgresql);
