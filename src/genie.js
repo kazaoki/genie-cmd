@@ -111,7 +111,7 @@ if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 			if(!lib.existContainers(config, `/${config.base_name}$`)) lib.Error('dockerコンテナが起動していません: '+config.base_name)
 
 			// コマンド実行
-			child.spawnSync('docker', ['exec', '-it', config.base_name, ...config.command[cmd].split(' ')], {stdio: 'inherit'})
+			child.spawnSync('docker', ['exec', '-it', config.base_name, 'bash', '-c', `${config.command[cmd]}`], {stdio: 'inherit'})
 		}
 
 		// それでも引数がなければヘルプを表示する
@@ -129,10 +129,9 @@ if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
 				'  reject    genie対象外のコンテナまたはボリュームを一括削除する\n'+
 				'  clean     不要なイメージ・終了済みコンテナ・リンクされてないボリュームを一括削除する\n'+
 				'  build     基本のdockerイメージをビルドする\n'+
-				'  mysql     MySQLを操作する\n'+
-				'  psql      PostgreSQLを操作する\n'+
+				'  mysql     MySQLクライアント実行\n'+
+				'  psql      PostgreSQLクライアント実行\n'+
 				'  open      ブラウザで開く\n'+
-				'  ngrok     \n'+
 				'  logs      実行ログを見る\n'+
 				'  dlsync    LFTPを利用したダウンロード方向のみのミラーリングを実行する\n'+
 				'  httpd     \n'+
