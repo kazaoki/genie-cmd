@@ -256,7 +256,7 @@ config.test =
  */
 config.command =
 {
-	ll: 'ls -la /',
 	top: 'top',
 	ngrok: 'ngrok http 80',
+	phplist: '. ~/.bashrc && phpenv install --list',
 }
