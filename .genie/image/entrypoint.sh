@@ -84,6 +84,16 @@ if [[ $GENIE_LANG_PHP_TIMEZONE != '' ]]; then
   echo "[Date]" >> $phpini
   echo "date.timezone = \"$GENIE_LANG_PHP_TIMEZONE\"" >> $phpini
 fi
+echo 'xdebug.remote_enable = On' >> /etc/php.ini
+echo 'xdebug.remote_autostart = On' >> /etc/php.ini
+
+if [[ $GENIE_LANG_PHP_XDEBUG_HOST != '' ]]; then
+  echo "xdebug.remote_host=$GENIE_LANG_PHP_XDEBUG_HOST" >> /etc/php.ini
+fi
+if [[ $GENIE_LANG_PHP_XDEBUG_PORT != '' ]]; then
+echo "xdebug.remote_port=$GENIE_LANG_PHP_XDEBUG_PORT" >> /etc/php.ini
+fi
+/usr/sbin/httpd -k restart
 echo 'PHP setup done.' >> /var/log/entrypoint.log
 
 # --------------------------------------------------------------------

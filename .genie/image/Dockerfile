@@ -87,6 +87,7 @@ RUN yum install -y epel-release \
        rpm-build \
        libtool \
        php-mbstring \
+       php-xdebug \
     && yum clean all
 
 # Install anyenv

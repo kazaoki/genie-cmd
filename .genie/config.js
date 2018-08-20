@@ -58,7 +58,11 @@ config.lang =
 		// ↓バージョンを指定する場合は 'kazaoki/phpenv:' にTagNameをつなげてください → https://hub.docker.com/r/kazaoki/phpenv/tags/
 		// phpenv_image: 'kazaoki/phpenv:5.3.3',
 		error_report: process.env['GENIE_RUNMODE']==='develop',
-		timezone: 'Asia/Tokyo'
+		timezone: 'Asia/Tokyo',
+		xdebug: {
+			host: '192.168.0.10',
+			port: 9000,
+ 		}
 	},
 }
 
