@@ -90,6 +90,7 @@ RUN yum install -y epel-release \
        php-mysql \
        php-gd \
        php-xdebug \
+       freetype-devel \
     && yum clean all
 
 # Install anyenv
