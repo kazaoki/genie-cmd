@@ -88,6 +88,7 @@ RUN yum install -y epel-release \
        libtool \
        php-mbstring \
        php-mysql \
+       php-gd \
        php-xdebug \
     && yum clean all
 
