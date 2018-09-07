@@ -108,7 +108,7 @@ if [[ $GENIE_HTTP_APACHE_ENABLED ]]; then
 #   sed -i "s/DocumentRoot \"\/var\/www\/localhost\/htdocs\"/DocumentRoot \"\/var\/www\/html\"/" /etc/apache2/httpd.conf
 #   sed -i "s/ScriptAlias \/cgi\-bin\//#ScriptAlias \/cgi\-bin\//" /etc/apache2/httpd.conf
   if [[ $GENIE_HTTP_APACHE_NO_LOG_REGEX ]]; then
-    sed -i "s/CustomLog logs\/access.log combined/CustomLog logs\/access.log combined env\=\!nolog/" /etc/apache2/httpd.conf
+    sed -i "s/CustomLog logs\/access.log combined$/CustomLog logs\/access.log combined env\=\!nolog/" /etc/apache2/httpd.conf
     echo "SetEnvIfNoCase Request_URI \"$GENIE_HTTP_APACHE_NO_LOG_REGEX\" nolog" >> /etc/apache2/httpd.conf
   fi
   if [[ $GENIE_HTTP_APACHE_REAL_IP_LOG_ENABLED ]]; then

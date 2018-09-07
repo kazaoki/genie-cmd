@@ -323,7 +323,7 @@ if [[ $GENIE_APACHE_ENABLED ]]; then
   PassEnv $passenv_string\n\
   # </__PASSENV__>" /etc/httpd/conf/httpd.conf
   if [[ $GENIE_APACHE_NO_LOG_REGEX ]]; then
-    sed -i "s/CustomLog\ \"logs\/access_log\"\ combined/CustomLog\ \"logs\/access_log\"\ combined\ env\=\!nolog/" /etc/httpd/conf/httpd.conf
+    sed -i "s/CustomLog\ \"logs\/access_log\"\ combined$/CustomLog\ \"logs\/access_log\"\ combined\ env\=\!nolog/" /etc/httpd/conf/httpd.conf
     echo "SetEnvIfNoCase Request_URI \"$GENIE_APACHE_NO_LOG_REGEX\" nolog" >> /etc/httpd/conf/httpd.conf
   fi
   if [[ $GENIE_APACHE_REAL_IP_LOG_ENABLED ]]; then
