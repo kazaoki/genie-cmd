@@ -263,4 +263,6 @@ config.command =
 	top: 'top',
 	ngrok: 'ngrok http 80',
 	phplist: '. ~/.bashrc && phpenv install --list',
+	xoff: '/opt/misc/php-xdebug-off.sh',
+	xon: '/opt/misc/php-xdebug-on.sh',
 }

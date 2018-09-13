@@ -84,15 +84,22 @@ if [[ $GENIE_LANG_PHP_TIMEZONE != '' ]]; then
   echo "[Date]" >> $phpini
   echo "date.timezone = \"$GENIE_LANG_PHP_TIMEZONE\"" >> $phpini
 fi
-echo 'xdebug.remote_enable = On' >> $phpini
-echo 'xdebug.remote_autostart = On' >> $phpini
-
+sed -i "/xdebug\.remote_enable/d" $phpini
+sed -i "/xdebug\.remote_autostart/d" $phpini
+sed -i "/xdebug\.remote_host/d" $phpini
+sed -i "/xdebug\.remote_port/d" $phpini
 if [[ $GENIE_LANG_PHP_XDEBUG_HOST != '' ]]; then
+  echo 'xdebug.remote_enable = On' >> $phpini
+  echo 'xdebug.remote_autostart = On' >> $phpini
   echo "xdebug.remote_host=$GENIE_LANG_PHP_XDEBUG_HOST" >> $phpini
+  if [[ $GENIE_LANG_PHP_XDEBUG_PORT != '' ]]; then
+    echo "xdebug.remote_port=$GENIE_LANG_PHP_XDEBUG_PORT" >> $phpini
+  fi
+else
+  echo 'xdebug.remote_enable = Off' >> $phpini
+  echo 'xdebug.remote_autostart = Off' >> $phpini
 fi
-if [[ $GENIE_LANG_PHP_XDEBUG_PORT != '' ]]; then
-echo "xdebug.remote_port=$GENIE_LANG_PHP_XDEBUG_PORT" >> $phpini
-fi
+echo $phpini > /phpinipath
 /usr/sbin/httpd -k restart
 echo 'PHP setup done.' >> /var/log/entrypoint.log
 
