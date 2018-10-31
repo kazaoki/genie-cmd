@@ -44,7 +44,6 @@ let argv = option
 	.usage('Usage: genie|g [Commands] [Options]')
 	.options('mode', {
 		alias: 'M',
-		default: 'develop',
 		describe: '実行モードを指定可能'
 	})
 	.options('config', {
@@ -59,8 +58,20 @@ let argv = option
 	.argv
 ;
 
-// ランモードを環境変数にセット（すでにGENIE_RUNMODEが用意されてる環境ならそっちを優先する。※test時を除く）
-if(!process.env.GENIE_RUNMODE) process.env.GENIE_RUNMODE = argv.mode
+/**
+ * ランモード設定
+ * -----------------------------------------------------------------------------
+ */
+if(argv.mode) {
+	// 引数指定が一番強い
+	process.env.GENIE_RUNMODE = argv.mode
+} else if(process.env.GENIE_RUNMODE) {
+	// 引数無くて環境変数が入ってたらそれ
+	argv.mode = process.env.GENIE_RUNMODE
+} else {
+	// 引数も環境変数も無ければ develop にする
+	process.env.GENIE_RUNMODE = argv.mode = 'develop'
+}
 
 ~(async ()=>{
 
