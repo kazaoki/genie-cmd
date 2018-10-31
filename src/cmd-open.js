@@ -83,6 +83,7 @@ module.exports = async option=>{
 
 	// 引数未指定（config.jsに設定されているブラウザで開く）
 	let url = getWorkingUrl(config)
+	if(!url) return false
 	let cmds = [];
 	if(!(config.http.browser.apps && config.http.browser.apps.length)) config.http.browser.apps = ['']
 	for(let app of config.http.browser.apps) {
@@ -126,6 +127,7 @@ function getWorkingUrl(config) {
 
 	// 開発中のURLを用意
 	let port = lib.get_external_port(config, config.http.browser.schema==='https' ? 443 : 80)
+	if(!port) return false
 	if(
 		(config.http.browser.schema==='http' && port==80) ||
 		(config.http.browser.schema==='https' && port==443)

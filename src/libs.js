@@ -596,6 +596,8 @@ const dockerUp = module.exports.dockerUp = config=>
 						? '22'
 						: `${config.trans.sshd.external_port}:22`
 				)
+			} else {
+				args.push('--expose', 22)
 			}
 		}
 
@@ -608,6 +610,8 @@ const dockerUp = module.exports.dockerUp = config=>
 						? '80'
 						: `${config.http.apache.external_http_port}:80`
 				)
+			} else {
+				args.push('--expose', 80)
 			}
 			if(config.http.apache.external_https_port) {
 				args.push('-p',
@@ -615,6 +619,8 @@ const dockerUp = module.exports.dockerUp = config=>
 						? '443'
 						: `${config.http.apache.external_https_port}:443`
 				)
+			} else {
+				args.push('--expose', 443)
 			}
 		}
 
@@ -627,6 +633,8 @@ const dockerUp = module.exports.dockerUp = config=>
 						? '80'
 						: `${config.http.nginx.external_http_port}:80`
 				)
+			} else {
+				args.push('--expose', 80)
 			}
 			if(config.http.nginx.external_https_port) {
 				args.push('-p',
@@ -634,6 +642,8 @@ const dockerUp = module.exports.dockerUp = config=>
 						? '443'
 						: `${config.http.nginx.external_https_port}:443`
 				)
+			} else {
+				args.push('--expose', 443)
 			}
 		}
 
@@ -645,6 +655,8 @@ const dockerUp = module.exports.dockerUp = config=>
 						? '9981'
 						: `${config.mail.maildev.external_port}:9981`
 				)
+			} else {
+				args.push('--expose', 9981)
 			}
 		}
 
@@ -706,15 +718,18 @@ const dockerUp = module.exports.dockerUp = config=>
 				'--format="{{.NetworkSettings.Ports}}"',
 				config.base_name,
 			])
-			if(list.stdout.toString().trim().length > 7) { // "map[]" が帰ってきたらポート指定されてないってこと
-				for(let lump of list.stdout.toString().match(/\d+\/\w+\:\[\{[\d\.]+ \d+\}\]/g)) {
-					let matches = lump.match(/(\d+)\/\w+\:\[\{[\d\.]+ (\d+)\}\]/)
-					process.env['GENIE_PORT'+matches[1]] = matches[2]
+			let stdout_string = list.stdout.toString()
+			if(stdout_string && stdout_string.trim().length > 7) { // "map[]" が帰ってきたらポート指定されてないってこと
+				let matches = stdout_string.match(/\d+\/\w+\:\[\{[\d\.]+ \d+\}\]/g)
+				if(matches) {
+					for(let lump of matches) {
+						let matches = lump.match(/(\d+)\/\w+\:\[\{[\d\.]+ (\d+)\}\]/)
+						process.env['GENIE_PORT'+matches[1]] = matches[2]
+					}
 				}
 			}
 			// 実際のホストIPも環境変数にセットする -> GENIE_HOST_IP
 			process.env['GENIE_HOST_IP'] = config.host_ip
-
 			resolve();
 		}
 
@@ -940,7 +955,7 @@ const para_progress = module.exports.para_progress = list=>{
  */
 const get_external_port = module.exports.get_external_port = (config, internal_port)=>{
 	let result = child.spawnSync('docker', ['port', config.base_name, internal_port])
-	if(result.status) Error(result.stderr.toString())
+	if(result.status) return false
 	let matches = result.stdout.toString().trim().match(/(\d+)$/);
 	return matches[1] ? matches[1] : false
 }
