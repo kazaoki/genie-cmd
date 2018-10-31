@@ -41,7 +41,6 @@ module.exports = async option=>{
 		// docker-machine が使える環境の場合はそれも一覧する
 		funcs.push(new Promise((ok,ng)=>{
 			child.execFile('docker-machine', ['ls'], (error, stdout, stderr)=>{
-				error && ng()
 				outputs['DockeMachines'] = stdout
 				ok()
 			})
@@ -113,8 +112,10 @@ module.exports = async option=>{
 		Promise.all(funcs)
 			.then(()=>{
 				// DockerMachines
-				console.log('\n  DockeMachines')
-				lib.Message(outputs['DockeMachines'], 'primary', 1)
+				if(outputs['DockerMachines']) {
+					console.log('\n  DockeMachines')
+					lib.Message(outputs['DockeMachines'], 'primary', 1)
+				}
 
 				// Images
 				console.log('\n  Images')
