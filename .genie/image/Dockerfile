@@ -91,6 +91,7 @@ RUN yum install -y epel-release \
        php-gd \
        php-xdebug \
        freetype-devel \
+       libc-client \
     && yum clean all
 
 # Install anyenv
