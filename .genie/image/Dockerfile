@@ -192,7 +192,8 @@ RUN chmod +x /*.sh
 # ---------------
 RUN groupadd -g 1000 docker \
     && useradd -g docker -m -s /bin/bash docker \
-    && usermod -aG apache,nginx docker
+    && usermod -aG apache,nginx docker \
+    && localedef -f UTF-8 -i ja_JP ja_JP.UTF-8
 
 # Entry point
 # -----------
