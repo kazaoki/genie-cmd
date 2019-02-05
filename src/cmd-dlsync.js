@@ -36,7 +36,7 @@ module.exports = async option=>{
 
 	// 基本引数
 	let args = [];
-	args.push('run', '-d', '-it', '--rm')
+	args.push('run', '--rm')
 	args.push('-e', 'TERM=xterm-256color')
 	args.push('-e', 'LANG=ja_JP.UTF-8')
 	args.push('-e', 'LC_ALL=ja_JP.UTF-8')
@@ -60,7 +60,12 @@ module.exports = async option=>{
 	args.push(config.core.docker.image)
 
 	// dockerコマンド実行
-	let result = child.spawnSync('docker', args)
+	let result = child.spawnSync('docker', args, {
+		cwd: process.cwd(),
+		env: process.env,
+		stdio: 'inherit',
+		encoding: 'utf-8'
+	})
 	if(result.status) {
 		Error(result.stderr.toString())
 	}

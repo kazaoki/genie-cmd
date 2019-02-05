@@ -213,8 +213,8 @@ config.trans =
 		remote_pass: '',
 		remote_dir: '/public_html',
 		local_dir: 'public_html', // ホームパスからの相対です
-		// remote_charset: 'utf8', // utf8, sjis 等
-		// local_charset: 'sjis',
+		remote_charset: 'utf8', // utf8, sjis 等
+		local_charset: 'utf8',
 		lftp_option: [
 			'--verbose',
 			'--delete',
