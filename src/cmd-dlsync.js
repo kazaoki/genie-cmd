@@ -42,6 +42,7 @@ module.exports = async option=>{
 	args.push('-e', 'LC_ALL=ja_JP.UTF-8')
 	args.push('-e', 'GENIE_PROC=dlsync')
 	args.push('-v', `${local_dir}:/sync`)
+	args.push('-v', `${config.root}/.genie/:/genie/`)
 	args.push('--label', `genie_runmode="${config.runmode}"`)
 	args.push('--label', `genie_root="${config.root}"`)
 	args.push(`--name=${config.base_name}-DLSYNC`)

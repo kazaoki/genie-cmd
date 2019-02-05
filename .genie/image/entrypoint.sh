@@ -35,6 +35,14 @@ if [[ $GENIE_PROC == 'dlsync' ]]; then
   fi
   echo "set ftp:list-options -a" >> /tmp/mirror.cmd
   echo "set ssl:verify-certificate no" >> /tmp/mirror.cmd
+  # ref: https://hacknote.jp/archives/25366/
+  echo "set ftp:passive-mode on" >> /tmp/mirror.cmd
+  echo "set net:timeout 60" >> /tmp/mirror.cmd
+  echo "set net:max-retries 10" >> /tmp/mirror.cmd
+  echo "set net:reconnect-interval-base 10" >> /tmp/mirror.cmd
+  echo "set dns:max-retries 10" >> /tmp/mirror.cmd
+  echo "set dns:fatal-timeout 60" >> /tmp/mirror.cmd
+  echo "set net:limit-rate 13107200:13107200" >> /tmp/mirror.cmd
   echo "open -u $GENIE_TRANS_DLSYNC_REMOTE_USER,$GENIE_TRANS_DLSYNC_REMOTE_PASS $GENIE_TRANS_DLSYNC_REMOTE_HOST" >> /tmp/mirror.cmd
   echo "mirror $GENIE_TRANS_DLSYNC_LFTP_OPTION $GENIE_TRANS_DLSYNC_REMOTE_DIR /sync" >> /tmp/mirror.cmd
   echo "close" >> /tmp/mirror.cmd
