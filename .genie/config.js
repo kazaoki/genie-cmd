@@ -216,9 +216,11 @@ config.trans =
 		remote_charset: 'utf8', // utf8, sjis 等
 		local_charset: 'utf8',
 		lftp_option: [
+			'-a',
 			'--verbose',
 			'--delete',
 			'--parallel=1', // 2や3とかにすれば速いけど、FTPサーバによっては接続拒否されてしまうかもしれないので注意。
+			// '--log=/genie/lftp_cmd.log',
 			'-X', '.genie',
 			// '-X', 'media/*',
 			// '-X', 'assets/font-awesome/*',
