@@ -31,7 +31,7 @@ const h = module.exports.h = (title, clc=color.white)=>console.log('\n  '+clc(ti
  */
 const getRootDir = module.exports.getRootDir = ()=>{
 	let root_dir = ''
-	let check_dir = process.cwd()
+	let check_dir = process.cwd().replace(/^([a-z])\:/, (m,m1)=>m1.toUpperCase()+':') // win+vscode環境でドライブレターが小文字で入ってくるケースがありエラーになるため大文字に。
 	let cont = true
 	do {
 		try {
