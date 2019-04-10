@@ -107,6 +107,9 @@ if [[ $GENIE_LANG_PHP_XDEBUG_HOST != '' ]]; then
 else
   echo 'xdebug.remote_enable = Off' >> $phpini
   echo 'xdebug.remote_autostart = Off' >> $phpini
+  echo 'xdebug.var_display_max_children = -1' >> $phpini
+  echo 'xdebug.var_display_max_data = -1' >> $phpini
+  echo 'xdebug.var_display_max_depth = -1' >> $phpini
 fi
 echo $phpini > /phpinipath
 /usr/sbin/httpd -k restart
