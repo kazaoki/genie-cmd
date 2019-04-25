@@ -164,7 +164,7 @@ module.exports = async option=>{
 					let exec_dump =
 						'docker exec'+
 						` ${container_name}-dumper`+
-						` sh -c "pg_dump ${postgresql.name} -U ${postgresql.user} -h ${container_name} | gzip > /dumps/${key}.sql${argv.g?'.gz':''}"`
+						` sh -c "pg_dump ${postgresql.name} -U ${postgresql.user} -h ${container_name} ${argv.g?'| gzip':''} > /dumps/${key}.sql${argv.g?'.gz':''}"`
 					;
 					child.exec(exec_dump, (error, stdout, stderr)=>{
 						child.exec(`docker rm -fv ${container_name}-dumper`)
