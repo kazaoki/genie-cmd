@@ -263,8 +263,10 @@ config.test =
 config.command =
 {
 	top: 'top',
+	htop: 'htop',
 	ngrok: 'ngrok http 80',
 	phplist: '. ~/.bashrc && phpenv install --list',
-	xoff: '/opt/misc/php-xdebug-off.sh',
-	xon: '/opt/misc/php-xdebug-on.sh',
+	ab: 'ab -n 1000 -c 100 http://localhost/',
+	// xoff: '/opt/misc/php-xdebug-off.sh',
+	// xon: '/opt/misc/php-xdebug-on.sh',
 }
