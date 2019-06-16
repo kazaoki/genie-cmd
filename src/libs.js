@@ -441,7 +441,7 @@ const dockerUpMySQL = module.exports.dockerUpMySQL = (key, config)=>
 		args.push('-e', `MYSQL_PASSWORD=${mysql.pass}`)
 		args.push('-e', `MYSQL_CHARSET=${mysql.charset}`)
 		if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
-		if(config.core.docker.options) args.push(`${config.core.docker.options}`)
+		if(mysql.options) args.push(`${mysql.options}`)
 		if(mysql.external_port) {
 			args.push('-p',
 				mysql.external_port==='auto'
@@ -507,7 +507,7 @@ const dockerUpPostgreSQL = module.exports.dockerUpPostgreSQL = (key, config)=>
 		args.push('-e', `POSTGERS_ENCODING=${postgresql.encoding}`)
 		args.push('-e', `POSTGERS_LOCALE=${postgresql.locale}`)
 		if(config.core.docker.network) args.push(`--net=${config.core.docker.network}`)
-		if(config.core.docker.options) args.push(`${config.core.docker.options}`)
+		if(postgresql.options) args.push(`${postgresql.options}`)
 		if(postgresql.external_port) {
 			args.push('-p',
 				postgresql.external_port==='auto'
