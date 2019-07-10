@@ -99,12 +99,13 @@ RUN yum install -y epel-release \
 ENV PATH /root/.anyenv/bin:$PATH
 RUN git clone https://github.com/riywo/anyenv ~/.anyenv \
     && echo 'export PATH="$HOME/.anyenv/bin:$PATH"' >> ~/.bashrc \
+    && /root/.anyenv/bin/anyenv install --force-init \
     && echo 'eval "$(anyenv init -)"' >> ~/.bashrc \
     && . ~/.bashrc \
     && anyenv install rbenv \
     && anyenv install plenv \
     && anyenv install phpenv \
-    && anyenv install ndenv \
+    && anyenv install nodenv \
     && . ~/.bashrc
 
 # Setup default PHP
