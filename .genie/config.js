@@ -79,7 +79,7 @@ config.log =
 		[
 			['/var/log/httpd/access_log', 'white'],
 			['/var/log/httpd/error_log', 'red'],
-			['/var/log/httpd/ssl_access_log', 'white'],
+			// ['/var/log/httpd/ssl_access_log', 'white'],
 			['/var/log/httpd/ssl_request_log', 'white'],
 			['/var/log/httpd/ssl_error_log', 'red'],
 		],
@@ -117,7 +117,7 @@ config.http =
 	apache: {
 		enabled: true,
 		public_dir: 'public_html',
-		no_log_regex: '\.(gif|jpg|jpeg|jpe|png|css|js|ico)$',
+		no_log_regex: '\.(gif|jpg|jpeg|jpe|png|css|js|ico|woff|woff2|map)$',
 		real_ip_log_enabled: false,
 		external_http_port: 80,
 		external_https_port: 443,
@@ -269,6 +269,6 @@ config.command =
 	ngrok: 'ngrok http 80',
 	phplist: '. ~/.bashrc && phpenv install --list',
 	ab: 'ab -n 1000 -c 100 http://localhost/',
-	// xoff: '/opt/misc/php-xdebug-off.sh',
-	// xon: '/opt/misc/php-xdebug-on.sh',
+	xoff: '/opt/misc/php-xdebug-off.sh',
+	xon: '/opt/misc/php-xdebug-on.sh',
 }
