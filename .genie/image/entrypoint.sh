@@ -129,9 +129,11 @@ if [[ $GENIE_HTTP_APACHE_ENABLED ]]; then
   if [[ $GENIE_HTTP_APACHE_NO_LOG_REGEX ]]; then
     sed -i "s/CustomLog \"logs\/access_log\" combined$/CustomLog \"logs\/access_log\" combined env\=\!nolog/" /etc/httpd/conf/httpd.conf
     echo "SetEnvIfNoCase Request_URI \"$GENIE_HTTP_APACHE_NO_LOG_REGEX\" nolog" >> /etc/httpd/conf/httpd.conf
+    sed -i "s/\"%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \\\\\"%r\\\\\" %b\"/\"%t %h %{SSL_PROTOCOL}x %{SSL_CIPHER}x \\\\\"%r\\\\\" %b\" env\=\!nolog/" /etc/httpd/conf.d/ssl.conf
   fi
   if [[ $GENIE_HTTP_APACHE_REAL_IP_LOG_ENABLED ]]; then
     sed -i "s/\%h /\%\{X-Forwarded-For\}i /g" /etc/httpd/conf/httpd.conf
+    sed -i "s/\%h /\%\{X-Forwarded-For\}i /g" /etc/httpd/conf.d/ssl.conf
   fi
   /usr/sbin/httpd
   echo 'Apache setup done.' >> /var/log/entrypoint.log
