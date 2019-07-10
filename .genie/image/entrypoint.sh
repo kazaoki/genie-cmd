@@ -123,15 +123,15 @@ if [[ $GENIE_HTTP_APACHE_ENABLED ]]; then
 #   sed -i "/<__PASSENV__>/,/<\/__PASSENV__>/c\
 # \ \ # <__PASSENV__>\n\
 #   PassEnv $passenv_string\n\
-#   # </__PASSENV__>" /etc/apache2/httpd.conf
-#   sed -i "s/DocumentRoot \"\/var\/www\/localhost\/htdocs\"/DocumentRoot \"\/var\/www\/html\"/" /etc/apache2/httpd.conf
-#   sed -i "s/ScriptAlias \/cgi\-bin\//#ScriptAlias \/cgi\-bin\//" /etc/apache2/httpd.conf
+#   # </__PASSENV__>" /etc/httpd/conf/httpd.conf
+#   sed -i "s/DocumentRoot \"\/var\/www\/localhost\/htdocs\"/DocumentRoot \"\/var\/www\/html\"/" /etc/httpd/conf/httpd.conf
+#   sed -i "s/ScriptAlias \/cgi\-bin\//#ScriptAlias \/cgi\-bin\//" /etc/httpd/conf/httpd.conf
   if [[ $GENIE_HTTP_APACHE_NO_LOG_REGEX ]]; then
-    sed -i "s/CustomLog logs\/access.log combined$/CustomLog logs\/access.log combined env\=\!nolog/" /etc/apache2/httpd.conf
-    echo "SetEnvIfNoCase Request_URI \"$GENIE_HTTP_APACHE_NO_LOG_REGEX\" nolog" >> /etc/apache2/httpd.conf
+    sed -i "s/CustomLog logs\/access.log combined$/CustomLog logs\/access.log combined env\=\!nolog/" /etc/httpd/conf/httpd.conf
+    echo "SetEnvIfNoCase Request_URI \"$GENIE_HTTP_APACHE_NO_LOG_REGEX\" nolog" >> /etc/httpd/conf/httpd.conf
   fi
   if [[ $GENIE_HTTP_APACHE_REAL_IP_LOG_ENABLED ]]; then
-    sed -i "s/\%h /\%\{X-Forwarded-For\}i /g" /etc/apache2/httpd.conf
+    sed -i "s/\%h /\%\{X-Forwarded-For\}i /g" /etc/httpd/conf/httpd.conf
   fi
   /usr/sbin/httpd
   echo 'Apache setup done.' >> /var/log/entrypoint.log

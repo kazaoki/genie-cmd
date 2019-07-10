@@ -62,7 +62,7 @@ config.lang =
 		xdebug: {
 			host: '192.168.0.10',
 			port: 9000,
- 		}
+		}
 	},
 }
 
