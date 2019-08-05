@@ -166,7 +166,7 @@ module.exports = async option=>{
 						'docker exec'+
 						` ${container_name}-dumper`+
 						' sh -c'+
-						` "mysqldump --single-transaction -h ${container_name} -u${mysql.user} -p${mysql.pass} ${mysql.name} > /dumps/${key}.sql${argv.g?'.gz':''}"`
+						` "mysqldump --single-transaction -h ${container_name} -u${mysql.user} --password='${mysql.pass}' ${mysql.name} > /dumps/${key}.sql${argv.g?'.gz':''}"`
 					;
 					child.exec(exec_dump, (error, stdout, stderr)=>{
 						child.exec(`docker rm -fv ${container_name}-dumper`)
