@@ -169,7 +169,7 @@ RUN curl -L https://toolbelt.treasuredata.com/sh/install-redhat-td-agent2.sh | s
 # Node.js config
 # --------------------------------------------------------------------------------------------------
 RUN echo '{ "allow_root": true }' > /root/.bowerrc \
-    && npm install bower maildev -g
+    && npm install bower maildev iconv -g
 
 # # Install box# logrotate adjust
 # ----------------
