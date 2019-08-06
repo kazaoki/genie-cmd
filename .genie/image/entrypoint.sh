@@ -151,6 +151,14 @@ if [[ $GENIE_HTTP_NGINX_ENABLED ]]; then
 fi
 
 # --------------------------------------------------------------------
+# MailDev
+# --------------------------------------------------------------------
+if [[ $GENIE_MAIL_MAILDEV_ENABLED ]]; then
+  echo 'relayhost = 127.0.0.1:1025' >> /etc/postfix/main.cf
+  maildev -s 1025 -w 9981 $GENIE_MAIL_MAILDEV_OPTION_STRING &
+fi
+
+# --------------------------------------------------------------------
 # Postfix
 # --------------------------------------------------------------------
 if [[ $GENIE_MAIL_POSTFIX_ENABLED ]]; then
@@ -162,14 +170,6 @@ if [[ $GENIE_MAIL_POSTFIX_ENABLED ]]; then
   fi
   /usr/sbin/postfix start
   echo 'Postfix setup done.' >> /var/log/entrypoint.log
-fi
-
-# --------------------------------------------------------------------
-# MailDev
-# --------------------------------------------------------------------
-if [[ $GENIE_MAIL_MAILDEV_ENABLED ]]; then
-  echo 'relayhost = [localhost]:1025' >> /etc/postfix/main.cf
-  maildev -s 1025 -w 9981 $GENIE_MAIL_MAILDEV_OPTION_STRING &
 fi
 
 # --------------------------------------------------------------------
